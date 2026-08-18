@@ -9,6 +9,7 @@ import type { Veiculo } from '@godrive/engine';
 import type { Acao, Derivado, Estado, Proposta } from '../state';
 import { gravarPropostas, lerPropostas } from '../state';
 import type { Marca } from '../lib/marca';
+import { gerarLink } from '../lib/link';
 import { reais } from '../lib/format';
 import { Icone } from './icones';
 
@@ -126,6 +127,23 @@ export function Propostas({
           <button type="button" className="btn btn-x full" onClick={salvar} disabled={!d}>
             <Icone nome="salvar" />
             Salvar proposta
+          </button>
+          <button
+            type="button"
+            className="btn btn-p full"
+            disabled={!d}
+            onClick={async () => {
+              const url = gerarLink(estado, marca);
+              try {
+                await navigator.clipboard.writeText(url);
+                avisar('Link copiado — preços e marca viajam DENTRO do link, nada fica em servidor.');
+              } catch {
+                window.prompt('Copie o link para o cliente:', url);
+              }
+            }}
+          >
+            <Icone nome="zap" />
+            Copiar link mágico (abre no iPhone)
           </button>
           <button type="button" className="btn btn-p" onClick={() => pdf()} disabled={!d}>
             <Icone nome="imp" />

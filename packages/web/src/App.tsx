@@ -4,6 +4,11 @@ import { PERFIL, useApp } from './state';
 import { reais } from './lib/format';
 import { catalogoEfetivo, lerCustom } from './lib/catalogo';
 import { aplicarMarca, lerMarca } from './lib/marca';
+import { lerLink } from './lib/link';
+
+// dados vindos pelo link mágico (#d=...) — lidos uma vez, nunca persistidos:
+// a marca/preços de uma locadora valem só nesta visita, neste aparelho
+const LINK = typeof window !== 'undefined' ? lerLink() : null;
 import { Simulador } from './components/Simulador';
 import { Resultado } from './components/Resultado';
 import { PJ } from './components/PJ';
@@ -28,9 +33,18 @@ export default function App() {
     toastT.current = setTimeout(() => setToast(''), 3400);
   }, []);
 
-  // catálogo efetivo (referência + retaguarda) e marca white-label
+  // catálogo efetivo (referência + retaguarda) e marca white-label;
+  // o link mágico sobrepõe a marca SÓ nesta sessão (nada é gravado)
   const catalogo = useMemo(() => catalogoEfetivo(lerCustom()), [estado.catVersao]);
-  const marca = useMemo(() => lerMarca(), [estado.catVersao]);
+  const marca = useMemo(() => ({ ...lerMarca(), ...(LINK?.marca ?? {}) }), [estado.catVersao]);
+
+  // simulação vinda pelo link: aplica uma única vez, depois da montagem
+  const linkAplicado = useRef(false);
+  useEffect(() => {
+    if (linkAplicado.current || !LINK || !Object.keys(LINK.estado).length) return;
+    linkAplicado.current = true;
+    dispatch({ t: 'muitos', valores: { ...LINK.estado, aba: 'resultado' } });
+  }, [dispatch]);
 
   const mostrarDock = estado.aba === 'simular' && derivado != null;
 
