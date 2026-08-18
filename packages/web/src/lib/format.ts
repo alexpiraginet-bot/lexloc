@@ -19,14 +19,26 @@ export function n2(v: number): string {
   return nf2.format(v);
 }
 
-/** "1.500,50" → 1500.5 · tolerante a lixo. */
+/**
+ * "1.500,50" → 1500.5 · tolerante a lixo.
+ * Convenção pt-BR: vírgula é decimal. Ponto é milhar — EXCETO quando é
+ * claramente decimal ("1.5", "2.75"): sem vírgula na entrada e com 1–2
+ * dígitos após o único ponto, trata como decimal. Evita a armadilha de
+ * "2.5" em seguro % virar 25.
+ */
 export function parseNum(s: string): number {
-  const limpo = String(s)
+  let limpo = String(s)
     .trim()
     .replace(/\s/g, '')
-    .replace(/\./g, '')
-    .replace(',', '.')
-    .replace(/[^0-9.\-]/g, '');
+    .replace(/[^0-9.,\-]/g, '');
+  const temVirgula = limpo.includes(',');
+  const pontos = (limpo.match(/\./g) ?? []).length;
+  if (!temVirgula && pontos === 1 && /\.\d{1,2}$/.test(limpo)) {
+    // "1.5" → decimal
+  } else {
+    limpo = limpo.replace(/\./g, '');
+  }
+  limpo = limpo.replace(',', '.');
   const v = parseFloat(limpo);
   return Number.isFinite(v) ? v : 0;
 }

@@ -393,6 +393,18 @@ export function AnosPJ({ linhas }: { linhas: LinhaAno[] }) {
         })}
         {linhas.map((l, k) => {
           const cx = pl + gw * k + gw / 2;
+          // ponta arredondada de 4px exige altura e largura mínimas — senão o
+          // arco produziria um path inválido (v negativo) e a barra sumiria
+          const raio = Math.min(4, Math.max(1, (bw - 2) / 2));
+          const barra = (x0: number, h: number, cor: string) => {
+            const alt = Math.max(raio + 1, h);
+            return (
+              <path
+                d={`M${x0} ${base} v-${alt - raio} a${raio} ${raio} 0 0 1 ${raio} -${raio} h${bw - raio * 2} a${raio} ${raio} 0 0 1 ${raio} ${raio} v${alt - raio} z`}
+                fill={cor}
+              />
+            );
+          };
           const hA = (l.assinando / mx) * (base - pt);
           const hC = (l.comprando / mx) * (base - pt);
           return (
@@ -409,14 +421,8 @@ export function AnosPJ({ linhas }: { linhas: LinhaAno[] }) {
               }
               onMouseLeave={esconder}
             >
-              <path
-                d={`M${cx - bw - 2} ${base} v-${Math.max(2, hA) - 4} a4 4 0 0 1 4 -4 h${bw - 8} a4 4 0 0 1 4 4 v${Math.max(2, hA) - 4} z`}
-                fill="var(--c-ass)"
-              />
-              <path
-                d={`M${cx + 2} ${base} v-${Math.max(2, hC) - 4} a4 4 0 0 1 4 -4 h${bw - 8} a4 4 0 0 1 4 4 v${Math.max(2, hC) - 4} z`}
-                fill="var(--c-vis)"
-              />
+              {barra(cx - bw - 2, hA, 'var(--c-ass)')}
+              {barra(cx + 2, hC, 'var(--c-vis)')}
               <text x={cx} y={H - 9} fontSize={10} textAnchor="middle" fill="var(--muted)" fontFamily="var(--mono)">
                 {l.ano}
               </text>

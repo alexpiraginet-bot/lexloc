@@ -8,7 +8,7 @@ import { INCLUSO, VANTAGENS, FAQ } from '@godrive/engine';
 import type { Derivado, Estado, Modo } from '../state';
 import { n0, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
-import { AnosPJ as _unused, Barras, Composicao, Linhas, Medidor } from './charts';
+import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';
 
 /**
@@ -387,11 +387,7 @@ export function Resultado({
               meses={p.meses}
               series={[
                 { nome: 'Assinar', cor: 'var(--c-ass)', d: r.assinar.saldo },
-                {
-                  nome: 'À vista',
-                  cor: 'var(--c-vis)',
-                  d: r.aVista.saldo.map((s, i) => s + (r.posse[i] ? 0 : 0)),
-                },
+                { nome: 'À vista', cor: 'var(--c-vis)', d: r.aVista.saldo },
                 { nome: 'Financiar', cor: 'var(--c-fin)', d: r.financiar.saldo },
               ]}
             />

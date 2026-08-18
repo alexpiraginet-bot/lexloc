@@ -4,7 +4,7 @@
  * O PDF sai da folha de impressão do navegador (Ctrl+P → salvar como PDF)
  * — funciona off-line, sem nenhuma dependência.
  */
-import { useState, type Dispatch } from 'react';
+import { useEffect, useRef, useState, type Dispatch } from 'react';
 import { CATALOGO } from '@godrive/engine';
 import type { Acao, Derivado, Estado, Proposta } from '../state';
 import { gravarPropostas, lerPropostas } from '../state';
@@ -74,10 +74,23 @@ export function Propostas({
     );
   };
 
+  // imprimir SÓ depois que o estado da proposta re-renderizou de fato —
+  // um setTimeout aqui seria corrida: em aparelho lento o PDF sairia
+  // com os números da simulação anterior.
+  const imprimirAposRender = useRef(false);
+  useEffect(() => {
+    if (!imprimirAposRender.current) return;
+    imprimirAposRender.current = false;
+    const raf = requestAnimationFrame(() => window.print());
+    return () => cancelAnimationFrame(raf);
+  });
   const pdf = (p?: Proposta) => {
-    if (p) abrir(p);
-    // dá tempo do estado aplicar antes do print
-    setTimeout(() => window.print(), 120);
+    if (p) {
+      imprimirAposRender.current = true;
+      abrir(p); // o useEffect acima dispara o print no render seguinte
+    } else {
+      window.print(); // estado atual já está na tela
+    }
   };
 
   return (

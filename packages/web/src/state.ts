@@ -109,8 +109,16 @@ export type Acao =
 
 function reducer(e: Estado, a: Acao): Estado {
   switch (a.t) {
-    case 'set':
-      return { ...e, [a.campo]: a.valor };
+    case 'set': {
+      const novo = { ...e, [a.campo]: a.valor };
+      // Propostas só existe no modo vendedor — voltar para cliente com ela
+      // aberta deixaria o usuário num painel sem aba (e com dados de outros
+      // clientes na tela). Redireciona.
+      if (a.campo === 'modo' && a.valor === 'cliente' && novo.aba === 'propostas') {
+        novo.aba = 'resultado';
+      }
+      return novo;
+    }
     case 'muitos':
       return { ...e, ...a.valores };
     case 'reset':
@@ -238,15 +246,36 @@ export function derivar(e: Estado): Derivado | null {
   };
 }
 
+/**
+ * Saneia o que veio do localStorage: só aceita chaves conhecidas e com o
+ * MESMO tipo do estado inicial. Storage é gravável por qualquer script da
+ * origem — nunca confiar no formato.
+ */
+function sanearEstado(bruto: unknown): Partial<Estado> {
+  if (typeof bruto !== 'object' || bruto == null) return {};
+  const fonte = bruto as Record<string, unknown>;
+  const limpo: Record<string, unknown> = {};
+  for (const [k, padrao] of Object.entries(estadoInicial)) {
+    const v = fonte[k];
+    if (typeof v === typeof padrao && (typeof v !== 'number' || Number.isFinite(v))) {
+      limpo[k] = v;
+    }
+  }
+  return limpo as Partial<Estado>;
+}
+
 export function useApp() {
   const [estado, dispatch] = useReducer(
     reducer,
     undefined,
-    () => ({ ...estadoInicial, ...(lerLS<Partial<Estado>>(LS_ESTADO) ?? {}), aba: 'simular' as const }),
+    () => ({ ...estadoInicial, ...sanearEstado(lerLS<unknown>(LS_ESTADO)), aba: 'simular' as const }),
   );
 
+  // persistência com debounce: o slider dispara dezenas de estados por
+  // segundo e gravar JSON síncrono a cada tick é trabalho jogado fora
   useEffect(() => {
-    gravarLS(LS_ESTADO, estado);
+    const t = setTimeout(() => gravarLS(LS_ESTADO, estado), 250);
+    return () => clearTimeout(t);
   }, [estado]);
 
   useEffect(() => {
@@ -262,6 +291,10 @@ export function useApp() {
     return () => prefereEscuro.removeEventListener('change', aplicar);
   }, [estado.tema]);
 
-  const derivado = useMemo(() => derivar(estado), [estado]);
+  // recalcula SÓ quando um parâmetro financeiro muda — trocar aba, tema ou
+  // modo não deve reexecutar a busca binária de equilíbrio (71 simulações)
+  const chaveFinanceira = JSON.stringify(paramsDe(estado));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const derivado = useMemo(() => derivar(estado), [chaveFinanceira]);
   return { estado, dispatch, derivado };
 }

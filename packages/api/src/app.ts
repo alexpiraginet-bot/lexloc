@@ -44,10 +44,21 @@ import { openapi } from './openapi.js';
 export function buildApp(opts: { logger?: boolean } = {}) {
   const app = Fastify({ logger: opts.logger ?? false });
 
-  app.register(cors, { origin: true, methods: ['GET', 'POST'] });
+  // Decisão explícita: API pública de simulação, sem credenciais e sem dado
+  // sensível — qualquer origem pode consumir (caso de uso: parceiros e o
+  // arquivo off-line aberto de file://). Se um dia houver autenticação,
+  // trocar por allowlist.
+  app.register(cors, { origin: true, credentials: false, methods: ['GET', 'POST'] });
   app.register(rateLimit, {
     max: 300,
     timeWindow: '1 minute',
+  });
+
+  // headers de segurança básicos, sem dependência extra
+  app.addHook('onSend', async (_req, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
   });
 
   /* ───────────── API v1 ───────────── */

@@ -168,7 +168,12 @@ export default function App() {
 
       {derivado ? <PropostaPrint estado={estado} d={derivado} /> : null}
 
-      <div className={`dock no-print${mostrarDock ? ' on' : ''}`} aria-hidden={!mostrarDock}>
+      <div
+        className={`dock no-print${mostrarDock ? ' on' : ''}`}
+        aria-hidden={!mostrarDock}
+        // invisível não pode ser alcançável por Tab — senão o foco some da tela
+        {...(!mostrarDock ? { inert: true } : {})}
+      >
         <div className="in">
           <div className="txt">
             <div className="lb">assinando você não paga</div>
@@ -177,6 +182,7 @@ export default function App() {
           <button
             type="button"
             className="btn btn-p"
+            tabIndex={mostrarDock ? 0 : -1}
             onClick={() => dispatch({ t: 'set', campo: 'aba', valor: 'resultado' })}
           >
             Ver resultado
