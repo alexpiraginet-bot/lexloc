@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LexLoc</title>
+<meta name="description" content="A calculadora que vende assinatura de veículos. Grátis para locadoras do Brasil: modo cliente interativo, mesa do vendedor com PDF de proposta e retaguarda de preços white-label. Funciona off-line." />
+<meta property="og:title" content="LexLoc — a calculadora que vende assinatura" />
+<meta property="og:description" content="Grátis para locadoras do Brasil. Veredito que convence, PDF de proposta, white-label completo. Funciona sem internet." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='1' y='1' width='30' height='30' rx='9' fill='%23892991'/><circle cx='16' cy='16' r='6.5' fill='%23D9B76B'/></svg>" />
+<style>
+:root{
+  --brand:#8f31aa; --brand-deep:#892991; --brand-dark:#6b1f73;
+  --gold:#c9a227; --gold-deep:#8a6e16; --gold-soft:#f7f0da;
+  --ink:#1a1520; --ink-2:#3d3548; --muted:#645b71;
+  --paper:#fbf9fd; --surface:#f5f1f9; --line:#e7dff0;
+  --sans:ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --brand:#c77ddb; --brand-deep:#b463cc; --brand-dark:#8f31aa;
+    --gold:#d9b76b; --gold-deep:#d9b76b; --gold-soft:#2e2713;
+    --ink:#f3eff7; --ink-2:#d8d1e0; --muted:#a99fb8;
+    --paper:#17111f; --surface:#201830; --line:#342945;
+  }
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:1020px;margin:0 auto;padding:0 20px}
+h1,h2,h3{line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+a{color:inherit}
+
+/* header */
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+header .row{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{font-size:24px;font-weight:800;letter-spacing:-.04em}
+.logo b{color:var(--brand-deep)}
+.logo i{color:var(--gold);font-style:normal}
+.cta-mini{display:inline-flex;align-items:center;gap:8px;background:var(--brand-deep);color:#fff;border-radius:11px;padding:10px 16px;font-size:14px;font-weight:600;text-decoration:none;transition:transform .15s}
+.cta-mini:hover{transform:translateY(-1px)}
+
+/* hero */
+.hero{position:relative;padding:84px 0 70px;text-align:center;overflow:hidden}
+.hero::before{content:"";position:absolute;left:50%;top:-340px;transform:translateX(-50%);width:900px;height:620px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--brand) 16%,transparent),transparent 65%);pointer-events:none}
+.hero>*{position:relative}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);background:var(--gold-soft);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:99px;padding:7px 16px;margin-bottom:22px}
+.hero h1{font-size:clamp(38px,6.4vw,62px);font-weight:800;letter-spacing:-.045em;max-width:17ch;margin:0 auto 18px}
+.hero h1 em{font-style:normal;color:var(--brand-deep)}
+.hero p.sub{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:52ch;margin:0 auto 34px}
+.hero p.sub b{color:var(--ink)}
+.ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:13px;padding:16px 26px;font-size:16px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-p{background:var(--brand-deep);color:#fff;box-shadow:0 10px 32px -10px color-mix(in srgb,var(--brand-deep) 55%,transparent)}
+.btn-g{background:var(--gold);color:#1c1206}
+.btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.free{margin-top:16px;font-size:13.5px;color:var(--muted)}
+.free b{color:var(--gold-deep)}
+
+/* faixa veredito */
+.verdict-demo{max-width:560px;margin:56px auto 0;background:linear-gradient(142deg,var(--brand-deep) 0%,#521a66 55%,#2e0d3d 100%);border-radius:22px;padding:30px 26px;color:#fff;box-shadow:0 18px 60px -18px color-mix(in srgb,var(--brand-dark) 70%,transparent);text-align:center}
+.verdict-demo .k{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.72)}
+.verdict-demo .v{font-family:var(--mono);font-size:clamp(34px,7vw,46px);font-weight:800;letter-spacing:-.04em;color:#d9b76b;margin:10px 0 8px}
+.verdict-demo p{font-size:13.5px;color:rgba(255,255,255,.88);max-width:40ch;margin:0 auto}
+.verdict-demo p b{color:#fff}
+
+/* seções */
+section{padding:72px 0}
+.sec-k{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold-deep);margin-bottom:12px}
+section h2{font-size:clamp(27px,4vw,38px);font-weight:800;letter-spacing:-.035em;margin-bottom:14px}
+section p.lead{color:var(--muted);max-width:60ch;font-size:17px;margin-bottom:36px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.feat{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px 22px}
+.feat .ic{width:44px;height:44px;border-radius:13px;background:color-mix(in srgb,var(--brand) 12%,transparent);display:grid;place-items:center;margin-bottom:14px}
+.feat .ic svg{width:22px;height:22px;stroke:var(--brand-deep);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.feat h3{font-size:17px;font-weight:700;margin-bottom:7px}
+.feat p{font-size:14px;color:var(--muted);line-height:1.6}
+.feat p b{color:var(--ink-2)}
+
+/* passos */
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.step{counter-increment:s;background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:24px 22px;position:relative}
+.step::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:13px;font-weight:800;color:var(--gold-deep);letter-spacing:.06em}
+.step h3{font-size:17px;margin:10px 0 7px}
+.step p{font-size:14px;color:var(--muted)}
+
+/* downloads */
+.dl-zone{background:linear-gradient(160deg,color-mix(in srgb,var(--brand) 7%,var(--paper)),var(--paper));border:1.5px solid var(--line);border-radius:26px;padding:44px clamp(20px,5vw,48px)}
+.dl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:30px}
+.dl-card{background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:28px 26px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 24px -12px color-mix(in srgb,var(--brand-dark) 25%,transparent)}
+.dl-card.destaque{border-color:color-mix(in srgb,var(--gold) 55%,var(--line));box-shadow:0 8px 36px -14px color-mix(in srgb,var(--gold) 40%,transparent)}
+.dl-card .tag{align-self:flex-start;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border-radius:7px;padding:4px 10px;background:color-mix(in srgb,var(--brand) 13%,transparent);color:var(--brand-deep)}
+.dl-card.destaque .tag{background:var(--gold-soft);color:var(--gold-deep)}
+.dl-card h3{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.dl-card ul{margin:0;padding-left:0;list-style:none;display:grid;gap:8px;font-size:14px;color:var(--muted)}
+.dl-card li{display:flex;gap:9px;align-items:flex-start}
+.dl-card li svg{width:16px;height:16px;flex:0 0 auto;margin-top:3px;stroke:var(--gold-deep);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.dl-card .btn{margin-top:auto;justify-content:center}
+.dl-note{font-size:13px;color:var(--muted);margin-top:22px;text-align:center}
+.dl-note b{color:var(--ink-2)}
+
+/* confiança */
+.trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:8px}
+.tnum{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center}
+.tnum b{display:block;font-family:var(--mono);font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--brand-deep)}
+.tnum span{font-size:12.5px;color:var(--muted);display:block;margin-top:5px;line-height:1.45}
+
+/* whitelabel */
+.wl{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;align-items:center}
+.wl-demo{border:1.5px solid var(--line);border-radius:20px;overflow:hidden;background:var(--paper);box-shadow:0 10px 40px -16px color-mix(in srgb,var(--brand-dark) 30%,transparent)}
+.wl-demo .bar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.wl-demo .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.wl-demo .body{padding:20px 18px}
+.wl-demo .fake-logo{font-size:21px;font-weight:800;letter-spacing:-.03em;margin-bottom:12px}
+.wl-demo .fake-logo b{color:var(--brand-deep)} .wl-demo .fake-logo i{color:var(--gold);font-style:normal}
+.wl-demo .linha{height:11px;border-radius:6px;background:var(--surface);margin:9px 0}
+.wl-demo .linha.curta{width:62%}
+.wl-demo .chippy{display:inline-block;font-size:11px;font-weight:700;border-radius:8px;padding:5px 11px;background:var(--gold-soft);color:var(--gold-deep);margin-top:8px}
+.wl ul{list-style:none;padding:0;display:grid;gap:13px}
+.wl li{display:flex;gap:11px;font-size:15.5px}
+.wl li svg{width:19px;height:19px;flex:0 0 auto;margin-top:3px;stroke:var(--gold-deep);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.wl li b{display:block}
+.wl li span{color:var(--muted);font-size:13.5px}
+
+/* faq + footer */
+details{border:1px solid var(--line);border-radius:14px;background:var(--paper);margin-bottom:10px;overflow:hidden}
+summary{padding:16px 18px;font-weight:700;font-size:15px;cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+details p{padding:0 18px 16px;font-size:14.5px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:36px 0 48px;text-align:center;font-size:13.5px;color:var(--muted)}
+footer .logo{font-size:20px;margin-bottom:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap row">
+    <div class="logo"><b>Lex</b><i>Loc</i></div>
+    <a class="cta-mini" href="#baixar">Baixar grátis</a>
+  </div>
+</header>
+
+<main>
+  <div class="hero wrap">
+    <span class="pill">Grátis para locadoras do Brasil</span>
+    <h1>A calculadora que <em>vende assinatura</em> de carro.</h1>
+    <p class="sub">
+      Seu cliente vê, em segundos, tudo o que <b>deixa de pagar</b> assinando — depreciação,
+      IPVA, seguro, manutenção, pneus. Seu vendedor fecha com número, comparativo e
+      <b>PDF de proposta</b>. Funciona <b>sem internet</b>, direto do WhatsApp.
+    </p>
+    <div class="ctas">
+      <a class="btn btn-p" href="#baixar">
+        <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 21h16"/></svg>
+        Baixar as calculadoras
+      </a>
+      <a class="btn btn-g" href="#como">Como funciona</a>
+    </div>
+    <p class="free">Sem cadastro · sem mensalidade · <b>sua marca, suas cores</b></p>
+
+    <div class="verdict-demo" role="img" aria-label="Exemplo do veredito da calculadora">
+      <div class="k">Em 36 meses, assinando seu cliente não paga</div>
+      <div class="v">R$ 84.878</div>
+      <p>em depreciação, IPVA, seguro, manutenção, pneus e documentação —
+      <b>calculado</b> com CDI, IR regressivo e a tabela do estado dele.</p>
+    </div>
+  </div>
+
+  <section id="como">
+    <div class="wrap">
+      <div class="sec-k">Três passos</div>
+      <h2>Do download ao cliente em 10 minutos</h2>
+      <div class="steps">
+        <div class="step">
+          <h3>Baixe os dois arquivos</h3>
+          <p>Um HTML para a equipe, outro para mandar ao cliente. Abrem em qualquer navegador — celular, tablet, computador. Sem instalar nada.</p>
+        </div>
+        <div class="step">
+          <h3>Personalize na Retaguarda</h3>
+          <p>No arquivo do vendedor: sua logo, suas cores, seus carros e seus preços. Exporte a tabela e distribua para a equipe inteira.</p>
+        </div>
+        <div class="step">
+          <h3>Envie e feche</h3>
+          <p>Manda o arquivo do cliente no WhatsApp. Ele simula sozinho, se convence com o número — e o vendedor fecha com o PDF da proposta.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="baixar" style="padding-top:8px">
+    <div class="wrap">
+      <div class="dl-zone">
+        <div class="sec-k">Baixar agora</div>
+        <h2>Dois arquivos, dois papéis</h2>
+        <p class="lead" style="margin-bottom:0">Separados de propósito: o cliente nunca vê a mesa do vendedor.</p>
+        <div class="dl-grid">
+          <div class="dl-card">
+            <span class="tag">Para o seu cliente</span>
+            <h3>Calculadora do Cliente</h3>
+            <ul>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Veredito-herói: o que ele deixa de pagar assinando</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Analogias divertidas: viagens, aluguel, jantares</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Comparativo lado a lado com comprar e financiar</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Sem acesso a nada interno da loja</li>
+            </ul>
+            <a class="btn btn-p" href="lexloc-cliente.html" download="lexloc-cliente.html">
+              <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 21h16"/></svg>
+              Baixar versão cliente
+            </a>
+          </div>
+          <div class="dl-card destaque">
+            <span class="tag">Para a sua equipe</span>
+            <h3>Mesa do Vendedor</h3>
+            <ul>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Mensalidade de empate e medidor de negociação</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Propostas salvas por cliente + PDF de uma página</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Retaguarda: seus carros, seus preços, sua marca</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Camada PJ com a reforma tributária 2026–2033</li>
+            </ul>
+            <a class="btn btn-g" href="lexloc-vendedor.html" download="lexloc-vendedor.html">
+              <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 21h16"/></svg>
+              Baixar mesa do vendedor
+            </a>
+          </div>
+        </div>
+        <p class="dl-note">Cada arquivo tem ~250 KB e funciona <b>100% off-line</b> — pode reenviar por WhatsApp, e-mail ou pendrive quantas vezes quiser.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-k">Por que convence</div>
+      <h2>Número auditável, não papo de vendedor</h2>
+      <p class="lead">Cada valor na tela tem origem: a conta considera o rendimento do dinheiro (CDI líquido de IR), a depreciação real, os custos de dono por estado e os juros do financiamento.</p>
+      <div class="grid3">
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg></div>
+          <h3>Metodologia de patrimônio</h3>
+          <p>Os três cenários partem do <b>mesmo capital</b>. O que não é gasto rende CDI líquido de IR. No fim: patrimônio contra patrimônio — comparação justa.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg></div>
+          <h3>Custos de verdade, por UF</h3>
+          <p>IPVA e licenciamento das <b>27 unidades federativas</b>, seguro por categoria, manutenção que cresce com a idade, pneus por km, IOF com teto.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-5M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"/></svg></div>
+          <h3>Motor auditado</h3>
+          <p><b>30 testes automatizados</b>, paridade verificada em 400 cenários, paleta e contraste validados por medição. Premissas datadas e editáveis.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M9 14h6M9 17h6"/></svg></div>
+          <h3>PDF que fecha negócio</h3>
+          <p>Proposta de uma página com a <b>sua marca</b>: o que a assinatura absorve, comparação e premissas. Sai direto do navegador, sem sistema.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M17 8a5 5 0 1 0-10 0c0 5-3 6-3 6h16s-3-1-3-6M10 20a2.2 2.2 0 0 0 4 0"/></svg></div>
+          <h3>Para empresas (PJ)</h3>
+          <p>Créditos de IBS/CBS ano a ano na <b>transição da reforma</b> (2026–2033), dedução de IRPJ/CSLL no Lucro Real — com base legal citada.</p>
+        </div>
+        <div class="feat">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div>
+          <h3>Off-line de verdade</h3>
+          <p>Nenhuma dependência externa, nenhum servidor. O arquivo aberto do WhatsApp funciona no elevador da garagem. Dados ficam <b>no aparelho</b>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap wl">
+      <div>
+        <div class="sec-k">White-label</div>
+        <h2>A sua marca na frente. Sempre.</h2>
+        <ul>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><div><b>Logo, slogan e cores</b><span>Configura na Retaguarda, em um minuto, sem designer.</span></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><div><b>Seus carros e seus preços</b><span>Edite a tabela, adicione modelos, exporte para a equipe.</span></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><div><b>WhatsApp da loja integrado</b><span>Proposta e contato saem com o seu número.</span></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><div><b>PDF na sua identidade</b><span>Cores e nome da sua locadora em cada proposta enviada.</span></div></li>
+        </ul>
+      </div>
+      <div class="wl-demo" aria-hidden="true">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="body">
+          <div class="fake-logo"><b>Sua</b><i>Marca</i></div>
+          <div class="linha"></div>
+          <div class="linha curta"></div>
+          <div class="linha"></div>
+          <span class="chippy">tudo incluído · R$ 0 de entrada</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:20px">
+    <div class="wrap">
+      <div class="trust">
+        <div class="tnum"><b>3</b><span>cenários comparados: assinar, à vista e financiar</span></div>
+        <div class="tnum"><b>27</b><span>UFs com IPVA e licenciamento na base</span></div>
+        <div class="tnum"><b>30</b><span>testes automatizados no motor de cálculo</span></div>
+        <div class="tnum"><b>0</b><span>servidores, cadastros ou mensalidades</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap" style="max-width:760px">
+      <div class="sec-k">Dúvidas rápidas</div>
+      <h2 style="margin-bottom:24px">Perguntas de quem vai usar</h2>
+      <details>
+        <summary>É grátis mesmo? Qual é a pegadinha?</summary>
+        <p>É grátis. A calculadora é a vitrine da <b>LexGo</b>, que desenvolve software para locadoras. Se ela te ajudar a vender, você vai lembrar de quem fez.</p>
+      </details>
+      <details>
+        <summary>Preciso instalar alguma coisa?</summary>
+        <p>Não. São dois arquivos HTML que abrem em qualquer navegador — celular, tablet ou computador. Sem instalação, sem cadastro, sem internet.</p>
+      </details>
+      <details>
+        <summary>Como atualizo os preços dos carros?</summary>
+        <p>No arquivo do vendedor, abra a Retaguarda: edite preço e mensalidade de cada modelo, adicione carros novos e exporte a tabela em um arquivo para a equipe importar. Tudo fica no aparelho.</p>
+      </details>
+      <details>
+        <summary>Os números são confiáveis?</summary>
+        <p>A metodologia compara patrimônio final nos três cenários, com CDI líquido de IR, depreciação composta, custos de dono por UF e IOF no financiamento. As premissas são datadas (agosto/2026) e todas editáveis — a conta é auditável linha a linha.</p>
+      </details>
+      <details>
+        <summary>O cliente consegue ver a mesa do vendedor?</summary>
+        <p>Não. São dois arquivos separados de fábrica: no do cliente, o modo vendedor não existe — nem escondido, nem por atalho.</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logo"><b>Lex</b><i>Loc</i></div>
+    <p>LexLoc é um produto <a href="https://uselexgo.com" style="color:var(--brand-deep);font-weight:600">LexGo</a> · uselexgo.com/locadoras · calculadora gratuita, sem cadastro<br />
+    Simulação educativa — não é oferta de crédito. Premissas verificadas em agosto/2026.</p>
+  </div>
+</footer>
+
+</body>
+</html>

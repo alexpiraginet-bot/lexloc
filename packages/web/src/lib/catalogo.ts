@@ -24,7 +24,7 @@ export interface CatalogoCustom {
   extras: Veiculo[];
 }
 
-const LS = 'godrive.catalogo.v1';
+const LS = 'lexloc.catalogo.v1';
 
 const vazio = (): CatalogoCustom => ({
   versao: 1,
@@ -103,7 +103,7 @@ export function catalogoEfetivo(custom: CatalogoCustom): Veiculo[] {
 export function exportarArquivo(custom: CatalogoCustom): { nome: string; conteudo: string } {
   const data = new Date().toISOString().slice(0, 10);
   return {
-    nome: `tabela-godrive-${data}.json`,
+    nome: `tabela-precos-${data}.json`,
     conteudo: JSON.stringify(custom, null, 2),
   };
 }
@@ -113,7 +113,7 @@ export function importarArquivo(texto: string): CatalogoCustom | string {
   try {
     const bruto = JSON.parse(texto) as CatalogoCustom;
     if (bruto?.versao !== 1 || typeof bruto.ajustes !== 'object') {
-      return 'Este arquivo não é uma tabela de preços godrive.';
+      return 'Este arquivo não é uma tabela de preços desta calculadora.';
     }
     const ajustes: Record<string, AjusteVeiculo> = {};
     for (const [nome, aj] of Object.entries(bruto.ajustes)) {

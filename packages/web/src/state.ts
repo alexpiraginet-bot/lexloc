@@ -146,8 +146,8 @@ function reducer(e: Estado, a: Acao): Estado {
   }
 }
 
-const LS_ESTADO = 'godrive.calc.v2';
-const LS_PROPOSTAS = 'godrive.propostas.v2';
+const LS_ESTADO = 'lexloc.calc.v1';
+const LS_PROPOSTAS = 'lexloc.propostas.v1';
 
 function lerLS<T>(chave: string): T | null {
   try {

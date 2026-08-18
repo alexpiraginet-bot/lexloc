@@ -3,11 +3,12 @@
  * CLIENTE: veredito-herói + analogias divertidas + "sua assinatura" + custo de ser dono.
  * VENDEDOR: + medidor de negociação, mensalidade de empate, cenários completos, patrimônio.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { INCLUSO, VANTAGENS, FAQ } from '@godrive/engine';
 import type { Derivado, Estado, Modo } from '../state';
-import { n0, reais } from '../lib/format';
+import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
+import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
 import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';
 
@@ -76,6 +77,9 @@ export function Resultado({
           : (['Acima do que compensa', 'var(--bad)'] as const);
 
   const analogias = calcularAnalogias(absorvido);
+  // prova de estresse: 8 simulações completas — memoizada nos parâmetros
+  const robustez = useMemo(() => provaDeEstresse(p), [p]);
+  const mercado = useMemo(() => posicaoMercado(p.preco, p.mensalidade), [p.preco, p.mensalidade]);
 
   const linhasCusto = [
     ['Depreciação — o carro vale menos a cada dia', abs.depreciacao],
@@ -189,7 +193,7 @@ export function Resultado({
               <Icone nome="poupanca" />
               <div>
                 <b>ou {reais(absorvido)} rendendo no CDI só para você</b>
-                <span>enquanto a godrive cuida do carro</span>
+                <span>enquanto a locadora cuida do carro</span>
               </div>
             </div>
           </div>
@@ -257,6 +261,130 @@ export function Resultado({
           </p>
         </div>
       ) : null}
+
+      {/* ── PROVA DE ESTRESSE — ninguém mais tem isto ── */}
+      <div className="card raised rise">
+        <div className="medhead">
+          <h3>Prova de estresse da decisão</h3>
+          <span
+            className="pill"
+            style={{
+              ['--pc' as never]:
+                robustez.vitoriasAssinar >= 6
+                  ? 'var(--c-ass)'
+                  : robustez.vitoriasAssinar >= 4
+                    ? 'var(--warn)'
+                    : 'var(--bad)',
+            }}
+          >
+            {robustez.vitoriasAssinar}/{robustez.total} cenários
+          </span>
+        </div>
+        <p className="hint" style={{ margin: '2px 0 12px' }}>
+          {cli ? (
+            <>
+              Antes do "mas e se…": refizemos a conta inteira em {robustez.total} mundos
+              alternativos.{' '}
+              {robustez.vitoriasAssinar >= 6 ? (
+                <>
+                  Assinar segue à frente em <b>{robustez.vitoriasAssinar}</b> deles — a decisão
+                  aguenta tranco.
+                </>
+              ) : robustez.vitoriasAssinar >= 4 ? (
+                <>
+                  Assinar vence em <b>{robustez.vitoriasAssinar}</b> deles — decisão equilibrada,
+                  vale olhar os detalhes abaixo.
+                </>
+              ) : (
+                <>
+                  Assinar vence em <b>{robustez.vitoriasAssinar}</b> — aqui a compra tem força;
+                  os diferenciais de conveniência seguem valendo.
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              Cada linha reexecuta o motor completo com uma premissa estressada. Use contra a
+              objeção "e se o CDI cair / o carro desvalorizar menos".
+            </>
+          )}
+        </p>
+        <div style={{ display: 'grid', gap: 6 }}>
+          {robustez.mundos.map((m) => (
+            <div
+              key={m.nome}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '20px minmax(0,1fr) auto',
+                gap: 10,
+                alignItems: 'center',
+                fontSize: 13,
+                padding: '7px 10px',
+                borderRadius: 9,
+                background: 'var(--surface)',
+                border: '1px solid var(--line-2)',
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  background:
+                    m.vencedor === 'assinar'
+                      ? 'color-mix(in srgb, var(--c-ass) 15%, transparent)'
+                      : 'color-mix(in srgb, var(--bad) 14%, transparent)',
+                }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width={11}
+                  height={11}
+                  fill="none"
+                  stroke={m.vencedor === 'assinar' ? 'var(--c-ass)' : 'var(--bad)'}
+                  strokeWidth={3.2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {m.vencedor === 'assinar' ? <path d="M20 6L9 17l-5-5" /> : <path d="M6 6l12 12M18 6L6 18" />}
+                </svg>
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <b style={{ fontWeight: 600 }}>{m.nome}</b>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: 11.5 }}>
+                  {m.detalhe}
+                </span>
+              </span>
+              <span
+                className="mono"
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  color: m.vencedor === 'assinar' ? 'var(--c-ass)' : 'var(--muted)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {m.vencedor === 'assinar'
+                  ? 'assinar vence'
+                  : m.vencedor === 'aVista'
+                    ? `à vista +${reais(Math.abs(m.gapAssinar))}`
+                    : `financiar +${reais(Math.abs(m.gapAssinar))}`}
+              </span>
+            </div>
+          ))}
+        </div>
+        {!cli && mercado ? (
+          <p className="hint" style={{ marginTop: 12 }}>
+            Posição no mercado: sua mensalidade equivale a{' '}
+            <b>{n2(mercado.razao)}% do valor do carro/mês</b> — mediana das mensalidades
+            publicadas: {n2(mercado.mediana)}%. Está mais barata que{' '}
+            <b>{mercado.maisBarataQue}%</b> do catálogo de referência.
+          </p>
+        ) : null}
+      </div>
 
       {/* ── COMPARATIVO LADO A LADO ── */}
       <div className="card raised rise">

@@ -393,7 +393,7 @@ export const FAQ: readonly (readonly [string, string])[] = [
  ],
  [
   "Quem paga o IPVA e o licenciamento?",
-  "A godrive. Está tudo na mensalidade — você não recebe boleto de IPVA em janeiro."
+  "A locadora. Está tudo na mensalidade — você não recebe boleto de IPVA em janeiro."
  ],
  [
   "E se o carro quebrar ou for roubado?",
@@ -417,7 +417,7 @@ export const FAQ: readonly (readonly [string, string])[] = [
  ],
  [
   "Posso pagar no cartão?",
-  "Sim. A godrive aceita cartão de crédito, e boleto nas mensalidades seguintes."
+  "Sim. A locadora aceita cartão de crédito, e boleto nas mensalidades seguintes."
  ],
  [
   "Sirvo para pessoa jurídica?",

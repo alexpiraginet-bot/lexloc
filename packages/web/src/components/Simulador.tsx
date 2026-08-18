@@ -24,7 +24,7 @@ const CAT_CURTO: Record<string, string> = {
   eletrico: 'Elétrico',
 };
 const ORIGEM: Record<string, [string, string]> = {
-  pub: ['publicada pela godrive', 'v'],
+  pub: ['publicada pela locadora', 'v'],
   mer: ['praticada no mercado para este modelo', 'v'],
   est: ['estimada a partir das mensalidades publicadas', 'o'],
 };
@@ -128,7 +128,7 @@ export function Simulador({
           <div>
             <h3 id="t-carro">Escolha o carro</h3>
             <small>
-              Catálogo godrive com mensalidade de referência — ou informe qualquer valor abaixo.
+              Catálogo da loja com mensalidade de referência — ou informe qualquer valor abaixo.
             </small>
           </div>
         </div>

@@ -28,18 +28,18 @@ export interface Marca {
 }
 
 export const MARCA_PADRAO: Marca = {
-  nome: 'go',
-  sufixo: 'drive',
+  nome: 'Lex',
+  sufixo: 'Loc',
   slogan: 'assinar ou comprar? a conta completa',
   corPrimaria: '#892991',
   corDestaque: '#C9A227',
   whatsapp: '',
-  cidades: 'Vitória · BH · Brasília · Goiânia',
-  creditoNome: '',
-  creditoUrl: '',
+  cidades: '',
+  creditoNome: 'LexGo',
+  creditoUrl: 'https://uselexgo.com',
 };
 
-const LS = 'godrive.marca.v1';
+const LS = 'lexloc.marca.v1';
 
 export function lerMarca(): Marca {
   try {
