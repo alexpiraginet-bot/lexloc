@@ -3,13 +3,24 @@
  * Uma página A4, limpa, com a marca: veredito, o que está incluído,
  * comparação e premissas. Renderiza sempre, aparece só no @media print.
  */
-import { CATALOGO, UFS } from '@godrive/engine';
+import { UFS, type Veiculo } from '@godrive/engine';
 import type { Derivado, Estado } from '../state';
+import type { Marca } from '../lib/marca';
 import { n0, reais } from '../lib/format';
 
-export function PropostaPrint({ estado, d }: { estado: Estado; d: Derivado }) {
+export function PropostaPrint({
+  estado,
+  d,
+  catalogo,
+  marca,
+}: {
+  estado: Estado;
+  d: Derivado;
+  catalogo: Veiculo[];
+  marca: Marca;
+}) {
   const { p, r, absorvido, abs } = d;
-  const carro = estado.carroIdx != null ? CATALOGO[estado.carroIdx] : undefined;
+  const carro = estado.carroIdx != null ? catalogo[estado.carroIdx] : undefined;
   const uf = UFS[estado.uf];
   const hoje = new Date().toLocaleDateString('pt-BR', {
     day: '2-digit',
@@ -31,37 +42,37 @@ export function PropostaPrint({ estado, d }: { estado: Estado; d: Derivado }) {
         @media print {
           .pp { font-family: var(--sans); color: #121212; }
           .pp header { display: flex; justify-content: space-between; align-items: baseline;
-            border-bottom: 2.5px solid #892991; padding-bottom: 9mm; margin-bottom: 8mm; }
+            border-bottom: 2.5px solid ${marca.corPrimaria}; padding-bottom: 9mm; margin-bottom: 8mm; }
           .pp .plogo { font-size: 26px; font-weight: 700; letter-spacing: -0.045em; }
-          .pp .plogo b { color: #892991; } .pp .plogo i { color: #EE792F; font-style: normal; }
+          .pp .plogo b { color: ${marca.corPrimaria}; } .pp .plogo i { color: ${marca.corDestaque}; font-style: normal; }
           .pp .pdata { font-size: 11px; color: #6e6e6e; text-align: right; line-height: 1.6; }
           .pp h1 { font-size: 19px; margin: 0 0 2mm; }
           .pp .psub { font-size: 12px; color: #6e6e6e; margin: 0 0 7mm; }
-          .pp .phero { background: #f5eaf7; border-left: 4px solid #892991; border-radius: 0 10px 10px 0;
+          .pp .phero { background: color-mix(in srgb, ${marca.corPrimaria} 9%, #fff); border-left: 4px solid ${marca.corPrimaria}; border-radius: 0 10px 10px 0;
             padding: 6mm 7mm; margin-bottom: 7mm; }
           .pp .phero .pk { font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase;
-            color: #6b1f73; font-weight: 700; }
+            color: ${marca.corPrimaria}; font-weight: 700; }
           .pp .phero .pv { font-size: 30px; font-weight: 700; font-family: var(--mono);
-            color: #892991; letter-spacing: -0.04em; margin: 1.5mm 0; }
+            color: ${marca.corPrimaria}; letter-spacing: -0.04em; margin: 1.5mm 0; }
           .pp .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; margin-bottom: 7mm; }
           .pp table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
           .pp th { text-align: left; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
             color: #6e6e6e; padding: 0 2mm 2mm 0; border-bottom: 1.5px solid #ddd; }
           .pp td { padding: 2.2mm 2mm 2.2mm 0; border-bottom: 1px solid #eee; }
           .pp td:last-child { text-align: right; font-family: var(--mono); font-weight: 600; white-space: nowrap; }
-          .pp tr.tot td { font-weight: 700; color: #6b1f73; border-top: 2px solid #892991; border-bottom: 0; }
+          .pp tr.tot td { font-weight: 700; color: ${marca.corPrimaria}; border-top: 2px solid ${marca.corPrimaria}; border-bottom: 0; }
           .pp .pfoot { margin-top: 8mm; padding-top: 4mm; border-top: 1px solid #ddd;
             font-size: 9.5px; color: #8a8a8a; line-height: 1.65; }
-          .pp .pbox { border: 1.5px solid #e3d5e8; border-radius: 10px; padding: 5mm 6mm; }
-          .pp .pbox h3 { font-size: 12.5px; margin: 0 0 3mm; color: #6b1f73; }
+          .pp .pbox { border: 1.5px solid color-mix(in srgb, ${marca.corPrimaria} 22%, #fff); border-radius: 10px; padding: 5mm 6mm; }
+          .pp .pbox h3 { font-size: 12.5px; margin: 0 0 3mm; color: ${marca.corPrimaria}; }
           .pp .pbox ul { margin: 0; padding-left: 4.5mm; font-size: 10.5px; line-height: 1.75; color: #3a3a3a; }
         }
       `}</style>
       <div className="pp">
         <header>
           <div className="plogo">
-            <b>go</b>
-            <i>drive</i>
+            <b>{marca.nome}</b>
+            <i>{marca.sufixo}</i>
             <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', color: '#6e6e6e', textTransform: 'uppercase' }}>
               proposta de assinatura
             </div>
@@ -69,7 +80,7 @@ export function PropostaPrint({ estado, d }: { estado: Estado; d: Derivado }) {
           <div className="pdata">
             {hoje}
             <br />
-            Vitória · BH · Brasília · Goiânia
+            {marca.cidades}
           </div>
         </header>
 
@@ -139,7 +150,7 @@ export function PropostaPrint({ estado, d }: { estado: Estado; d: Derivado }) {
           <tbody>
             <tr>
               <td>
-                <b>Assinar godrive</b>
+                <b>Assinar {marca.nome}{marca.sufixo}</b>
               </td>
               <td>{reais(r.assinar.custo)}</td>
               <td>R$ 0</td>
@@ -166,6 +177,7 @@ export function PropostaPrint({ estado, d }: { estado: Estado; d: Derivado }) {
           {p.ipca.toFixed(2).replace('.', ',')}% a.a., CDI {p.cdi.toFixed(2).replace('.', ',')}% a.a. Valores de referência
           verificados em agosto/2026; proposta sujeita a análise cadastral. Simulação não é oferta
           de crédito.
+          {marca.creditoNome ? ` Ferramenta: ${marca.creditoNome}.` : ''}
         </div>
       </div>
     </div>

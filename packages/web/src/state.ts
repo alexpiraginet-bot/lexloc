@@ -17,6 +17,15 @@ import {
 
 export type Modo = 'cliente' | 'vendedor';
 
+/**
+ * Perfil do BUILD (não do usuário): a versão "cliente" é um HTML separado
+ * onde o modo vendedor não existe — nem botão, nem estado, nem tela.
+ * Definido em tempo de compilação pelo vite (define: __PERFIL__).
+ */
+declare const __PERFIL__: 'cliente' | 'vendedor' | undefined;
+export const PERFIL: 'cliente' | 'vendedor' =
+  typeof __PERFIL__ !== 'undefined' && __PERFIL__ === 'cliente' ? 'cliente' : 'vendedor';
+
 export interface Estado {
   modo: Modo;
   tema: 'auto' | 'claro' | 'escuro';
@@ -51,6 +60,8 @@ export interface Estado {
   /* PJ */
   regime: 'real' | 'presumido' | 'simples';
   anoInicio: number;
+  /** bump a cada edição da tabela de preços — invalida memos do catálogo */
+  catVersao: number;
 }
 
 export interface Proposta {
@@ -100,12 +111,21 @@ export const estadoInicial: Estado = {
   incluirEnergia: false,
   regime: 'real',
   anoInicio: 2026,
+  catVersao: 0,
 };
 
 export type Acao =
   | { t: 'set'; campo: keyof Estado; valor: Estado[keyof Estado] }
   | { t: 'muitos'; valores: Partial<Estado> }
   | { t: 'reset' };
+
+/** No build cliente, o modo vendedor é inalcançável por qualquer caminho. */
+function blindar(e: Estado): Estado {
+  if (PERFIL === 'cliente' && (e.modo !== 'cliente' || e.aba === 'propostas')) {
+    return { ...e, modo: 'cliente', aba: e.aba === 'propostas' ? 'resultado' : e.aba };
+  }
+  return e;
+}
 
 function reducer(e: Estado, a: Acao): Estado {
   switch (a.t) {
@@ -117,12 +137,12 @@ function reducer(e: Estado, a: Acao): Estado {
       if (a.campo === 'modo' && a.valor === 'cliente' && novo.aba === 'propostas') {
         novo.aba = 'resultado';
       }
-      return novo;
+      return blindar(novo);
     }
     case 'muitos':
-      return { ...e, ...a.valores };
+      return blindar({ ...e, ...a.valores });
     case 'reset':
-      return { ...estadoInicial, modo: e.modo, tema: e.tema };
+      return blindar({ ...estadoInicial, modo: e.modo, tema: e.tema });
   }
 }
 
@@ -268,7 +288,12 @@ export function useApp() {
   const [estado, dispatch] = useReducer(
     reducer,
     undefined,
-    () => ({ ...estadoInicial, ...sanearEstado(lerLS<unknown>(LS_ESTADO)), aba: 'simular' as const }),
+    () =>
+      blindar({
+        ...estadoInicial,
+        ...sanearEstado(lerLS<unknown>(LS_ESTADO)),
+        aba: 'simular' as const,
+      }),
   );
 
   // persistência com debounce: o slider dispara dezenas de estados por

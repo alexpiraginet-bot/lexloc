@@ -258,6 +258,55 @@ export function Resultado({
         </div>
       ) : null}
 
+      {/* ── COMPARATIVO LADO A LADO ── */}
+      <div className="card raised rise">
+        <h3 style={{ fontSize: 16, marginBottom: 4 }}>Lado a lado</h3>
+        <p className="hint" style={{ margin: '0 0 12px' }}>
+          O que cada caminho te dá — e o que cobra de você.
+        </p>
+        <div className="cmp" role="table" aria-label="Comparativo assinar, comprar à vista e financiar">
+          <div className="cmp-h" role="row">
+            <span role="columnheader" />
+            <span role="columnheader" className="cmp-ass">Assinar</span>
+            <span role="columnheader">À vista</span>
+            <span role="columnheader">Financiar</span>
+          </div>
+          {(
+            [
+              ['Entrada', 'R$ 0', reais(r.aVista.desembolso), reais(r.financiar.desembolso)],
+              ['Parcela mensal', `${reais(p.mensalidade)} tudo dentro`, '—', `${reais(r.financiar.parcela)} +custos`],
+              ['IPVA e licenciamento', true, false, false],
+              ['Seguro completo', true, false, false],
+              ['Manutenção, revisões e pneus', true, false, false],
+              ['Carro reserva e assistência 24h', true, false, false],
+              ['Depreciação', 'não é sua', reais(deprec), reais(deprec)],
+              ['Juros e IOF', 'R$ 0', 'R$ 0', reais(r.financiar.juros + r.financiar.iof)],
+              ['Revenda e burocracia no fim', 'devolve e pronto', 'é sua', 'quita e revende'],
+              ['Trocar de carro', 'a cada contrato', 'vender antes', 'quitar antes'],
+            ] as [string, string | boolean, string | boolean, string | boolean][]
+          ).map(([rotulo, a, b, c]) => (
+            <div className="cmp-l" role="row" key={rotulo}>
+              <span role="rowheader">{rotulo}</span>
+              {[a, b, c].map((v, i) => (
+                <span role="cell" key={i} className={i === 0 ? 'cmp-ass' : ''}>
+                  {v === true ? (
+                    <i className="cmp-sim" aria-label="incluído">
+                      <Icone nome="check" />
+                    </i>
+                  ) : v === false ? (
+                    <i className="cmp-nao" aria-label="você paga à parte">
+                      você paga
+                    </i>
+                  ) : (
+                    v
+                  )}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── O CUSTO DE SER DONO ── */}
       <div className="card raised rise">
         <h3 style={{ fontSize: 16, marginBottom: 4 }}>O custo de ser dono</h3>

@@ -5,9 +5,10 @@
  * — funciona off-line, sem nenhuma dependência.
  */
 import { useEffect, useRef, useState, type Dispatch } from 'react';
-import { CATALOGO } from '@godrive/engine';
+import type { Veiculo } from '@godrive/engine';
 import type { Acao, Derivado, Estado, Proposta } from '../state';
 import { gravarPropostas, lerPropostas } from '../state';
+import type { Marca } from '../lib/marca';
 import { reais } from '../lib/format';
 import { Icone } from './icones';
 
@@ -16,11 +17,15 @@ export function Propostas({
   d,
   dispatch,
   avisar,
+  catalogo,
+  marca,
 }: {
   estado: Estado;
   d: Derivado | null;
   dispatch: Dispatch<Acao>;
   avisar: (msg: string) => void;
+  catalogo: Veiculo[];
+  marca: Marca;
 }) {
   const [lista, setLista] = useState<Proposta[]>(lerPropostas);
   const [nome, setNome] = useState('');
@@ -64,7 +69,7 @@ export function Propostas({
   };
 
   const textoWhats = (p: Proposta) => {
-    const carro = p.estado.carroIdx != null ? CATALOGO[p.estado.carroIdx]?.n : 'veículo';
+    const carro = p.estado.carroIdx != null ? catalogo[p.estado.carroIdx]?.n : 'veículo';
     return encodeURIComponent(
       `Olá${p.nome !== 'Sem nome' ? ` ${p.nome}` : ''}! Fechando os números da assinatura do ${carro}:\n\n` +
         `• Mensalidade: ${reais(p.estado.mensalidade)} (tudo incluído)\n` +
@@ -171,7 +176,7 @@ export function Propostas({
               <div>
                 <div className="qn">{p.nome}</div>
                 <div className="qm">
-                  {p.estado.carroIdx != null ? CATALOGO[p.estado.carroIdx]?.n : 'Veículo'} ·{' '}
+                  {p.estado.carroIdx != null ? catalogo[p.estado.carroIdx]?.n : 'Veículo'} ·{' '}
                   {p.estado.meses} meses · {reais(p.estado.mensalidade)}/mês
                   {p.obs ? ` · ${p.obs}` : ''}
                 </div>
@@ -193,7 +198,13 @@ export function Propostas({
               </button>
               <a
                 className="btn btn-wa sm"
-                href={`https://wa.me/${p.fone.replace(/\D/g, '') ? '55' + p.fone.replace(/\D/g, '') : ''}?text=${textoWhats(p)}`}
+                href={`https://wa.me/${
+                  p.fone.replace(/\D/g, '')
+                    ? '55' + p.fone.replace(/\D/g, '')
+                    : marca.whatsapp.replace(/\D/g, '')
+                      ? '55' + marca.whatsapp.replace(/\D/g, '')
+                      : ''
+                }?text=${textoWhats(p)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

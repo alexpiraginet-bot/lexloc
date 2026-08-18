@@ -234,7 +234,7 @@ export function Linhas({ series, meses }: { series: Serie[]; meses: number }) {
                 y={y + 3.5}
                 fontSize={9}
                 textAnchor="end"
-                fill="var(--faint)"
+                fill="var(--muted)"
                 fontFamily="var(--mono)"
               >
                 {Math.abs(v) >= 1000 ? (v / 1000).toFixed(0) + 'k' : v.toFixed(0)}
@@ -270,7 +270,7 @@ export function Linhas({ series, meses }: { series: Serie[]; meses: number }) {
             y={H - 6}
             fontSize={9}
             textAnchor="middle"
-            fill="var(--faint)"
+            fill="var(--muted)"
             fontFamily="var(--mono)"
           >
             {i + 1}m
@@ -344,10 +344,10 @@ export function Medidor({ mensalidade, equilibrio }: { mensalidade: number; equi
       </g>
       <line x1={xm} y1={28} x2={xm} y2={y + hh + 2} stroke={dentro ? 'var(--c-ass)' : 'var(--bad)'} strokeWidth={2.4} strokeLinecap="round" />
       <circle cx={xm} cy={y + hh / 2} r={5.5} fill="var(--paper)" stroke={dentro ? 'var(--c-ass)' : 'var(--bad)'} strokeWidth={3} />
-      <text x={pad} y={H - 4} fontSize={9.5} fill="var(--faint)">
+      <text x={pad} y={H - 4} fontSize={9.5} fill="var(--muted)">
         vantajosa
       </text>
-      <text x={W - pad} y={H - 4} fontSize={9.5} textAnchor="end" fill="var(--faint)">
+      <text x={W - pad} y={H - 4} fontSize={9.5} textAnchor="end" fill="var(--muted)">
         cara demais
       </text>
     </svg>
@@ -385,7 +385,7 @@ export function AnosPJ({ linhas }: { linhas: LinhaAno[] }) {
           return (
             <g key={g}>
               <line x1={pl} y1={y} x2={W - 8} y2={y} stroke="var(--line-2)" />
-              <text x={pl - 6} y={y + 3.5} fontSize={9} textAnchor="end" fill="var(--faint)" fontFamily="var(--mono)">
+              <text x={pl - 6} y={y + 3.5} fontSize={9} textAnchor="end" fill="var(--muted)" fontFamily="var(--mono)">
                 {v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v.toFixed(0)}
               </text>
             </g>

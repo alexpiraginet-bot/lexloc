@@ -3,17 +3,21 @@ import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 /**
- * Dois alvos com o mesmo código:
- *  - build normal (dist/)            → servido pela API em produção
- *  - build OFFLINE=1 (dist-offline/) → UM arquivo HTML autocontido, sem rede,
- *    que abre de WhatsApp, e-mail ou pendrive. Nenhuma fonte externa.
+ * Alvos com o mesmo código:
+ *  - build normal (dist/)  → servido pela API em produção (app completo)
+ *  - OFFLINE=1             → UM arquivo HTML autocontido, sem rede
+ *  - PERFIL=cliente        → versão do CLIENTE: modo vendedor inexistente,
+ *    sem retaguarda, sem propostas — travado no build, não por botão
+ *  - PERFIL=vendedor       → versão completa da equipe
  */
 export default defineConfig(({ mode }) => {
   const offline = process.env.OFFLINE === '1' || mode === 'offline';
+  const perfil = process.env.PERFIL === 'cliente' ? 'cliente' : 'vendedor';
   return {
     plugins: [react(), ...(offline ? [viteSingleFile()] : [])],
+    define: { __PERFIL__: JSON.stringify(perfil) },
     build: {
-      outDir: offline ? 'dist-offline' : 'dist',
+      outDir: offline ? `dist-offline-${perfil}` : 'dist',
       target: 'es2019',
       cssTarget: 'chrome80',
       reportCompressedSize: false,

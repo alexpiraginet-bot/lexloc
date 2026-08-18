@@ -1,7 +1,9 @@
-/** Shell do app: appbar, tabs, painéis, dock e toast. */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useApp } from './state';
+/** Shell do app: appbar, tabs (com swipe), painéis, dock e toast. */
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PERFIL, useApp } from './state';
 import { reais } from './lib/format';
+import { catalogoEfetivo, lerCustom } from './lib/catalogo';
+import { aplicarMarca, lerMarca } from './lib/marca';
 import { Simulador } from './components/Simulador';
 import { Resultado } from './components/Resultado';
 import { PJ } from './components/PJ';
@@ -26,19 +28,58 @@ export default function App() {
     toastT.current = setTimeout(() => setToast(''), 3400);
   }, []);
 
-  // dock aparece quando há resultado e o usuário está na aba Simular
+  // catálogo efetivo (referência + retaguarda) e marca white-label
+  const catalogo = useMemo(() => catalogoEfetivo(lerCustom()), [estado.catVersao]);
+  const marca = useMemo(() => lerMarca(), [estado.catVersao]);
+
   const mostrarDock = estado.aba === 'simular' && derivado != null;
 
+  // trocar de aba SEMPRE volta ao topo — o veredito abre a história
   useEffect(() => {
-    document.title =
-      estado.modo === 'vendedor'
-        ? 'godrive · mesa de negociação'
-        : 'godrive · Assinar ou comprar?';
-  }, [estado.modo]);
+    window.scrollTo(0, 0);
+    document.getElementById('conteudo')?.focus({ preventScroll: true });
+  }, [estado.aba]);
 
-  const abasVisiveis = ABAS.filter(
-    (a) => estado.modo === 'vendedor' || a.id !== 'propostas',
-  );
+  // marca aplicada nas variáveis de tema (claro/escuro)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const aplicar = () =>
+      aplicarMarca(marca, estado.tema === 'escuro' || (estado.tema === 'auto' && mq.matches));
+    aplicar();
+    mq.addEventListener('change', aplicar);
+    return () => mq.removeEventListener('change', aplicar);
+  }, [marca, estado.tema]);
+
+  useEffect(() => {
+    document.title = `${marca.nome}${marca.sufixo} · Assinar ou comprar?`;
+  }, [marca]);
+
+  const abasVisiveis = ABAS.filter((a) => estado.modo === 'vendedor' || a.id !== 'propostas');
+
+  // swipe lateral navega entre as abas (sem roubar o gesto de quem rola)
+  const toque = useRef<{ x: number; y: number; ignora: boolean } | null>(null);
+  const aoTocar = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    if (!t) return;
+    const alvo = e.target as HTMLElement;
+    toque.current = {
+      x: t.clientX,
+      y: t.clientY,
+      ignora: !!alvo.closest('.scroll, .tabs, input, select, textarea, svg'),
+    };
+  };
+  const aoSoltar = (e: React.TouchEvent) => {
+    const ini = toque.current;
+    toque.current = null;
+    const t = e.changedTouches[0];
+    if (!ini || ini.ignora || !t) return;
+    const dx = t.clientX - ini.x;
+    const dy = t.clientY - ini.y;
+    if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    const i = abasVisiveis.findIndex((a) => a.id === estado.aba);
+    const prox = abasVisiveis[i + (dx < 0 ? 1 : -1)];
+    if (prox) dispatch({ t: 'set', campo: 'aba', valor: prox.id });
+  };
 
   return (
     <>
@@ -47,29 +88,33 @@ export default function App() {
       </a>
       <header className="appbar">
         <div className="wrap row">
-          <div className="logo" aria-label="godrive, calculadora assinar ou comprar">
-            <b>go</b>
-            <i>drive</i>
-            <small>assinar ou comprar? a conta completa</small>
+          <div className="logo" aria-label={`${marca.nome}${marca.sufixo}, calculadora assinar ou comprar`}>
+            <b>{marca.nome}</b>
+            <i>{marca.sufixo}</i>
+            <small>{marca.slogan}</small>
           </div>
-          <div className="modo" role="group" aria-label="Modo de uso">
-            <button
-              type="button"
-              className={estado.modo === 'cliente' ? 'on' : ''}
-              aria-pressed={estado.modo === 'cliente'}
-              onClick={() => dispatch({ t: 'set', campo: 'modo', valor: 'cliente' })}
-            >
-              Cliente
-            </button>
-            <button
-              type="button"
-              className={estado.modo === 'vendedor' ? 'on' : ''}
-              aria-pressed={estado.modo === 'vendedor'}
-              onClick={() => dispatch({ t: 'set', campo: 'modo', valor: 'vendedor' })}
-            >
-              Vendedor
-            </button>
-          </div>
+          {PERFIL === 'vendedor' ? (
+            <div className="modo" role="group" aria-label="Modo de uso">
+              <button
+                type="button"
+                className={estado.modo === 'cliente' ? 'on' : ''}
+                aria-pressed={estado.modo === 'cliente'}
+                onClick={() => dispatch({ t: 'set', campo: 'modo', valor: 'cliente' })}
+              >
+                Cliente
+              </button>
+              <button
+                type="button"
+                className={estado.modo === 'vendedor' ? 'on' : ''}
+                aria-pressed={estado.modo === 'vendedor'}
+                onClick={() => dispatch({ t: 'set', campo: 'modo', valor: 'vendedor' })}
+              >
+                Vendedor
+              </button>
+            </div>
+          ) : (
+            <span style={{ marginLeft: 'auto' }} />
+          )}
           <button
             type="button"
             className="iconbtn"
@@ -101,16 +146,27 @@ export default function App() {
               onClick={() => dispatch({ t: 'set', campo: 'aba', valor: a.id })}
             >
               {a.rotulo}
-              {a.id === 'propostas' ? null : null}
             </button>
           ))}
         </div>
       </nav>
 
-      <main id="conteudo" className="wrap" tabIndex={-1}>
+      <main
+        id="conteudo"
+        className="wrap"
+        tabIndex={-1}
+        onTouchStart={aoTocar}
+        onTouchEnd={aoSoltar}
+      >
         {estado.aba === 'simular' ? (
           <div className="panel">
-            <Simulador estado={estado} dispatch={dispatch} />
+            <Simulador
+              estado={estado}
+              dispatch={dispatch}
+              catalogo={catalogo}
+              marca={marca}
+              avisar={avisar}
+            />
             <div className="actions no-print">
               <button
                 type="button"
@@ -120,7 +176,14 @@ export default function App() {
                 Ver o resultado
                 <Icone nome="seta" />
               </button>
-              <button type="button" className="btn btn-s full" onClick={() => { dispatch({ t: 'reset' }); avisar('Valores restaurados.'); }}>
+              <button
+                type="button"
+                className="btn btn-s full"
+                onClick={() => {
+                  dispatch({ t: 'reset' });
+                  avisar('Valores restaurados.');
+                }}
+              >
                 Restaurar padrões
               </button>
             </div>
@@ -155,7 +218,14 @@ export default function App() {
 
         {estado.aba === 'propostas' ? (
           <div className="panel">
-            <Propostas estado={estado} d={derivado} dispatch={dispatch} avisar={avisar} />
+            <Propostas
+              estado={estado}
+              d={derivado}
+              dispatch={dispatch}
+              avisar={avisar}
+              catalogo={catalogo}
+              marca={marca}
+            />
           </div>
         ) : null}
 
@@ -163,15 +233,28 @@ export default function App() {
           Simulação educativa com premissas verificadas em agosto/2026 — não é oferta de crédito.
           <br />
           Funciona sem internet. Seus dados ficam só neste aparelho.
+          {marca.creditoNome ? (
+            <>
+              <br />
+              Ferramenta oferecida gratuitamente por{' '}
+              {marca.creditoUrl ? (
+                <a href={marca.creditoUrl} target="_blank" rel="noopener noreferrer">
+                  {marca.creditoNome}
+                </a>
+              ) : (
+                <b>{marca.creditoNome}</b>
+              )}
+              .
+            </>
+          ) : null}
         </footer>
       </main>
 
-      {derivado ? <PropostaPrint estado={estado} d={derivado} /> : null}
+      {derivado ? <PropostaPrint estado={estado} d={derivado} catalogo={catalogo} marca={marca} /> : null}
 
       <div
         className={`dock no-print${mostrarDock ? ' on' : ''}`}
         aria-hidden={!mostrarDock}
-        // invisível não pode ser alcançável por Tab — senão o foco some da tela
         {...(!mostrarDock ? { inert: true } : {})}
       >
         <div className="in">
