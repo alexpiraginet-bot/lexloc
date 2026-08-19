@@ -5,9 +5,8 @@
   "description": "Peça de marketing da LexGo em Remotion. Fica FORA dos workspaces de propósito: o app é um HTML off-line e não pode carregar nada disto.",
   "scripts": {
     "dev": "remotion studio",
-    "reels": "remotion render Reels out/lexgo-reels.mp4",
-    "wide": "remotion render Wide out/lexgo-wide.mp4",
-    "capa": "remotion still Reels out/capa.png --frame=60"
+    "folha": "remotion render Folha out/lexgo-folha-35s.mp4",
+    "capa": "remotion still Folha out/capa.png --frame=60"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.0",

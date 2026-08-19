@@ -7,19 +7,23 @@
  * o rendimento do dinheiro nos três lados, então a comparação final é a
  * mesma que o app faz.
  *
- * Nove cenas de 10 s. Nada aparece de uma vez: traço é `stroke-dashoffset`
- * indo a zero, escrita é recorte crescendo, e a mão fica sempre na ponta do
- * que está sendo feito.
+ * CINCO cenas de 7 s. Era nove de 10 s, e 90 s foi teto tratado como alvo:
+ * a Historia que roda dentro do app diz o mesmo em 34,5 s e a 197 palavras
+ * por minuto, enquanto esta arrastava 210 palavras a 140. Cortada para o
+ * ritmo que já foi validado ali.
+ *
+ * Nada aparece de uma vez: traço é `stroke-dashoffset` indo a zero, escrita
+ * é recorte crescendo, e a mão fica sempre na ponta do que está sendo feito.
  */
 import React from 'react';
 import { AbsoluteFill, Sequence, interpolate, useCurrentFrame } from 'remotion';
-import { AZUL, Escrita, Mao, OURO, Papel, ROXO, TINTA, Traco, VERMELHO, andamento, largura } from './quadro/pecas';
+import { AZUL, Escrita, Mao, OURO, Papel, ROXO, Traco, VERMELHO, andamento, largura } from './quadro/pecas';
 import { CSS_FONTE, MANUSCRITA } from './quadro/fonte';
 
 const fontFamily = `${MANUSCRITA}, "Segoe Script", cursive`;
 
-const CENA = 300; // 10 s a 30 fps
-export const DUR_QUADRO = CENA * 9;
+const CENA = 210; // 7 s a 30 fps
+export const DUR_QUADRO = CENA * 5;
 
 /** um item escrito: guarda onde a caneta termina, para a mão acompanhar */
 type Escrito = {
@@ -96,185 +100,125 @@ export const Quadro: React.FC = () => (
     <style>{CSS_FONTE}</style>
     <Papel />
 
-    {/* 1 · o problema */}
+    {/* 1 · o gancho, já com o preço na mesa */}
     <Cena
       de={0}
       itens={[
-        { txt: 'Assinar ou comprar?', x: 150, y: 110, tam: 108, de: 10, dur: 60, peso: 700 },
-        { txt: 'SUV compacto  ·  R$ 149.990  ·  36 meses', x: 155, y: 660, tam: 54, de: 150, dur: 60, cor: AZUL },
-        { txt: 'vamos fazer a conta.', x: 155, y: 750, tam: 52, de: 220, dur: 45, cor: '#6B6478' },
+        { txt: 'Assinar ou comprar?', x: 150, y: 110, tam: 96, de: 6, dur: 40, peso: 700 },
+        { txt: 'SUV compacto · 36 meses', x: 155, y: 300, tam: 54, de: 52, dur: 30, cor: AZUL },
+        { txt: 'R$ 149.990', x: 155, y: 400, tam: 120, de: 88, dur: 40, cor: VERMELHO, peso: 700 },
+        { txt: 'mas o carro não custa só isso.', x: 158, y: 570, tam: 56, de: 136, dur: 45 },
       ]}
     >
       <Traco
         d={CARRO}
-        de={80}
-        dur={70}
+        de={40}
+        dur={55}
         comp={2100}
         larg={7}
         vb="0 0 500 200"
-        estilo={{ left: 1080, top: 300, width: 700 }}
+        estilo={{ left: 1090, top: 320, width: 660 }}
       />
       <Traco
         d="M10 40 Q 300 5 640 38"
-        de={72}
-        dur={22}
+        de={40}
+        dur={18}
         comp={700}
         larg={8}
         cor={OURO}
         vb="0 0 650 60"
-        estilo={{ left: 150, top: 210, width: 660 }}
+        estilo={{ left: 150, top: 200, width: 600 }}
       />
     </Cena>
 
-    {/* 2 · comprando, o dinheiro sai */}
+    {/* 2 · a conta de ser dono, item a item, somando */}
     <Cena
       de={CENA}
       itens={[
-        { txt: 'Comprando à vista', x: 150, y: 120, tam: 80, de: 8, dur: 45, peso: 700 },
-        { txt: 'R$ 149.990', x: 160, y: 300, tam: 130, de: 70, dur: 55, cor: VERMELHO, peso: 700 },
-        { txt: 'saem de uma vez.', x: 160, y: 470, tam: 58, de: 145, dur: 45 },
-        { txt: 'e a conta de ser dono só começa aí.', x: 160, y: 580, tam: 58, de: 205, dur: 60, cor: AZUL },
-      ]}
-    >
-      <Traco
-        d="M20 60 Q 250 10 620 55 Q 300 100 20 60"
-        de={130}
-        dur={30}
-        comp={1500}
-        larg={6}
-        cor={VERMELHO}
-        vb="0 0 650 120"
-        estilo={{ left: 140, top: 280, width: 660 }}
-      />
-    </Cena>
-
-    {/* 3 · a depreciação */}
-    <Cena
-      de={CENA * 2}
-      itens={[
-        { txt: 'O que o dono paga além do carro', x: 150, y: 110, tam: 76, de: 8, dur: 50, peso: 700 },
-        { txt: 'Depreciação', x: 190, y: 290, tam: 66, de: 75, dur: 45 },
-        { txt: 'R$ 41.943', x: 900, y: 290, tam: 66, de: 130, dur: 40, cor: VERMELHO, peso: 700 },
-        { txt: 'o carro vale menos a cada dia — e a perda é sua.', x: 190, y: 430, tam: 50, de: 190, dur: 70, cor: '#6B6478' },
-      ]}
-    />
-
-    {/* 4 · o resto da conta de posse */}
-    <Cena
-      de={CENA * 3}
-      itens={[
-        { txt: 'O que o dono paga além do carro', x: 150, y: 110, tam: 76, de: 0, dur: 1, peso: 700 },
-        { txt: 'Depreciação', x: 190, y: 290, tam: 66, de: 0, dur: 1 },
-        { txt: 'R$ 41.943', x: 900, y: 290, tam: 66, de: 0, dur: 1, cor: VERMELHO, peso: 700 },
-        { txt: 'Seguro', x: 190, y: 390, tam: 66, de: 10, dur: 28 },
-        { txt: 'R$ 17.907', x: 900, y: 390, tam: 66, de: 42, dur: 26, cor: VERMELHO, peso: 700 },
-        { txt: 'IPVA e licenciamento', x: 190, y: 490, tam: 66, de: 76, dur: 34 },
-        { txt: 'R$ 8.716', x: 900, y: 490, tam: 66, de: 114, dur: 26, cor: VERMELHO, peso: 700 },
-        { txt: 'Manutenção', x: 190, y: 590, tam: 66, de: 148, dur: 28 },
-        { txt: 'R$ 7.941', x: 900, y: 590, tam: 66, de: 180, dur: 26, cor: VERMELHO, peso: 700 },
-        { txt: 'Pneus e emplacamento', x: 190, y: 690, tam: 66, de: 214, dur: 34 },
-        { txt: 'R$ 4.563', x: 900, y: 690, tam: 66, de: 252, dur: 26, cor: VERMELHO, peso: 700 },
-      ]}
-    />
-
-    {/* 5 · a soma */}
-    <Cena
-      de={CENA * 4}
-      itens={[
-        { txt: 'Depreciação', x: 190, y: 200, tam: 60, de: 0, dur: 1 },
-        { txt: 'R$ 41.943', x: 900, y: 200, tam: 60, de: 0, dur: 1, cor: VERMELHO },
-        { txt: 'Seguro', x: 190, y: 290, tam: 60, de: 0, dur: 1 },
-        { txt: 'R$ 17.907', x: 900, y: 290, tam: 60, de: 0, dur: 1, cor: VERMELHO },
-        { txt: 'IPVA e licenciamento', x: 190, y: 380, tam: 60, de: 0, dur: 1 },
-        { txt: 'R$ 8.716', x: 900, y: 380, tam: 60, de: 0, dur: 1, cor: VERMELHO },
-        { txt: 'Manutenção', x: 190, y: 470, tam: 60, de: 0, dur: 1 },
-        { txt: 'R$ 7.941', x: 900, y: 470, tam: 60, de: 0, dur: 1, cor: VERMELHO },
-        { txt: 'Pneus e emplacamento', x: 190, y: 560, tam: 60, de: 0, dur: 1 },
-        { txt: 'R$ 4.563', x: 900, y: 560, tam: 60, de: 0, dur: 1, cor: VERMELHO },
-        { txt: 'R$ 81.071', x: 880, y: 690, tam: 104, de: 60, dur: 55, cor: VERMELHO, peso: 700 },
-        { txt: 'em 36 meses, fora o carro.', x: 190, y: 720, tam: 56, de: 150, dur: 55, cor: TINTA },
+        { txt: 'O que o dono paga além do carro', x: 150, y: 100, tam: 72, de: 4, dur: 34, peso: 700 },
+        { txt: 'Depreciação', x: 190, y: 230, tam: 58, de: 40, dur: 20 },
+        { txt: 'R$ 41.943', x: 900, y: 230, tam: 58, de: 62, dur: 18, cor: VERMELHO, peso: 700 },
+        { txt: 'Seguro', x: 190, y: 318, tam: 58, de: 82, dur: 16 },
+        { txt: 'R$ 17.907', x: 900, y: 318, tam: 58, de: 100, dur: 18, cor: VERMELHO, peso: 700 },
+        { txt: 'IPVA e licenciamento', x: 190, y: 406, tam: 58, de: 120, dur: 22 },
+        { txt: 'R$ 8.716', x: 900, y: 406, tam: 58, de: 144, dur: 16, cor: VERMELHO, peso: 700 },
+        { txt: 'Manutenção, pneus e emplacamento', x: 190, y: 494, tam: 58, de: 162, dur: 26 },
+        { txt: 'R$ 12.504', x: 900, y: 494, tam: 58, de: 190, dur: 16, cor: VERMELHO, peso: 700 },
+        { txt: 'R$ 81.071', x: 880, y: 610, tam: 96, de: 214, dur: 34, cor: VERMELHO, peso: 700 },
       ]}
     >
       <Traco
         d="M0 6 H 760"
-        de={40}
-        dur={18}
+        de={208}
+        dur={12}
         comp={780}
         larg={6}
         vb="0 0 780 12"
-        estilo={{ left: 190, top: 650, width: 790 }}
+        estilo={{ left: 190, top: 580, width: 790 }}
       />
     </Cena>
 
-    {/* 6 · financiar */}
+    {/* 3 · assinar */}
     <Cena
-      de={CENA * 5}
+      de={CENA * 2}
       itens={[
-        { txt: 'E se financiar?', x: 150, y: 120, tam: 88, de: 8, dur: 45, peso: 700 },
-        { txt: 'o carro, mais os juros de esperar', x: 160, y: 290, tam: 60, de: 70, dur: 60, cor: '#6B6478' },
-        { txt: 'R$ 186.341', x: 160, y: 420, tam: 134, de: 150, dur: 55, cor: VERMELHO, peso: 700 },
-        { txt: 'custo total em 36 meses', x: 165, y: 600, tam: 54, de: 225, dur: 45 },
+        { txt: 'Assinando', x: 150, y: 110, tam: 92, de: 4, dur: 32, peso: 700, cor: ROXO },
+        { txt: 'R$ 2.400', x: 155, y: 270, tam: 140, de: 44, dur: 38, cor: ROXO, peso: 700 },
+        { txt: 'por mês', x: 610, y: 320, tam: 60, de: 86, dur: 22 },
+        { txt: 'seguro, manutenção, IPVA e pneus:', x: 155, y: 470, tam: 56, de: 114, dur: 42 },
+        { txt: 'tudo isso é da locadora.', x: 155, y: 556, tam: 56, de: 160, dur: 32, cor: ROXO, peso: 700 },
+        { txt: 'e os R$ 149.990 seguem rendendo no seu bolso.', x: 155, y: 660, tam: 50, de: 196, dur: 12, cor: AZUL },
       ]}
     />
 
-    {/* 7 · assinar */}
+    {/* 4 · a comparação */}
     <Cena
-      de={CENA * 6}
+      de={CENA * 3}
       itens={[
-        { txt: 'Agora, assinando', x: 150, y: 120, tam: 88, de: 8, dur: 45, peso: 700, cor: ROXO },
-        { txt: 'R$ 2.400', x: 160, y: 280, tam: 140, de: 65, dur: 45, cor: ROXO, peso: 700 },
-        { txt: 'por mês', x: 620, y: 330, tam: 62, de: 112, dur: 30 },
-        { txt: 'seguro, manutenção, IPVA e pneus:', x: 160, y: 480, tam: 58, de: 150, dur: 60 },
-        { txt: 'tudo isso é da locadora.', x: 160, y: 570, tam: 58, de: 214, dur: 45, cor: ROXO, peso: 700 },
-        { txt: 'e os R$ 149.990 continuam rendendo no seu bolso.', x: 160, y: 680, tam: 52, de: 262, dur: 36, cor: AZUL },
-      ]}
-    />
-
-    {/* 8 · a comparação */}
-    <Cena
-      de={CENA * 7}
-      itens={[
-        { txt: 'Custo total em 36 meses', x: 150, y: 110, tam: 76, de: 6, dur: 42, peso: 700 },
-        { txt: 'Financiar', x: 200, y: 270, tam: 68, de: 55, dur: 26 },
-        { txt: 'R$ 186.341', x: 820, y: 270, tam: 68, de: 84, dur: 30, cor: VERMELHO, peso: 700 },
-        { txt: 'Comprar à vista', x: 200, y: 400, tam: 68, de: 122, dur: 34 },
-        { txt: 'R$ 147.764', x: 820, y: 400, tam: 68, de: 160, dur: 30, cor: VERMELHO, peso: 700 },
-        { txt: 'Assinar', x: 200, y: 530, tam: 76, de: 198, dur: 26, cor: ROXO, peso: 700 },
-        { txt: 'R$ 138.139', x: 820, y: 530, tam: 82, de: 228, dur: 34, cor: ROXO, peso: 700 },
+        { txt: 'Custo total em 36 meses', x: 150, y: 100, tam: 72, de: 4, dur: 30, peso: 700 },
+        { txt: 'Financiar', x: 200, y: 250, tam: 64, de: 38, dur: 16 },
+        { txt: 'R$ 186.341', x: 820, y: 250, tam: 64, de: 56, dur: 20, cor: VERMELHO, peso: 700 },
+        { txt: 'Comprar à vista', x: 200, y: 380, tam: 64, de: 80, dur: 22 },
+        { txt: 'R$ 147.764', x: 820, y: 380, tam: 64, de: 104, dur: 20, cor: VERMELHO, peso: 700 },
+        { txt: 'Assinar', x: 200, y: 510, tam: 72, de: 130, dur: 16, cor: ROXO, peso: 700 },
+        { txt: 'R$ 138.139', x: 820, y: 510, tam: 78, de: 148, dur: 24, cor: ROXO, peso: 700 },
       ]}
     >
+      {/* oval de verdade, não lente: achatada ela virava risco no meio dos
+          dígitos. O texto ocupa x 820..1148, então a volta vai de 790 a 1190
+          e de y 480 a 600, sobrando margem em cima e embaixo. */}
       <Traco
-        d="M20 70 Q 340 6 700 62 Q 360 128 20 70"
-        de={264}
-        dur={30}
-        comp={1700}
+        d="M 30 62 Q 38 14 200 11 Q 368 14 376 62 Q 368 110 200 113 Q 38 110 30 62"
+        de={176}
+        dur={26}
+        comp={800}
         larg={7}
         cor={OURO}
-        vb="0 0 720 140"
-        estilo={{ left: 790, top: 500, width: 730 }}
+        vb="0 0 400 124"
+        estilo={{ left: 790, top: 478, width: 400 }}
       />
     </Cena>
 
-    {/* 9 · o fecho */}
+    {/* 5 · o fecho */}
     <Cena
-      de={CENA * 8}
+      de={CENA * 4}
       itens={[
-        { txt: 'R$ 48.201', x: 150, y: 150, tam: 150, de: 8, dur: 55, cor: ROXO, peso: 700 },
-        { txt: 'a menos que financiar.', x: 160, y: 330, tam: 66, de: 70, dur: 50 },
-        { txt: 'Faça a sua conta, com os seus números:', x: 160, y: 520, tam: 58, de: 135, dur: 70 },
-        { txt: 'locadoras.uselexgo.com', x: 160, y: 620, tam: 82, de: 210, dur: 55, cor: ROXO, peso: 700 },
-        { txt: 'grátis · sem cadastro · funciona off-line', x: 165, y: 740, tam: 46, de: 268, dur: 30, cor: '#6B6478' },
+        { txt: 'R$ 48.201', x: 150, y: 140, tam: 144, de: 4, dur: 40, cor: ROXO, peso: 700 },
+        { txt: 'a menos que financiar.', x: 158, y: 320, tam: 64, de: 48, dur: 34 },
+        { txt: 'Faça a sua conta, com os seus números:', x: 158, y: 500, tam: 56, de: 90, dur: 46 },
+        { txt: 'locadoras.uselexgo.com', x: 158, y: 600, tam: 80, de: 140, dur: 40, cor: ROXO, peso: 700 },
+        { txt: 'grátis · sem cadastro · funciona off-line', x: 162, y: 716, tam: 44, de: 184, dur: 22, cor: '#6B6478' },
       ]}
     >
       <Traco
         d="M0 8 H 700"
-        de={266}
-        dur={24}
+        de={182}
+        dur={18}
         comp={720}
         larg={7}
         cor={OURO}
         vb="0 0 720 16"
-        estilo={{ left: 160, top: 706, width: 730 }}
+        estilo={{ left: 158, top: 684, width: 730 }}
       />
     </Cena>
   </AbsoluteFill>
