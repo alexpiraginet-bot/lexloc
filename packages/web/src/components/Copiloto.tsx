@@ -7,16 +7,19 @@
  */
 import { useMemo, useState } from 'react';
 import type { Derivado } from '../state';
-import { identificar, OBJECOES, type Objecao } from '../lib/negociacao';
+import { identificar, porFamilia, REPERTORIO, type Objecao } from '../lib/negociacao';
+import { reais } from '../lib/format';
 import { Icone } from './icones';
 
-/** as objeções mais comuns viram atalho — o vendedor nem precisa digitar */
+/** as mais ouvidas em loja viram atalho — o vendedor nem precisa digitar */
 const ATALHOS = ['caro-mensal', 'prefiro-ter', 'vou-pensar', 'concorrente'];
 
 export function Copiloto({ d }: { d: Derivado }) {
   const [texto, setTexto] = useState('');
   const [fixada, setFixada] = useState<Objecao | null>(null);
   const [copiada, setCopiada] = useState('');
+  const [verTodas, setVerTodas] = useState(false);
+  const familias = useMemo(() => porFamilia(), []);
 
   const achados = useMemo(() => identificar(texto), [texto]);
   const escolhida = fixada ?? achados[0]?.objecao ?? null;
@@ -41,9 +44,22 @@ export function Copiloto({ d }: { d: Derivado }) {
         </span>
       </div>
       <p className="hint" style={{ margin: '2px 0 12px' }}>
-        Cole o que o cliente disse. A resposta sai com os números desta simulação — nada é
-        enviado para lugar nenhum.
+        Cole o que o cliente disse — em português corrido, do jeito que ele falou.
+        São {REPERTORIO.length} objeções no repertório e nada é enviado para lugar nenhum.
       </p>
+
+      {/* os números desta simulação, à mão para o vendedor usar na fala */}
+      <div className="cop-num">
+        <span>
+          mensalidade <b>{reais(d.p.mensalidade)}</b>
+        </span>
+        <span>
+          absorvido <b>{reais(d.absorvido)}</b>
+        </span>
+        <span>
+          à vista exige <b>{reais(d.r.aVista.desembolso)}</b>
+        </span>
+      </div>
 
       <label className="f">
         <span className="sr-only">Objeção do cliente</span>
@@ -62,7 +78,7 @@ export function Copiloto({ d }: { d: Derivado }) {
 
       <div className="chips" style={{ marginTop: 10 }}>
         {ATALHOS.map((id) => {
-          const o = OBJECOES.find((x) => x.id === id);
+          const o = REPERTORIO.find((x) => x.id === id);
           if (!o) return null;
           return (
             <button
@@ -97,6 +113,45 @@ export function Copiloto({ d }: { d: Derivado }) {
             </span>
           ))}
         </p>
+      ) : null}
+
+      <button
+        type="button"
+        className="lnk"
+        style={{ marginTop: 12 }}
+        onClick={() => setVerTodas((v) => !v)}
+      >
+        {verTodas ? 'Esconder o repertório' : `Ver as ${REPERTORIO.length} objeções por tema`}
+      </button>
+
+      {verTodas ? (
+        <div className="cop-lista">
+          {familias.map((f) => (
+            <details key={f.familia}>
+              <summary>
+                {f.nome}
+                <i>{f.itens.length}</i>
+              </summary>
+              <div>
+                {f.itens.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    className="chip"
+                    aria-pressed={escolhida?.id === o.id}
+                    onClick={() => {
+                      setFixada(o);
+                      setTexto(o.rotulo);
+                      setVerTodas(false);
+                    }}
+                  >
+                    {o.rotulo}
+                  </button>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
       ) : null}
 
       {replica && escolhida ? (

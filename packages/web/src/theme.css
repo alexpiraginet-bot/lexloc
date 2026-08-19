@@ -1581,3 +1581,54 @@ body::after {
 }
 .cc .sp { min-height: 0; }
 .cc .mn { margin-top: 4px; }
+
+/* faixa de números e repertório do copiloto */
+.cop-num {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.cop-num span {
+  font-size: 11.5px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 99px;
+  padding: 5px 11px;
+}
+.cop-num b { font-family: var(--mono); color: var(--brand-text); font-size: 12px; }
+.cop-lista { margin-top: 10px; display: grid; gap: 6px; }
+.cop-lista details {
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+.cop-lista summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.cop-lista summary::-webkit-details-marker { display: none; }
+.cop-lista summary i {
+  font-style: normal;
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--paper);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+.cop-lista details > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 12px;
+}

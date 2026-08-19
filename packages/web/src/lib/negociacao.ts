@@ -15,16 +15,45 @@
  */
 import type { Derivado } from '../state';
 import { reais } from './format';
+import { CATALOGO_OBJECOES } from './objecoes';
 
 export type Familia =
   | 'preco'
   | 'posse'
   | 'compromisso'
   | 'km'
+  | 'seguro'
+  | 'manutencao'
   | 'terceiro'
   | 'concorrente'
   | 'adiamento'
-  | 'credito';
+  | 'credito'
+  | 'pj'
+  | 'confianca'
+  | 'veiculo'
+  | 'troca'
+  | 'emocional'
+  | 'regional';
+
+/** rótulo curto de cada família, para agrupar a lista na tela */
+export const NOME_FAMILIA: Record<Familia, string> = {
+  preco: 'Preço e parcela',
+  posse: 'Posse e patrimônio',
+  compromisso: 'Contrato e prazo',
+  km: 'Quilometragem',
+  seguro: 'Seguro e sinistro',
+  manutencao: 'Manutenção',
+  terceiro: 'Decisão com terceiros',
+  concorrente: 'Concorrência',
+  adiamento: 'Adiamento',
+  credito: 'Crédito e cadastro',
+  pj: 'Empresa e contador',
+  confianca: 'Desconfiança do modelo',
+  veiculo: 'O carro',
+  troca: 'Usado e troca',
+  emocional: 'Apego e personalização',
+  regional: 'Região e cobertura',
+};
 
 export interface Replica {
   /** o que dizer — já com os números da simulação */
@@ -80,15 +109,6 @@ function pontuar(texto: string, gatilhos: string[]): number {
     }
   }
   return pontos;
-}
-
-/** Devolve as objeções mais prováveis, da mais provável para a menos. */
-export function identificar(texto: string, limite = 3): { objecao: Objecao; pontos: number }[] {
-  if (normalizar(texto).length < 3) return [];
-  return OBJECOES.map((objecao) => ({ objecao, pontos: pontuar(texto, objecao.gatilhos) }))
-    .filter((x) => x.pontos > 0)
-    .sort((a, b) => b.pontos - a.pontos)
-    .slice(0, limite);
 }
 
 /* ─────────── o repertório ───────────
@@ -266,6 +286,44 @@ export const OBJECOES: Objecao[] = [
     }),
   },
 ];
+
+/**
+ * Repertório completo: as 8 dinâmicas (que injetam os números desta
+ * simulação) mais o catálogo nacional estático. As estáticas ganham um
+ * `monta` trivial para o resto do app não precisar saber a diferença.
+ */
+export const REPERTORIO: Objecao[] = [
+  ...OBJECOES,
+  ...CATALOGO_OBJECOES.map((o) => ({
+    id: o.id,
+    familia: o.familia,
+    rotulo: o.rotulo,
+    gatilhos: o.gatilhos,
+    monta: () => ({ fala: o.fala, devolucao: o.devolucao, evite: o.evite }),
+  })),
+];
+
+/** Devolve as objeções mais prováveis, da mais provável para a menos. */
+export function identificar(texto: string, limite = 3): { objecao: Objecao; pontos: number }[] {
+  if (normalizar(texto).length < 3) return [];
+  return REPERTORIO.map((objecao) => ({ objecao, pontos: pontuar(texto, objecao.gatilhos) }))
+    .filter((x) => x.pontos > 0)
+    .sort((a, b) => b.pontos - a.pontos)
+    .slice(0, limite);
+}
+
+/** Repertório agrupado por família — é assim que a lista aparece na tela. */
+export function porFamilia(): { familia: Familia; nome: string; itens: Objecao[] }[] {
+  const mapa = new Map<Familia, Objecao[]>();
+  for (const o of REPERTORIO) {
+    const lista = mapa.get(o.familia) ?? [];
+    lista.push(o);
+    mapa.set(o.familia, lista);
+  }
+  return [...mapa.entries()]
+    .map(([familia, itens]) => ({ familia, nome: NOME_FAMILIA[familia], itens }))
+    .sort((a, b) => b.itens.length - a.itens.length);
+}
 
 /* ─────────── contrato da camada de IA (áudio, print, texto livre) ───────────
  *
