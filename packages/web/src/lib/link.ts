@@ -49,12 +49,12 @@ export function gerarLink(estado: Estado, marca: Marca): string {
   for (const c of CAMPOS_ESTADO) p.e[c] = estado[c];
   for (const c of CAMPOS_MARCA) if (marca[c]) p.m[c] = marca[c];
   const hash = '#d=' + b64urlCodificar(JSON.stringify(p));
-  // hospedado: usa a própria origem (uselexgo.com/locadoras, preview etc.);
+  // hospedado: usa a própria origem (locadoras.uselexgo.com, preview etc.);
   // aberto de arquivo: aponta para o endereço oficial
   const base =
     typeof location !== 'undefined' && location.protocol.startsWith('http')
       ? location.origin + location.pathname
-      : 'https://uselexgo.com/locadoras/app.html';
+      : 'https://locadoras.uselexgo.com/app.html';
   return base + hash;
 }
 

@@ -39,7 +39,7 @@ import './theme.css';
             'padding:12px 16px;font:600 13px/1.5 system-ui,sans-serif;text-align:center';
           aviso.innerHTML =
             'Cópia não autorizada — a calculadora oficial e gratuita está em ' +
-            '<a href="https://uselexgo.com/locadoras" style="color:#d9b76b">uselexgo.com/locadoras</a>';
+            '<a href="https://locadoras.uselexgo.com" style="color:#d9b76b">locadoras.uselexgo.com</a>';
           document.body.appendChild(aviso);
         });
       }
@@ -58,7 +58,7 @@ import './theme.css';
 
 // marca d'água para quem abrir o console
 console.info(
-  '%cLexGo © Lex Technology — uselexgo.com/locadoras',
+  '%cLexGo © Lex Technology — locadoras.uselexgo.com',
   'color:#8f31aa;font-weight:700;font-size:14px',
 );
 
