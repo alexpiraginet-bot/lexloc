@@ -1,6 +1,6 @@
 /** Aba Simular: carro, plano, onde roda, premissas — e a retaguarda (vendedor). */
 import { CATEGORIAS, DEPREC, UFS, type Veiculo } from '@godrive/engine';
-import type { Dispatch } from 'react';
+import { useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
 import { n2, reais, reais2 } from '../lib/format';
 import type { Marca } from '../lib/marca';
@@ -42,6 +42,8 @@ export function Simulador({
   const curva = DEPREC[estado.curva]!;
   const ev = cat.tipo === 'ev';
 
+  const [busca, setBusca] = useState('');
+
   const escolherCarro = (i: number) => {
     const v = catalogo[i]!;
     const c = CATEGORIAS[v.c]!;
@@ -62,8 +64,37 @@ export function Simulador({
     });
   };
 
-  const gd = catalogo.map((v, i) => ({ v, i })).filter((x) => x.v.gd === 1);
-  const outros = catalogo.map((v, i) => ({ v, i })).filter((x) => x.v.gd !== 1);
+  /*
+   * Seis referências, duas por padrão — o catálogo inteiro na tela era
+   * poluição (feedback direto do dono). As faixas são calculadas pela
+   * MENSALIDADE, não por nome: valem também para o catálogo custom de
+   * qualquer locadora. Carro da loja (gd) fura a fila da sua faixa; o
+   * complemento vem do meio da faixa, que é a referência honesta.
+   */
+  const indexado = catalogo.map((v, i) => ({ v, i }));
+  const FAIXAS = [
+    { id: 'popular', rotulo: 'Popular', ate: 2400 },
+    { id: 'inter', rotulo: 'Intermediário', ate: 4300 },
+    { id: 'alto', rotulo: 'Alto padrão', ate: Infinity },
+  ];
+  const referencias = FAIXAS.map((f, fi) => {
+    const piso = fi === 0 ? 0 : FAIXAS[fi - 1]!.ate;
+    const naFaixa = indexado
+      .filter(({ v }) => v.m > piso && v.m <= f.ate)
+      .sort((a, b) => a.v.m - b.v.m);
+    const escolhidos = naFaixa.filter(({ v }) => v.gd === 1).slice(0, 2);
+    const resto = naFaixa.filter((x) => !escolhidos.includes(x));
+    while (escolhidos.length < 2 && resto.length) {
+      const meio = Math.floor((resto.length - 1) / 2);
+      escolhidos.push(resto.splice(meio, 1)[0]!);
+    }
+    return { ...f, escolhidos };
+  }).filter((f) => f.escolhidos.length > 0);
+
+  // busca para quem quer um modelo específico (a lista completa sai da tela)
+  const alvo = busca.trim().toLowerCase();
+  const achados =
+    alvo.length >= 2 ? indexado.filter(({ v }) => v.n.toLowerCase().includes(alvo)) : [];
 
   return (
     <>
@@ -77,45 +108,79 @@ export function Simulador({
             </small>
           </div>
         </div>
-        <div className="grid-cars" role="group" aria-label={`Catálogo ${marca.nome}${marca.sufixo}`}>
-          {gd.map(({ v, i }) => (
-            <button
-              key={v.n}
-              type="button"
-              className="cc"
-              aria-pressed={estado.carroIdx === i}
-              aria-label={`${v.n}, tabela ${reais(v.p)}, assinatura a partir de ${reais(v.m)} por mês`}
-              onClick={() => escolherCarro(i)}
-            >
-              <Silhueta cat={v.c} />
-              <span className={`fl${v.f === 'est' ? ' est' : ''}`}>
-                {v.f === 'pub' ? 'publicada' : v.f === 'mer' ? 'mercado' : 'estimada'}
-              </span>
-              <span className="nm">{v.n}</span>
-              <span className="sp">{v.d}</span>
-              <span className="mn">
-                {reais(v.m)}
-                <i>/mês</i>
-              </span>
-              <span className="tb">tabela {reais(v.p)}</span>
-            </button>
-          ))}
-        </div>
-        <div className="sect">Outros modelos do mercado</div>
-        <div className="chips" role="group" aria-label="Outros modelos">
-          {outros.map(({ v, i }) => (
-            <button
-              key={v.n}
-              type="button"
-              className="chip"
-              aria-pressed={estado.carroIdx === i}
-              onClick={() => escolherCarro(i)}
-            >
-              {v.n}
-              <span className="pm">{reais(v.m)}/mês</span>
-            </button>
-          ))}
-        </div>
+        {referencias.map((f) => (
+          <div key={f.id} className="faixa" role="group" aria-label={`Padrão ${f.rotulo}`}>
+            <div className="faixa-h">
+              <span>{f.rotulo}</span>
+              <i />
+            </div>
+            <div className="grid-cars">
+              {f.escolhidos.map(({ v, i }) => (
+                <button
+                  key={v.n}
+                  type="button"
+                  className="cc"
+                  aria-pressed={estado.carroIdx === i}
+                  aria-label={`${v.n}, tabela ${reais(v.p)}, assinatura a partir de ${reais(v.m)} por mês`}
+                  onClick={() => escolherCarro(i)}
+                >
+                  <Silhueta cat={v.c} />
+                  <span className={`fl${v.f === 'est' ? ' est' : ''}`}>
+                    {v.gd === 1 ? 'da loja' : v.f === 'pub' ? 'publicada' : v.f === 'mer' ? 'mercado' : 'estimada'}
+                  </span>
+                  <span className="nm">{v.n}</span>
+                  <span className="sp">{v.d}</span>
+                  <span className="mn">
+                    {reais(v.m)}
+                    <i>/mês</i>
+                  </span>
+                  <span className="tb">tabela {reais(v.p)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <label className="busca">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.4-3.4" />
+          </svg>
+          <input
+            type="search"
+            className="inp"
+            placeholder="Procurar um modelo específico…"
+            aria-label="Procurar um modelo específico no catálogo"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </label>
+        {alvo.length >= 2 ? (
+          achados.length ? (
+            <div className="chips" role="group" aria-label="Modelos encontrados">
+              {achados.map(({ v, i }) => (
+                <button
+                  key={v.n}
+                  type="button"
+                  className="chip"
+                  aria-pressed={estado.carroIdx === i}
+                  onClick={() => {
+                    escolherCarro(i);
+                    setBusca('');
+                  }}
+                >
+                  {v.n}
+                  <span className="pm">{reais(v.m)}/mês</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="hint" style={{ marginTop: 8 }}>
+              Nenhum modelo com esse nome no catálogo — sem problema: informe a mensalidade e
+              o preço de tabela no passo 2 e a conta sai igual.
+            </p>
+          )
+        ) : null}
         {carro ? (
           <div className="carinfo" style={{ marginTop: 13 }}>
             <div className="ci">

@@ -35,6 +35,12 @@
   --bad: #c2410c;
 
   --r-lg: 20px;
+  /* vidro (Liquid Glass): SÓ navegação e controles — conteúdo fica sólido.
+     O tom vem do papel, o realce de cima imita a aresta iluminada do vidro. */
+  --vidro: color-mix(in srgb, var(--paper) 72%, transparent);
+  --vidro-borda: color-mix(in srgb, var(--ink) 8%, transparent);
+  --vidro-brilho: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --vidro-blur: saturate(1.8) blur(22px);
   --r: 14px;
   --r-sm: 10px;
   --r-xs: 8px;
@@ -125,10 +131,11 @@ a.sr:focus {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--paper) 86%, transparent);
-  backdrop-filter: saturate(1.6) blur(14px);
-  -webkit-backdrop-filter: saturate(1.6) blur(14px);
-  border-bottom: 1px solid var(--line);
+  background: var(--vidro);
+  backdrop-filter: var(--vidro-blur);
+  -webkit-backdrop-filter: var(--vidro-blur);
+  border-bottom: 1px solid var(--vidro-borda);
+  box-shadow: var(--vidro-brilho);
   padding-top: env(safe-area-inset-top);
 }
 .appbar .row {
@@ -205,10 +212,18 @@ a.sr:focus {
   position: sticky;
   top: calc(58px + env(safe-area-inset-top));
   z-index: 40;
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
+  padding: 8px 0 10px;
+  background: linear-gradient(color-mix(in srgb, var(--paper) 86%, transparent), transparent);
+}
+.tabs .row {
+  background: var(--vidro);
+  backdrop-filter: var(--vidro-blur);
+  -webkit-backdrop-filter: var(--vidro-blur);
+  border: 1px solid var(--vidro-borda);
+  box-shadow: var(--vidro-brilho), 0 8px 28px -14px color-mix(in srgb, var(--brand-dark) 38%, transparent);
+  border-radius: 99px;
+  padding: 4px;
+  gap: 2px;
 }
 .tabs .row {
   display: flex;
@@ -222,29 +237,23 @@ a.sr:focus {
   flex: 1 1 auto;
   border: 0;
   background: none;
-  padding: 13px 7px 12px;
+  border-radius: 99px;
+  padding: 11px 7px;
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.18s var(--e-out);
-  min-height: 46px;
+  transition: color 0.18s var(--e-out), background 0.22s var(--e-out),
+    box-shadow 0.22s var(--e-out), transform 0.12s var(--e-out);
+  min-height: 44px;
 }
-.tab::after {
-  content: '';
-  position: absolute;
-  left: 7px;
-  right: 7px;
-  bottom: 0;
-  height: 2.5px;
-  border-radius: 3px 3px 0 0;
-  background: var(--brand);
-  transform: scaleX(0);
-  transition: transform 0.26s var(--e-out);
+.tab:active { transform: scale(0.97); }
+.tab[aria-selected='true'] {
+  color: var(--brand-deep);
+  background: var(--paper);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05), 0 4px 14px -6px color-mix(in srgb, var(--brand-dark) 35%, transparent);
 }
-.tab[aria-selected='true'] { color: var(--brand-deep); }
-.tab[aria-selected='true']::after { transform: scaleX(1); }
 .tab .cnt {
   display: inline-block;
   min-width: 16px;
@@ -781,7 +790,7 @@ details > .body { padding: 15px 16px 16px; }
   justify-content: center;
   gap: 8px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: 99px;
   padding: 13px 17px;
   font-size: 14.5px;
   font-weight: 600;
@@ -825,16 +834,18 @@ details > .body { padding: 15px 16px 16px; }
 /* ───── Dock (mobile) ───── */
 .dock {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 50;
-  background: color-mix(in srgb, var(--paper) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--line);
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-  transform: translateY(105%);
+  background: var(--vidro);
+  backdrop-filter: var(--vidro-blur);
+  -webkit-backdrop-filter: var(--vidro-blur);
+  border: 1px solid var(--vidro-borda);
+  border-radius: 24px;
+  box-shadow: var(--vidro-brilho), 0 18px 44px -18px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+  padding: 10px 14px;
+  transform: translateY(calc(100% + 26px));
   transition: transform 0.34s var(--e-out);
 }
 .dock.on { transform: none; }
@@ -963,10 +974,13 @@ details > .body { padding: 15px 16px 16px; }
   bottom: calc(96px + env(safe-area-inset-bottom));
   transform: translate(-50%, 20px);
   z-index: 80;
-  background: var(--ink);
+  background: color-mix(in srgb, var(--ink) 84%, transparent);
+  backdrop-filter: var(--vidro-blur);
+  -webkit-backdrop-filter: var(--vidro-blur);
   color: var(--paper);
-  padding: 12px 16px;
-  border-radius: 12px;
+  padding: 12px 18px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   font-size: 13.5px;
   font-weight: 500;
   box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.45);
@@ -1057,3 +1071,56 @@ details > .body { padding: 15px 16px 16px; }
   letter-spacing:-.03em; }
 .ret-logo-prev img { max-width:108px; max-height:46px; object-fit:contain; }
 @media (max-width:430px){ .ret-logo { grid-template-columns:1fr; } }
+
+/* ───── vidro: fallbacks de acessibilidade e suporte ───── */
+@supports not (backdrop-filter: blur(1px)) {
+  .appbar, .tabs .row, .dock, .toast { background: var(--paper); }
+  .toast { background: var(--ink); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .appbar, .tabs .row, .dock { background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .toast { background: var(--ink); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* ───── catálogo por padrão (popular / intermediário / alto) ───── */
+.faixa { margin-top: 14px; }
+.faixa:first-of-type { margin-top: 2px; }
+.faixa-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.faixa-h i { flex: 1; height: 1px; background: var(--line); }
+.grid-cars { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+.busca {
+  position: relative;
+  display: block;
+  margin-top: 16px;
+}
+.busca svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  stroke: var(--muted);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.busca .inp {
+  padding-left: 40px;
+  border-radius: 99px;
+  font-family: var(--sans);
+  font-weight: 500;
+}
+.busca .inp::-webkit-search-cancel-button { -webkit-appearance: none; }
