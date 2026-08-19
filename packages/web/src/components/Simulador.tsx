@@ -138,7 +138,9 @@ export function Simulador({
                         src={v.fo ?? FOTO_CATEGORIA[v.c]}
                         alt=""
                         className="cc-foto"
-                        loading="lazy"
+                        /* sem lazy: o data URI já veio no documento, e adiar
+                           só cria dependência de composição — em aba oculta a
+                           imagem nunca entra na viewport e não carrega */
                       />
                     ) : (
                       <Silhueta cat={v.c} />
