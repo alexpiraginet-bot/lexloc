@@ -7,7 +7,8 @@
  * garante a marca no papel.
  */
 import { useMemo } from 'react';
-import { UFS, type Veiculo } from '@godrive/engine';
+import { UFS } from '@godrive/engine';
+import type { VeiculoLoja } from '../lib/catalogo';
 import type { Derivado, Estado } from '../state';
 import { marcaPropria, type Marca } from '../lib/marca';
 import { n0, reais } from '../lib/format';
@@ -20,7 +21,7 @@ export function PropostaPrint({
 }: {
   estado: Estado;
   d: Derivado;
-  catalogo: Veiculo[];
+  catalogo: VeiculoLoja[];
   marca: Marca;
 }) {
   const { p, r, absorvido, abs } = d;

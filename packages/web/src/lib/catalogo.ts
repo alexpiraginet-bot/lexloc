@@ -15,7 +15,36 @@ export interface AjusteVeiculo {
   p?: number;
   /** mensalidade (R$) */
   m?: number;
+  /**
+   * Foto DA FROTA DA LOCADORA como data URI (até ~90 KB).
+   * De propósito não embarcamos fotos de fábrica: imagem de imprensa é
+   * protegida por direito autoral e o produto vai para centenas de
+   * empresas. A locadora sobe a foto do carro dela — que é o carro que o
+   * cliente vai receber, na cor certa.
+   */
+  fo?: string;
 }
+/** foto da frota: só imagem, com teto — o arquivo da equipe não pode explodir */
+const FOTO_OK = /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/;
+export const FOTO_MAX = 90_000;
+
+/** Valida a foto escolhida pelo vendedor e devolve o data URI. */
+export function lerFotoDeArquivo(f: File): Promise<string> {
+  return new Promise((ok, erro) => {
+    if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return erro(new Error('Use PNG, JPG ou WEBP.'));
+    if (f.size > FOTO_MAX) {
+      return erro(new Error(`Foto muito pesada (máx. ${Math.round(FOTO_MAX / 1000)} KB).`));
+    }
+    const r = new FileReader();
+    r.onload = () => {
+      const s = String(r.result ?? '');
+      FOTO_OK.test(s) ? ok(s) : erro(new Error('Arquivo de imagem inválido.'));
+    };
+    r.onerror = () => erro(new Error('Não consegui ler o arquivo.'));
+    r.readAsDataURL(f);
+  });
+}
+
 export interface CatalogoCustom {
   versao: 1;
   atualizadoEm: string;
@@ -85,8 +114,11 @@ function veiculoValido(v: unknown): v is Veiculo {
 }
 
 /** Catálogo efetivo: referência + ajustes + extras. */
-export function catalogoEfetivo(custom: CatalogoCustom): Veiculo[] {
-  const base = CATALOGO.map((v) => {
+/** Veículo do catálogo + o que a locadora acrescenta no aparelho dela. */
+export type VeiculoLoja = Veiculo & { fo?: string };
+
+export function catalogoEfetivo(custom: CatalogoCustom): VeiculoLoja[] {
+  const base: VeiculoLoja[] = CATALOGO.map((v) => {
     const aj = custom.ajustes[v.n];
     if (!aj) return v;
     return {
@@ -95,6 +127,7 @@ export function catalogoEfetivo(custom: CatalogoCustom): Veiculo[] {
       m: aj.m != null && aj.m > 0 ? aj.m : v.m,
       // preço mexido pela equipe = fonte "mercado local", não mais a publicada
       f: (aj.m != null && aj.m !== v.m ? 'mer' : v.f) as Veiculo['f'],
+      ...(aj.fo ? { fo: aj.fo } : {}),
     };
   });
   return [...base, ...custom.extras];
@@ -133,6 +166,9 @@ export function importarArquivo(texto: string): ArquivoImportado | string {
       const limpo: AjusteVeiculo = {};
       if (typeof aj.p === 'number' && Number.isFinite(aj.p) && aj.p > 0) limpo.p = aj.p;
       if (typeof aj.m === 'number' && Number.isFinite(aj.m) && aj.m > 0) limpo.m = aj.m;
+      if (typeof aj.fo === 'string' && FOTO_OK.test(aj.fo) && aj.fo.length <= FOTO_MAX * 1.4) {
+        limpo.fo = aj.fo;
+      }
       if (Object.keys(limpo).length) ajustes[nome] = limpo;
     }
     return {

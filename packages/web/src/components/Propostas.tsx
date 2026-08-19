@@ -5,7 +5,7 @@
  * — funciona off-line, sem nenhuma dependência.
  */
 import { useEffect, useRef, useState, type Dispatch } from 'react';
-import type { Veiculo } from '@godrive/engine';
+import type { VeiculoLoja } from '../lib/catalogo';
 import type { Acao, Derivado, Estado, Proposta } from '../state';
 import { gravarPropostas, lerPropostas } from '../state';
 import type { Marca } from '../lib/marca';
@@ -25,7 +25,7 @@ export function Propostas({
   d: Derivado | null;
   dispatch: Dispatch<Acao>;
   avisar: (msg: string) => void;
-  catalogo: Veiculo[];
+  catalogo: VeiculoLoja[];
   marca: Marca;
 }) {
   const [lista, setLista] = useState<Proposta[]>(lerPropostas);

@@ -1,10 +1,12 @@
 /** Aba Simular: carro, plano, onde roda, premissas — e a retaguarda (vendedor). */
-import { CATEGORIAS, DEPREC, UFS, type Veiculo } from '@godrive/engine';
+import { CATEGORIAS, DEPREC, UFS } from '@godrive/engine';
+import type { VeiculoLoja } from '../lib/catalogo';
 import { useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
 import { n2, reais, reais2 } from '../lib/format';
 import type { Marca } from '../lib/marca';
 import { Silhueta, Icone } from './icones';
+import { FOTO_CATEGORIA } from '../fotos/categorias';
 import { Retaguarda } from '@vendedor';
 import { CampoNum } from './CampoNum';
 
@@ -32,7 +34,7 @@ export function Simulador({
 }: {
   estado: Estado;
   dispatch: Dispatch<Acao>;
-  catalogo: Veiculo[];
+  catalogo: VeiculoLoja[];
   marca: Marca;
   avisar: (msg: string) => void;
 }) {
@@ -124,17 +126,37 @@ export function Simulador({
                   aria-label={`${v.n}, tabela ${reais(v.p)}, assinatura a partir de ${reais(v.m)} por mês`}
                   onClick={() => escolherCarro(i)}
                 >
-                  <Silhueta cat={v.c} />
-                  <span className={`fl${v.f === 'est' ? ' est' : ''}`}>
-                    {v.gd === 1 ? 'da loja' : v.f === 'pub' ? 'publicada' : v.f === 'mer' ? 'mercado' : 'estimada'}
+                  {/* PALCO — a foto da frota da locadora quando existir; a
+                      silhueta da categoria é o padrão de fábrica, igual para
+                      todos, para o catálogo não virar colcha de retalhos */}
+                  <span className="cc-palco">
+                    {/* 1º a foto da FROTA da locadora — é o carro que o cliente
+                        recebe; 2º a foto da categoria (mesmo estúdio para todos);
+                        a silhueta só sobra se a categoria for desconhecida */}
+                    {v.fo ?? FOTO_CATEGORIA[v.c] ? (
+                      <img
+                        src={v.fo ?? FOTO_CATEGORIA[v.c]}
+                        alt=""
+                        className="cc-foto"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Silhueta cat={v.c} />
+                    )}
+                    <span className={`fl${v.f === 'est' ? ' est' : ''}`}>
+                      {v.gd === 1 ? 'da loja' : v.f === 'pub' ? 'publicada' : v.f === 'mer' ? 'mercado' : 'estimada'}
+                    </span>
                   </span>
-                  <span className="nm">{v.n}</span>
-                  <span className="sp">{v.d}</span>
-                  <span className="mn">
-                    {reais(v.m)}
-                    <i>/mês</i>
+                  {/* FICHA — nome e números, separados do palco por um fio */}
+                  <span className="cc-ficha">
+                    <span className="nm">{v.n}</span>
+                    <span className="sp">{v.d}</span>
+                    <span className="mn">
+                      {reais(v.m)}
+                      <i>/mês</i>
+                    </span>
+                    <span className="tb">tabela {reais(v.p)}</span>
                   </span>
-                  <span className="tb">tabela {reais(v.p)}</span>
                 </button>
               ))}
             </div>

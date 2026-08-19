@@ -6,7 +6,8 @@
  * chega ao arquivo que o cliente recebe — nem o código, nem os textos.
  * A guarda em scripts/publicar.mjs falha o build se isso deixar de valer.
  */
-import { CATEGORIAS, type Veiculo } from '@godrive/engine';
+import { CATEGORIAS } from '@godrive/engine';
+import type { VeiculoLoja } from '../lib/catalogo';
 import { useRef, useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
 import { parseNum } from '../lib/format';
@@ -34,7 +35,7 @@ function LinhaPreco({
   v,
   aoSalvar,
 }: {
-  v: Veiculo;
+  v: VeiculoLoja;
   aoSalvar: (nome: string, campo: 'p' | 'm', valor: number) => void;
 }) {
   return (
@@ -75,7 +76,7 @@ export function Retaguarda({
 }: {
   estado: Estado;
   dispatch: Dispatch<Acao>;
-  catalogo: Veiculo[];
+  catalogo: VeiculoLoja[];
   marca: Marca;
   avisar: (msg: string) => void;
 }) {
