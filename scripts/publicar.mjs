@@ -60,14 +60,24 @@ function rodar(bin, args, env) {
   }
 }
 
+/*
+ * Constrói TUDO antes de copiar coisa nenhuma.
+ *
+ * Antes a cópia para site/ acontecia dentro deste laço e a guarda do corte só
+ * rodava depois: um vazamento era detectado com o arquivo vazado JÁ em site/
+ * — que é versionado e é o outputDirectory do Vercel. O `process.exit(1)` não
+ * desfazia nada, então um `git commit -a` ou um deploy no susto publicava o
+ * vazamento que a guarda tinha acabado de acusar.
+ */
+const construidos = [];
 for (const alvo of ALVOS) {
   process.stdout.write(`· ${alvo.rot} … `);
   rodar(TSC, ['-p', 'tsconfig.json', '--noEmit'], alvo.env);
   rodar(VITE, ['build'], alvo.env);
   const origem = join(web, alvo.de);
   if (!existsSync(origem)) throw new Error(`build não gerou ${alvo.de}`);
-  for (const nome of alvo.para) copyFileSync(origem, join(site, nome));
-  console.log(`${alvo.para.join(', ')} (${kb(join(site, alvo.para[0]))})`);
+  construidos.push({ alvo, origem });
+  console.log(`${alvo.para.join(', ')} (${kb(origem)})`);
 }
 
 /*
@@ -87,8 +97,11 @@ const MARCAS_DA_EQUIPE = [
   'Prova de estresse',        // diagnóstico do vendedor, nunca do cliente
   'Copiloto de negociação',   // repertório de objeções — mesa do vendedor
 ];
-const cliente = readFileSync(join(site, 'lexgo-cliente.html'), 'utf8');
-const vendedor = readFileSync(join(site, 'lexgo-vendedor.html'), 'utf8');
+/* lê o que ACABOU de ser construído, não o que já está publicado em site/ */
+const lido = (perfil) =>
+  readFileSync(construidos.find((c) => c.alvo.env.PERFIL === perfil).origem, 'utf8');
+const cliente = lido('cliente');
+const vendedor = lido('vendedor');
 
 const sumiu = MARCAS_DA_EQUIPE.filter((t) => !vendedor.includes(t));
 if (sumiu.length) {
@@ -116,5 +129,9 @@ const vazou = MARCAS_DA_EQUIPE.filter((t) => cliente.includes(t));
 if (vazou.length) {
   console.error(`\n✗ vazou para o arquivo do CLIENTE: ${vazou.join(', ')}`);
   process.exit(1);
+}
+/* passou em tudo: agora sim o site/ pode ser tocado */
+for (const { alvo, origem } of construidos) {
+  for (const nome of alvo.para) copyFileSync(origem, join(site, nome));
 }
 console.log('\n✓ site/ pronto — o corte por build está de pé nos dois sentidos.');

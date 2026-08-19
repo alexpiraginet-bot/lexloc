@@ -73,8 +73,24 @@ const MODELOS = [
 /** o card exibe a ~180 px de largura; 480 cobre retina com folga */
 const LARGURA = 480;
 const QUALIDADE = 60;
-/** o mesmo teto de scripts/fotos-otimizar.mjs: o off-line vai por WhatsApp */
-const TETO_TOTAL = 220_000;
+/*
+ * Teto do ORÇAMENTO INTEIRO de fotos no HTML off-line, não deste script.
+ * fotos-otimizar.mjs impõe 220 KB às fotos de categoria e este impunha outros
+ * 220 KB às de modelo: dois orçamentos sobre o mesmo arquivo, cada um dizendo
+ * ✓ enquanto a soma passava de 280 KB. Agora o que já está em categorias.ts
+ * entra na conta.
+ */
+const TETO_TOTAL = 300_000;
+
+/** quanto de base64 as fotos de CATEGORIA já ocupam no mesmo HTML */
+function orcamentoJaUsado() {
+  try {
+    const cat = readFileSync(join(SAIDA, 'categorias.ts'), 'utf8');
+    return [...cat.matchAll(/base64,([^']+)'/g)].reduce((n, m) => n + m[1].length, 0);
+  } catch {
+    return 0;
+  }
+}
 
 function acharPython() {
   const tentativas = [
@@ -146,20 +162,42 @@ im = im.resize((larg, round(im.height * larg / im.width)), Image.LANCZOS)
 im.save(destino, "WEBP", quality=q, method=6)
 `;
 
+/*
+ * O arquivo emitido percorre MODELOS INTEIRO, nunca `fila`. `--so=` limita o
+ * que se GERA; se limitasse também o que se escreve, um `--so=kwid` para
+ * refazer uma foto apagaria as outras 21 e ainda sairia com ✓.
+ */
 const entradas = [];
+const faltando = [];
 let total = 0;
-for (const [nome] of fila) {
+for (const [nome] of MODELOS) {
   const png = join(FONTE, `${arquivo(nome)}.png`);
-  if (!existsSync(png)) continue;
+  if (!existsSync(png)) {
+    faltando.push(nome);
+    continue;
+  }
   const webp = join(SAIDA, `m-${arquivo(nome)}.webp`);
   execFileSync(PY, ['-c', otimiza, png, webp, String(LARGURA), String(QUALIDADE)]);
-  const bytes = readFileSync(webp);
-  total += bytes.length;
-  entradas.push(`  ${JSON.stringify(nome)}:\n    'data:image/webp;base64,${bytes.toString('base64')}',`);
+  const b64 = readFileSync(webp).toString('base64');
+  // o teto tem que medir o que ENTRA no HTML, e o que entra é base64 (+33%)
+  total += b64.length;
+  entradas.push(`  ${JSON.stringify(nome)}:\n    'data:image/webp;base64,${b64}',`);
 }
 
-if (total > TETO_TOTAL) {
-  console.error(`✗ ${Math.round(total / 1000)} KB de fotos — acima do teto de ${TETO_TOTAL / 1000} KB.`);
+if (faltando.length) {
+  console.error(`\n✗ faltam ${faltando.length} de ${MODELOS.length} fotos — o catálogo ficaria furado:`);
+  for (const n of faltando) console.error(`    ${n}`);
+  console.error('  gere as que faltam antes de escrever modelos.ts.');
+  process.exit(1);
+}
+
+const jaUsado = orcamentoJaUsado();
+if (total + jaUsado > TETO_TOTAL) {
+  console.error(
+    `✗ ${Math.round((total + jaUsado) / 1000)} KB de fotos no HTML ` +
+      `(${Math.round(total / 1000)} de modelo + ${Math.round(jaUsado / 1000)} de categoria) ` +
+      `— acima do teto de ${TETO_TOTAL / 1000} KB.`,
+  );
   console.error('  baixe LARGURA ou QUALIDADE e rode de novo.');
   process.exit(1);
 }
@@ -177,5 +215,9 @@ ${entradas.join('\n')}
 };
 `,
 );
-console.log(`\n✓ ${entradas.length} fotos · ${Math.round(total / 1000)} KB (teto ${TETO_TOTAL / 1000} KB)`);
+console.log(
+  `\n✓ ${entradas.length} fotos · ${Math.round(total / 1000)} KB de modelo + ` +
+    `${Math.round(jaUsado / 1000)} KB de categoria = ${Math.round((total + jaUsado) / 1000)} KB ` +
+    `de ${TETO_TOTAL / 1000} KB no HTML`,
+);
 console.log('  agora rode: npm run publicar');

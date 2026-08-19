@@ -16,8 +16,35 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = join(raiz, 'packages', 'web', 'src', 'fotos');
-const PY = 'C:/Users/R2/IA/ComfyUI_windows_portable/python_embeded/python.exe';
-if (!existsSync(PY)) throw new Error(`python do ComfyUI não encontrado: ${PY}`);
+/*
+ * Mesmo problema que marca.mjs e fotos-modelo.mjs já tinham: caminho fixo da
+ * máquina do dono, e `existsSync` verificando que o arquivo EXISTE quando o
+ * que importa é o Pillow IMPORTAR. Python sem PIL passava e quebrava depois,
+ * com erro opaco dentro do execFileSync.
+ */
+function acharPython() {
+  const tentativas = [
+    process.env['LEXGO_PYTHON'],
+    'python3',
+    'python',
+    'C:/Users/R2/IA/ComfyUI_windows_portable/python_embeded/python.exe',
+  ].filter((x) => typeof x === 'string' && x.length > 0);
+  for (const py of tentativas) {
+    try {
+      execFileSync(py, ['-c', 'import PIL'], { stdio: 'ignore' });
+      return py;
+    } catch {
+      /* próximo */
+    }
+  }
+  return null;
+}
+const PY = acharPython();
+if (!PY) {
+  console.error('✗ não achei um python com Pillow.  pip install pillow');
+  console.error('  ou aponte o seu:  LEXGO_PYTHON=/caminho/do/python node scripts/fotos-otimizar.mjs');
+  process.exit(1);
+}
 
 /** acima disto o arquivo off-line engorda demais para mandar por WhatsApp */
 const TETO_TOTAL = 220_000;

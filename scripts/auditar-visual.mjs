@@ -146,7 +146,8 @@ for (const t of TELAS) {
   const erros = [];
   pg.on('pageerror', (e) => erros.push(String(e.message).slice(0, 120)));
 
-  await pg.goto(alvo, { waitUntil: 'load' });
+  const resp = await pg.goto(alvo, { waitUntil: 'load' });
+  const http = resp?.status() ?? 0;
   // a atmosfera respira em 24s; parar a animação deixa o print comparável
   await pg.addStyleTag({ content: 'body::before{animation:none!important}' }).catch(() => {});
   await pg.waitForTimeout(700);
@@ -156,13 +157,24 @@ for (const t of TELAS) {
   await pg.screenshot({ path: join(SAIDA, `${t.nome}-inteira.png`), fullPage: true });
   await ctx.close();
 
+  /*
+   * Erro de JS e resposta ruim CONTAM. Antes só as medidas geométricas
+   * somavam, e página em branco não tem o que medir: o bundle podia quebrar
+   * e a auditoria dizia "✓ 0 apontamentos" com --estrito, liberando
+   * justamente o pior caso.
+   */
+  if (http >= 400 || http === 0) {
+    r.falhas.push({ tipo: 'resposta-ruim', http, url: alvo });
+  }
+  for (const e of erros) r.falhas.push({ tipo: 'erro-de-js', msg: e });
+
   const porTipo = {};
   for (const f of r.falhas) (porTipo[f.tipo] ??= []).push(f);
   totalFalhas += r.falhas.length;
-  relatorio.push({ tela: t.nome, largura: t.w, erros, falhas: r.falhas });
+  relatorio.push({ tela: t.nome, largura: t.w, http, erros, falhas: r.falhas });
 
   const resumo = Object.entries(porTipo).map(([k, v]) => `${k}=${v.length}`).join(' ') || 'nada';
-  console.log(`· ${t.nome} (${t.w}px) → ${t.nome}.png · ${resumo}${erros.length ? ` · ERROS JS=${erros.length}` : ''}`);
+  console.log(`· ${t.nome} (${t.w}px) → ${t.nome}.png · HTTP ${http} · ${resumo}`);
   // três exemplos por tipo bastam para achar o defeito; o resto vai no JSON
   for (const [tipo, lista] of Object.entries(porTipo)) {
     for (const f of lista.slice(0, 3)) console.log(`    ${tipo}: ${JSON.stringify(f)}`);
