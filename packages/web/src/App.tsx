@@ -12,7 +12,7 @@ const LINK = typeof window !== 'undefined' ? lerLink() : null;
 import { Simulador } from './components/Simulador';
 import { Resultado } from './components/Resultado';
 import { PJ } from './components/PJ';
-import { Propostas } from './components/Propostas';
+import { Propostas } from '@vendedor';
 import { PropostaPrint } from './components/PropostaPrint';
 import { Icone } from './components/icones';
 
@@ -54,15 +54,10 @@ export default function App() {
     document.getElementById('conteudo')?.focus({ preventScroll: true });
   }, [estado.aba]);
 
-  // marca aplicada nas variáveis de tema (claro/escuro)
+  // marca aplicada nas variáveis de tema (tema único claro)
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const aplicar = () =>
-      aplicarMarca(marca, estado.tema === 'escuro' || (estado.tema === 'auto' && mq.matches));
-    aplicar();
-    mq.addEventListener('change', aplicar);
-    return () => mq.removeEventListener('change', aplicar);
-  }, [marca, estado.tema]);
+    aplicarMarca(marca);
+  }, [marca]);
 
   useEffect(() => {
     document.title = `${marca.nome}${marca.sufixo} · Assinar ou comprar?`;
@@ -103,8 +98,14 @@ export default function App() {
       <header className="appbar">
         <div className="wrap row">
           <div className="logo" aria-label={`${marca.nome}${marca.sufixo}, calculadora assinar ou comprar`}>
-            <b>{marca.nome}</b>
-            <i>{marca.sufixo}</i>
+            {marca.logo ? (
+              <img src={marca.logo} alt={`${marca.nome}${marca.sufixo}`} className="logo-img" />
+            ) : (
+              <>
+                <b>{marca.nome}</b>
+                <i>{marca.sufixo}</i>
+              </>
+            )}
             <small>{marca.slogan}</small>
           </div>
           {PERFIL === 'vendedor' ? (
@@ -129,22 +130,6 @@ export default function App() {
           ) : (
             <span style={{ marginLeft: 'auto' }} />
           )}
-          <button
-            type="button"
-            className="iconbtn"
-            aria-label={`Tema: ${estado.tema}. Alternar`}
-            title="Alternar tema"
-            onClick={() =>
-              dispatch({
-                t: 'set',
-                campo: 'tema',
-                valor:
-                  estado.tema === 'auto' ? 'escuro' : estado.tema === 'escuro' ? 'claro' : 'auto',
-              })
-            }
-          >
-            <Icone nome={estado.tema === 'escuro' ? 'lua' : 'sol'} />
-          </button>
         </div>
       </header>
 

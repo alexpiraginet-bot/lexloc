@@ -24,7 +24,7 @@ export interface CatalogoCustom {
   extras: Veiculo[];
 }
 
-const LS = 'lexloc.catalogo.v1';
+const LS = 'lexgo.catalogo.v1';
 
 const vazio = (): CatalogoCustom => ({
   versao: 1,

@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "description": "Assinar, comprar à vista ou financiar? Simulador financeiro completo de veículos no Brasil — monorepo com motor de cálculo puro, API e web app.",
   "license": "UNLICENSED",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "packages/engine",
     "packages/api",
@@ -16,6 +18,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "dev:api": "npm run dev -w @godrive/api",
     "dev:web": "npm run dev -w @godrive/web",
-    "start": "npm run start -w @godrive/api"
+    "start": "npm run start -w @godrive/api",
+    "publicar": "node scripts/publicar.mjs",
+    "marca": "node scripts/marca.mjs"
   }
 }

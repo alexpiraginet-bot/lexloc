@@ -4,6 +4,7 @@
  * privacidade, WebView). Nada quebra sem ele.
  */
 import { useEffect, useMemo, useReducer } from 'react';
+import { chaveValida } from './lib/link';
 import {
   CATEGORIAS,
   DEPREC,
@@ -28,7 +29,6 @@ export const PERFIL: 'cliente' | 'vendedor' =
 
 export interface Estado {
   modo: Modo;
-  tema: 'auto' | 'claro' | 'escuro';
   aba: 'simular' | 'resultado' | 'pj' | 'propostas';
   carroIdx: number | null;
   uf: string;
@@ -60,6 +60,12 @@ export interface Estado {
   /* PJ */
   regime: 'real' | 'presumido' | 'simples';
   anoInicio: number;
+  /** faturamento anual da empresa (R$) */
+  faturamentoAnual: number;
+  /** margem de lucro sobre o faturamento (%) */
+  margemPct: number;
+  /** Simples que optou pelo regime regular de IBS/CBS */
+  simplesHibrido: boolean;
   /** bump a cada edição da tabela de preços — invalida memos do catálogo */
   catVersao: number;
 }
@@ -80,7 +86,6 @@ const SUVC = CATEGORIAS['suvc']!;
 
 export const estadoInicial: Estado = {
   modo: 'cliente',
-  tema: 'auto',
   aba: 'simular',
   carroIdx: 0,
   uf: 'ES',
@@ -110,7 +115,10 @@ export const estadoInicial: Estado = {
   precoKwh: 0.89,
   incluirEnergia: false,
   regime: 'real',
-  anoInicio: 2026,
+  anoInicio: 2027,
+  faturamentoAnual: 1200000,
+  margemPct: 15,
+  simplesHibrido: false,
   catVersao: 0,
 };
 
@@ -142,12 +150,12 @@ function reducer(e: Estado, a: Acao): Estado {
     case 'muitos':
       return blindar({ ...e, ...a.valores });
     case 'reset':
-      return blindar({ ...estadoInicial, modo: e.modo, tema: e.tema });
+      return blindar({ ...estadoInicial, modo: e.modo });
   }
 }
 
-const LS_ESTADO = 'lexloc.calc.v1';
-const LS_PROPOSTAS = 'lexloc.propostas.v1';
+const LS_ESTADO = 'lexgo.calc.v1';
+const LS_PROPOSTAS = 'lexgo.propostas.v1';
 
 function lerLS<T>(chave: string): T | null {
   try {
@@ -277,9 +285,13 @@ function sanearEstado(bruto: unknown): Partial<Estado> {
   const limpo: Record<string, unknown> = {};
   for (const [k, padrao] of Object.entries(estadoInicial)) {
     const v = fonte[k];
-    if (typeof v === typeof padrao && (typeof v !== 'number' || Number.isFinite(v))) {
-      limpo[k] = v;
-    }
+    if (typeof v !== typeof padrao) continue;
+    if (typeof v === 'number' && !Number.isFinite(v)) continue;
+    // strings que indexam tabelas do motor (uf, categoria, curva) precisam
+    // EXISTIR: uma chave inventada derruba o app na primeira renderização,
+    // e como o estado vem do próprio aparelho o branco sobrevive ao reload
+    if (typeof v === 'string' && !chaveValida(k, v)) continue;
+    limpo[k] = v;
   }
   return limpo as Partial<Estado>;
 }
@@ -303,20 +315,7 @@ export function useApp() {
     return () => clearTimeout(t);
   }, [estado]);
 
-  useEffect(() => {
-    const raiz = document.documentElement;
-    const prefereEscuro = window.matchMedia('(prefers-color-scheme: dark)');
-    const aplicar = () => {
-      const escuro = estado.tema === 'escuro' || (estado.tema === 'auto' && prefereEscuro.matches);
-      if (escuro) raiz.setAttribute('data-theme', 'dark');
-      else raiz.removeAttribute('data-theme');
-    };
-    aplicar();
-    prefereEscuro.addEventListener('change', aplicar);
-    return () => prefereEscuro.removeEventListener('change', aplicar);
-  }, [estado.tema]);
-
-  // recalcula SÓ quando um parâmetro financeiro muda — trocar aba, tema ou
+  // recalcula SÓ quando um parâmetro financeiro muda — trocar aba ou
   // modo não deve reexecutar a busca binária de equilíbrio (71 simulações)
   const chaveFinanceira = JSON.stringify(paramsDe(estado));
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -106,7 +106,15 @@ export const openapi = {
       },
       PJ: {
         type: 'object',
-        required: ['regime', 'anoInicio', 'ref', 'irpjCsll'],
+        required: [
+          'regime',
+          'anoInicio',
+          'ref',
+          'irpjCsll',
+          'faturamentoAnual',
+          'margemPct',
+          'simplesHibrido',
+        ],
         properties: {
           regime: { type: 'string', enum: ['real', 'presumido', 'simples'] },
           anoInicio: { type: 'integer' },
@@ -115,6 +123,19 @@ export const openapi = {
             properties: { cbs: { type: 'number' }, ibs: { type: 'number' } },
           },
           irpjCsll: { type: 'number' },
+          faturamentoAnual: {
+            type: 'number',
+            description: 'Faturamento anual da empresa (R$). Define a alíquota marginal de IRPJ.',
+          },
+          margemPct: {
+            type: 'number',
+            description: 'Margem de lucro sobre o faturamento (%). Base do lucro tributável.',
+          },
+          simplesHibrido: {
+            type: 'boolean',
+            description:
+              'Simples que optou pelo regime regular de IBS/CBS (LC 214/2025). Só ele credita.',
+          },
         },
       },
     },

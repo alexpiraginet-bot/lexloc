@@ -153,43 +153,45 @@ describe('simulação — coerência entre cenários', () => {
 });
 
 describe('camada PJ', () => {
-  it('presumido e simples nunca têm benefício', () => {
+  const pjBase = {
+    ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
+    irpjCsll: 34,
+    faturamentoAnual: 3_000_000,
+    margemPct: 20,
+    simplesHibrido: false,
+  };
+
+  it('só o Lucro Real DEDUZ IRPJ/CSLL (presumido e simples apuram sobre a receita)', () => {
     const r = simular(base);
     for (const regime of ['presumido', 'simples'] as const) {
-      const pj = simularPJ(base, r, {
-        regime,
-        anoInicio: 2027,
-        ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
-        irpjCsll: 34,
-      });
-      expect(pj.beneficioAssinatura).toBe(0);
-      expect(pj.beneficioCompra).toBe(0);
-      expect(pj.custoLiqAssinatura).toBeCloseTo(r.assinar.custo, 9);
+      const pj = simularPJ(base, r, { ...pjBase, regime, anoInicio: 2027 });
+      expect(pj.dedAssinatura).toBe(0);
+      expect(pj.dedCompra).toBe(0);
     }
   });
+
+  it('Simples dentro do DAS não tem benefício nenhum', () => {
+    const r = simular(base);
+    const pj = simularPJ(base, r, { ...pjBase, regime: 'simples', anoInicio: 2027 });
+    expect(pj.beneficioAssinatura).toBe(0);
+    expect(pj.custoLiqAssinatura).toBeCloseTo(r.assinar.custo, 9);
+  });
+
   it('2026: crédito de locação é zero (vedação RFB)', () => {
     const r = simular(base);
-    const pj = simularPJ(base, r, {
-      regime: 'real',
-      anoInicio: 2026,
-      ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
-      irpjCsll: 34,
-    });
+    const pj = simularPJ(base, r, { ...pjBase, regime: 'real', anoInicio: 2026 });
     const linha2026 = pj.linhas.find((l) => l.ano === 2026)!;
     expect(linha2026.aliqLei).toBe(0);
     expect(linha2026.credAss).toBe(0);
   });
+
   it('alíquota creditável cresce ao longo da transição até 27,91%', () => {
-    const r = simular({ ...base, meses: 12 });
+    const p12 = { ...base, meses: 12 };
+    const r = simular(p12);
     const anos = [2027, 2029, 2030, 2031, 2032, 2033];
     let anterior = 0;
     for (const ano of anos) {
-      const pj = simularPJ({ ...base, meses: 12 }, r, {
-        regime: 'real',
-        anoInicio: ano,
-        ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
-        irpjCsll: 34,
-      });
+      const pj = simularPJ(p12, r, { ...pjBase, regime: 'real', anoInicio: ano });
       const linha = pj.linhas.find((l) => l.ano === ano)!;
       expect(linha.aliqLei).toBeGreaterThanOrEqual(anterior);
       anterior = linha.aliqLei;

@@ -66,14 +66,23 @@ export function PropostaPrint({
           .pp .pbox { border: 1.5px solid color-mix(in srgb, ${marca.corPrimaria} 22%, #fff); border-radius: 10px; padding: 5mm 6mm; }
           .pp .pbox h3 { font-size: 12.5px; margin: 0 0 3mm; color: ${marca.corPrimaria}; }
           .pp .pbox ul { margin: 0; padding-left: 4.5mm; font-size: 10.5px; line-height: 1.75; color: #3a3a3a; }
+          .pp .plogo img { max-height: 15mm; max-width: 62mm; object-fit: contain; display: block; }
+          .pp .pcred { margin-top: 3mm; text-align: right; font-size: 8px; letter-spacing: .04em;
+            color: #b4b4b4; }
         }
       `}</style>
       <div className="pp">
         <header>
           <div className="plogo">
-            <b>{marca.nome}</b>
-            <i>{marca.sufixo}</i>
-            <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', color: '#6e6e6e', textTransform: 'uppercase' }}>
+            {marca.logo ? (
+              <img src={marca.logo} alt={`${marca.nome}${marca.sufixo}`} />
+            ) : (
+              <>
+                <b>{marca.nome}</b>
+                <i>{marca.sufixo}</i>
+              </>
+            )}
+            <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', color: '#6e6e6e', textTransform: 'uppercase', marginTop: marca.logo ? 3 : 0 }}>
               proposta de assinatura
             </div>
           </div>
@@ -177,8 +186,13 @@ export function PropostaPrint({
           {p.ipca.toFixed(2).replace('.', ',')}% a.a., CDI {p.cdi.toFixed(2).replace('.', ',')}% a.a. Valores de referência
           verificados em agosto/2026; proposta sujeita a análise cadastral. Simulação não é oferta
           de crédito.
-          {marca.creditoNome ? ` Ferramenta: ${marca.creditoNome}.` : ''}
         </div>
+        {marca.creditoNome ? (
+          <div className="pcred">
+            cálculo por {marca.creditoNome}
+            {marca.creditoUrl ? ` · ${marca.creditoUrl.split('//').pop()}` : ''}
+          </div>
+        ) : null}
       </div>
     </div>
   );

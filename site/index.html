@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>LexLoc</title>
+<title>LexGo</title>
 <meta name="robots" content="noai, noimageai" />
-<meta name="description" content="A calculadora que vende assinatura de veículos. Grátis para locadoras do Brasil: modo cliente interativo, mesa do vendedor com PDF de proposta e retaguarda de preços white-label. Funciona off-line." />
-<meta property="og:title" content="LexLoc — a calculadora que vende assinatura" />
-<meta property="og:description" content="Grátis para locadoras do Brasil. Veredito que convence, PDF de proposta, white-label completo. Funciona sem internet." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='1' y='1' width='30' height='30' rx='9' fill='%23892991'/><circle cx='16' cy='16' r='6.5' fill='%23D9B76B'/></svg>" />
+<meta name="description" content="Calculadora pública e gratuita para locadoras do Brasil e seus clientes: mostra se vale mais assinar, comprar à vista ou financiar um carro. Custo zero, sem cadastro, sem servidor. Da Lex Technology." />
+<meta property="og:title" content="LexGo — a calculadora pública de assinatura de carros" />
+<meta property="og:description" content="Gratuita para toda locadora do Brasil, seus vendedores e seus clientes. Assinar, comprar ou financiar: a conta completa em segundos. Custo zero, sem cadastro." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M22 9.5a9 9 0 1 0 3 6.5h-8' fill='none' stroke='%23892991' stroke-width='4' stroke-linecap='round'/><path d='M16 16l6-6' stroke='%23C9A227' stroke-width='4' stroke-linecap='round'/></svg>" />
 <style>
 :root{
   --brand:#8f31aa; --brand-deep:#892991; --brand-dark:#6b1f73;
@@ -17,14 +17,6 @@
   --paper:#fbf9fd; --surface:#f5f1f9; --line:#e7dff0;
   --sans:ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --brand:#c77ddb; --brand-deep:#b463cc; --brand-dark:#8f31aa;
-    --gold:#d9b76b; --gold-deep:#d9b76b; --gold-soft:#2e2713;
-    --ink:#f3eff7; --ink-2:#d8d1e0; --muted:#a99fb8;
-    --paper:#17111f; --surface:#201830; --line:#342945;
-  }
 }
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
@@ -125,6 +117,17 @@ section p.lead{color:var(--muted);max-width:60ch;font-size:17px;margin-bottom:36
 .wl li b{display:block}
 .wl li span{color:var(--muted);font-size:13.5px}
 
+/* fecho: quem oferece */
+.casa{background:linear-gradient(145deg,var(--brand-deep) 0%,#5b1d6e 52%,#33113f 100%);border-radius:28px;padding:clamp(34px,5vw,54px) clamp(22px,5vw,50px);color:#fff;text-align:center}
+.casa .sec-k{color:var(--gold);opacity:.95}
+.casa h2{color:#fff;margin-bottom:14px}
+.casa p.lead{color:rgba(255,255,255,.82);margin:0 auto 34px;max-width:58ch}
+.casa .solu{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;text-align:left;margin-bottom:34px}
+.casa .solu div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:20px 19px}
+.casa .solu h3{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--gold)}
+.casa .solu p{font-size:13.5px;color:rgba(255,255,255,.8);line-height:1.6}
+.casa .btn-g{box-shadow:0 12px 34px -12px rgba(0,0,0,.5)}
+
 /* faq + footer */
 details{border:1px solid var(--line);border-radius:14px;background:var(--paper);margin-bottom:10px;overflow:hidden}
 summary{padding:16px 18px;font-weight:700;font-size:15px;cursor:pointer;list-style:none}
@@ -139,28 +142,29 @@ footer .logo{font-size:20px;margin-bottom:8px}
 
 <header>
   <div class="wrap row">
-    <div class="logo"><b>Lex</b><i>Loc</i></div>
-    <a class="cta-mini" href="#baixar">Baixar grátis</a>
+    <div class="logo"><b>Lex</b><i>Go</i></div>
+    <a class="cta-mini" href="#abrir">Abrir grátis</a>
   </div>
 </header>
 
 <main>
   <div class="hero wrap">
-    <span class="pill">Grátis para locadoras do Brasil</span>
-    <h1>A calculadora que <em>vende assinatura</em> de carro.</h1>
+    <span class="pill">Calculadora pública · uso livre e gratuito</span>
+    <h1>Assinar, comprar ou financiar? <em>A conta inteira</em>, aberta.</h1>
     <p class="sub">
-      Seu cliente vê, em segundos, tudo o que <b>deixa de pagar</b> assinando — depreciação,
-      IPVA, seguro, manutenção, pneus. Seu vendedor fecha com número, comparativo e
-      <b>PDF de proposta</b>. Funciona <b>sem internet</b>, direto do WhatsApp.
+      Uma calculadora pública para as <b>locadoras do Brasil, seus vendedores e seus clientes</b>.
+      Ela põe na mesa tudo o que costuma ficar de fora — depreciação, IPVA, seguro, manutenção,
+      pneus, juros e o rendimento do dinheiro parado — e mostra qual caminho sai mais barato.
+      <b>Custo zero</b>, sem cadastro, sem servidor. Use, personalize e compartilhe à vontade.
     </p>
     <div class="ctas">
-      <a class="btn btn-p" href="#baixar">
-        <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 21h16"/></svg>
-        Baixar as calculadoras
+      <a class="btn btn-p" href="#abrir">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        Abrir a calculadora
       </a>
-      <a class="btn btn-g" href="#como">Como funciona</a>
+      <a class="btn btn-g" href="#como">Como usar na sua loja</a>
     </div>
-    <p class="free">Sem cadastro · sem mensalidade · <b>sua marca, suas cores</b></p>
+    <p class="free">Sem cadastro · sem mensalidade · sem pegadinha · <b>a sua marca na frente</b></p>
 
     <div class="verdict-demo" role="img" aria-label="Exemplo do veredito da calculadora">
       <div class="k">Em 36 meses, assinando seu cliente não paga</div>
@@ -173,30 +177,30 @@ footer .logo{font-size:20px;margin-bottom:8px}
   <section id="como">
     <div class="wrap">
       <div class="sec-k">Três passos</div>
-      <h2>Do download ao cliente em 10 minutos</h2>
+      <h2>Da sua loja ao cliente em 10 minutos</h2>
       <div class="steps">
         <div class="step">
-          <h3>Baixe os dois arquivos</h3>
-          <p>Um HTML para a equipe, outro para mandar ao cliente. Abrem em qualquer navegador — celular, tablet, computador. Sem instalar nada.</p>
+          <h3>Abra e use</h3>
+          <p>Abre no navegador — celular, tablet ou computador. Nada para instalar, nada para assinar, nenhuma conta para criar. Já vem pronta para simular.</p>
         </div>
         <div class="step">
-          <h3>Personalize na Retaguarda</h3>
-          <p>No arquivo do vendedor: sua logo, suas cores, seus carros e seus preços. Exporte a tabela e distribua para a equipe inteira.</p>
+          <h3>Ponha a sua marca</h3>
+          <p>Na Retaguarda do vendedor: a sua logo, as suas cores, os seus carros e os seus preços. Exporte a tabela e distribua para a equipe inteira.</p>
         </div>
         <div class="step">
-          <h3>Envie e feche</h3>
-          <p>Manda o arquivo do cliente no WhatsApp. Ele simula sozinho, se convence com o número — e o vendedor fecha com o PDF da proposta.</p>
+          <h3>Compartilhe sem limite</h3>
+          <p>Mande o link pelo WhatsApp: ele abre já com a sua marca e os seus preços. O cliente simula sozinho, e o vendedor fecha com o PDF da proposta.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="baixar" style="padding-top:8px">
+  <section id="abrir" style="padding-top:8px">
     <div class="wrap">
       <div class="dl-zone">
-        <div class="sec-k">Baixar agora</div>
-        <h2>Dois arquivos, dois papéis</h2>
-        <p class="lead" style="margin-bottom:0">Separados de propósito: o cliente nunca vê a mesa do vendedor.</p>
+        <div class="sec-k">Comece agora</div>
+        <h2>Duas versões, dois papéis</h2>
+        <p class="lead" style="margin-bottom:0">Separadas de propósito: o cliente nunca vê a mesa do vendedor — nem escondida, nem por atalho.</p>
         <div class="dl-grid">
           <div class="dl-card">
             <span class="tag">Para o seu cliente</span>
@@ -205,7 +209,7 @@ footer .logo{font-size:20px;margin-bottom:8px}
               <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Veredito-herói: o que ele deixa de pagar assinando</li>
               <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Analogias divertidas: viagens, aluguel, jantares</li>
               <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Comparativo lado a lado com comprar e financiar</li>
-              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Sem acesso a nada interno da loja</li>
+              <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Nada da loja exposto — nem preço de custo, nem margem</li>
             </ul>
             <a class="btn btn-p" href="app.html">
               <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 21h16"/></svg>
@@ -221,13 +225,13 @@ footer .logo{font-size:20px;margin-bottom:8px}
               <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Retaguarda: seus carros, seus preços, sua marca</li>
               <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Camada PJ com a reforma tributária 2026–2033</li>
             </ul>
-            <a class="btn btn-g" href="lexloc-vendedor.html" download="lexloc-vendedor.html">
+            <a class="btn btn-g" href="lexgo-vendedor.html" download="lexgo-vendedor.html">
               <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 21h16"/></svg>
               Baixar mesa do vendedor
             </a>
           </div>
         </div>
-        <p class="dl-note">Cada arquivo tem ~250 KB e funciona <b>100% off-line</b> — pode reenviar por WhatsApp, e-mail ou pendrive quantas vezes quiser.</p>
+        <p class="dl-note">A mesa do vendedor tem ~250 KB e funciona <b>100% off-line</b> — pode reenviar por WhatsApp, e-mail ou pendrive quantas vezes quiser. Para o cliente, prefira o <b>link</b>: abre direto no iPhone, já com a sua marca.</p>
       </div>
     </div>
   </section>
@@ -251,7 +255,7 @@ footer .logo{font-size:20px;margin-bottom:8px}
         <div class="feat">
           <div class="ic"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-5M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"/></svg></div>
           <h3>Motor auditado</h3>
-          <p><b>30 testes automatizados</b>, paridade verificada em 400 cenários, paleta e contraste validados por medição. Premissas datadas e editáveis.</p>
+          <p><b>49 testes automatizados</b>, paridade verificada em 400 cenários, paleta e contraste validados por medição. Premissas datadas e editáveis.</p>
         </div>
         <div class="feat">
           <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M9 14h6M9 17h6"/></svg></div>
@@ -302,7 +306,7 @@ footer .logo{font-size:20px;margin-bottom:8px}
       <div class="trust">
         <div class="tnum"><b>3</b><span>cenários comparados: assinar, à vista e financiar</span></div>
         <div class="tnum"><b>27</b><span>UFs com IPVA e licenciamento na base</span></div>
-        <div class="tnum"><b>30</b><span>testes automatizados no motor de cálculo</span></div>
+        <div class="tnum"><b>49</b><span>testes automatizados no motor e na API</span></div>
         <div class="tnum"><b>0</b><span>servidores, cadastros ou mensalidades</span></div>
       </div>
     </div>
@@ -314,11 +318,11 @@ footer .logo{font-size:20px;margin-bottom:8px}
       <h2 style="margin-bottom:24px">Perguntas de quem vai usar</h2>
       <details>
         <summary>É grátis mesmo? Qual é a pegadinha?</summary>
-        <p>É grátis. A calculadora é a vitrine da <b>LexGo</b>, que desenvolve software para locadoras. Se ela te ajudar a vender, você vai lembrar de quem fez.</p>
+        <p>Não há pegadinha e não há custo — nem agora, nem depois. Sem plano, sem limite de uso, sem cobrança por cliente. A calculadora é a nossa forma de apresentar a <b>Lex Technology</b> para o setor: se ela ajudar a sua loja a vender, você vai lembrar de quem a fez. É esse o combinado inteiro.</p>
       </details>
       <details>
-        <summary>Preciso instalar alguma coisa?</summary>
-        <p>Não. São dois arquivos HTML que abrem em qualquer navegador — celular, tablet ou computador. Sem instalação, sem cadastro, sem internet.</p>
+        <summary>Posso compartilhar com os meus clientes?</summary>
+        <p>Pode e deve — é para isso que ela existe. Mande o link para quantos clientes quiser, publique no seu site, use no atendimento, imprima a proposta. Não pedimos nada em troca e não há limite.</p>
       </details>
       <details>
         <summary>Como atualizo os preços dos carros?</summary>
@@ -329,17 +333,51 @@ footer .logo{font-size:20px;margin-bottom:8px}
         <p>A metodologia compara patrimônio final nos três cenários, com CDI líquido de IR, depreciação composta, custos de dono por UF e IOF no financiamento. As premissas são datadas (agosto/2026) e todas editáveis — a conta é auditável linha a linha.</p>
       </details>
       <details>
-        <summary>O cliente consegue ver a mesa do vendedor?</summary>
-        <p>Não. São dois arquivos separados de fábrica: no do cliente, o modo vendedor não existe — nem escondido, nem por atalho.</p>
+        <summary>Vocês guardam os dados da minha loja?</summary>
+        <p>Não guardamos nada. Não há cadastro, não há banco de dados e não há servidor nosso envolvido no cálculo. Os seus preços, as suas propostas e as simulações dos seus clientes ficam <b>no aparelho de quem está usando</b>. Quando você gera um link para um cliente, a sua marca e os seus preços viajam dentro do próprio endereço — e essa parte do endereço, por como a web funciona, <b>nunca é enviada ao servidor</b>.</p>
       </details>
+    </div>
+  </section>
+
+  <section id="lex">
+    <div class="wrap">
+      <div class="casa">
+        <div class="sec-k">Quem oferece</div>
+        <h2>Conheça a Lex Technology</h2>
+        <p class="lead">
+          Esta calculadora é gratuita porque ela é a nossa apresentação. Somos uma casa de
+          software brasileira e construímos, para o setor de locação e mobilidade, sistemas
+          feitos sob medida — com o mesmo cuidado que você acabou de ver aqui: conta que
+          fecha, número auditável, e nada de letra miúda.
+        </p>
+        <div class="solu">
+          <div>
+            <h3>Sistemas sob medida</h3>
+            <p>Do atendimento ao fechamento: o processo da sua operação virando software, não o contrário.</p>
+          </div>
+          <div>
+            <h3>Automação e integrações</h3>
+            <p>Conectar o que você já usa e tirar da equipe o trabalho repetitivo que consome o dia.</p>
+          </div>
+          <div>
+            <h3>Dados que decidem</h3>
+            <p>Painéis e cálculos com origem rastreável — para decidir com número, não com impressão.</p>
+          </div>
+        </div>
+        <a class="btn btn-g" href="https://uselexgo.com" target="_blank" rel="noopener">
+          Ver todas as soluções
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <div class="logo"><b>Lex</b><i>Loc</i></div>
-    <p>LexLoc é um produto <a href="https://uselexgo.com" style="color:var(--brand-deep);font-weight:600">LexGo</a> · uselexgo.com/locadoras · calculadora gratuita, sem cadastro<br />
+    <div class="logo"><b>Lex</b><i>Go</i></div>
+    <p>A LexGo é a calculadora pública da <a href="https://uselexgo.com" style="color:var(--brand-deep);font-weight:600">Lex Technology</a> · uselexgo.com/locadoras<br />
+    Uso livre e gratuito por locadoras, vendedores e clientes — sem cadastro e sem custo.<br />
     Simulação educativa — não é oferta de crédito. Premissas verificadas em agosto/2026.</p>
   </div>
 </footer>

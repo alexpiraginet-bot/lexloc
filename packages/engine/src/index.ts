@@ -25,4 +25,14 @@ export {
   valorNoMes,
 } from './finance.js';
 export { custosPosse, custoEnergiaMes, simular, mensalidadeEquilibrio } from './simulate.js';
-export { aliqCreditavelLocacao, aliqCreditavelCompra, simularPJ } from './pj.js';
+export {
+  aliqCreditavelLocacao,
+  aliqCreditavelCompra,
+  aliqMarginalIRPJ,
+  creditaIndireto,
+  projetarReforma,
+  simularPJ,
+  LIMITE_ADICIONAL_IRPJ,
+  TETO_SIMPLES,
+  type ProjecaoAno,
+} from './pj.js';

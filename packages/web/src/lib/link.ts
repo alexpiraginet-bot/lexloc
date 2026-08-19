@@ -8,6 +8,7 @@
  * servidor por definição do protocolo HTTP. O dado vai de aparelho a
  * aparelho, como uma mensagem.
  */
+import { CATEGORIAS, DEPREC, UFS } from '@godrive/engine';
 import type { Estado } from '../state';
 import type { Marca } from './marca';
 
@@ -62,6 +63,24 @@ export interface DadosDoLink {
   marca: Partial<Marca>;
 }
 
+/**
+ * Campos de texto do estado que são CHAVE de uma tabela do motor. Aceitar
+ * qualquer string aqui era um caminho para tela branca permanente: o
+ * Simulador faz `CATEGORIAS[estado.categoria]!` e, com uma chave inexistente,
+ * o React inteiro derruba — e o estado envenenado já teria sido gravado no
+ * aparelho, então o branco sobrevivia a todo recarregamento.
+ */
+const TABELAS: Partial<Record<keyof Estado, Record<string, unknown>>> = {
+  categoria: CATEGORIAS,
+  uf: UFS,
+  curva: DEPREC,
+};
+
+export function chaveValida(campo: string, valor: string): boolean {
+  const tabela = TABELAS[campo as keyof Estado];
+  return tabela ? Object.prototype.hasOwnProperty.call(tabela, valor) : true;
+}
+
 /** Lê e valida o fragmento. Nunca lança: link ruim = app padrão. */
 export function lerLink(): DadosDoLink | null {
   try {
@@ -73,7 +92,7 @@ export function lerLink(): DadosDoLink | null {
     for (const c of CAMPOS_ESTADO) {
       const v = p.e?.[c];
       if (typeof v === 'number' && Number.isFinite(v)) estado[c] = v;
-      else if (typeof v === 'string' && v.length <= 40) estado[c] = v;
+      else if (typeof v === 'string' && v.length <= 40 && chaveValida(c, v)) estado[c] = v;
       else if (v === null && c === 'carroIdx') estado[c] = null;
     }
     const marca: Record<string, string> = {};

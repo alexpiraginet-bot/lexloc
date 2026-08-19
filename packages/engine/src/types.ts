@@ -148,13 +148,26 @@ export interface ParametrosPJ {
   /** Ano-calendário do início do contrato. */
   anoInicio: number;
   ref: AliquotasReferencia;
-  /** IRPJ+CSLL, % (34 no Lucro Real pleno). */
+  /**
+   * IRPJ+CSLL, % — usado como TETO. A alíquota efetiva é derivada do lucro:
+   * 24% (15+9) até R$ 240 mil/ano e 34% (15+10 adicional+9) acima disso.
+   */
   irpjCsll: number;
+  /** Faturamento anual da empresa (R$). Base do Presumido e do Simples. */
+  faturamentoAnual: number;
+  /** Margem de lucro sobre o faturamento, % (define o lucro tributável). */
+  margemPct: number;
+  /**
+   * Simples que optou pelo REGIME REGULAR de IBS/CBS ("Simples Híbrido",
+   * LC 214/2025): paga IBS/CBS fora do DAS e passa a tomar crédito integral
+   * dos insumos. Janela de opção: 1 a 30 de setembro de 2026.
+   */
+  simplesHibrido: boolean;
 }
 
 export interface LinhaAnoPJ {
   ano: number;
-  /** Alíquota efetivamente aproveitada no ano (0 fora do Lucro Real). */
+  /** Alíquota efetivamente aproveitada no ano (0 quando não há crédito). */
   aliq: number;
   /** Alíquota prevista em lei para o ano (informativa). */
   aliqLei: number;
@@ -164,11 +177,28 @@ export interface LinhaAnoPJ {
   dedCompra: number;
 }
 
+/** Diagnóstico do regime — o que explica o número para o cliente. */
+export interface DiagnosticoPJ {
+  /** Lucro tributável anual estimado (faturamento × margem). */
+  lucroAnual: number;
+  /** Alíquota marginal de IRPJ+CSLL efetivamente aplicada, %. */
+  aliqMarginal: number;
+  /** true quando o lucro passa de R$ 240 mil/ano (adicional de 10% de IRPJ). */
+  temAdicional: boolean;
+  /** true se a empresa credita IBS/CBS no ano de início. */
+  creditaIndireto: boolean;
+  /** true se a despesa reduz IRPJ/CSLL (só Lucro Real com lucro). */
+  deduzDireto: boolean;
+  /** Mensagens curtas explicando o enquadramento, em ordem de relevância. */
+  notas: string[];
+}
+
 export interface ResultadoPJ {
   regime: RegimeTributario;
   anoInicio: number;
-  /** true apenas no Lucro Real. */
+  /** true quando há qualquer benefício (crédito indireto ou dedução direta). */
   aproveita: boolean;
+  diagnostico: DiagnosticoPJ;
   credAssinatura: number;
   credCompra: number;
   dedAssinatura: number;

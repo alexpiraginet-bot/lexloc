@@ -44,6 +44,15 @@ export const pjSchema = z.object({
     ibs: z.number().min(0).max(40),
   }),
   irpjCsll: z.number().min(0).max(60),
+  /** faturamento anual da empresa — define a alíquota marginal de IRPJ e o teto do Simples */
+  faturamentoAnual: z.number().min(0).max(1e12),
+  /** margem de lucro sobre o faturamento, em % — base do lucro tributável */
+  margemPct: z.number().min(0).max(100),
+  /**
+   * Simples que optou pelo regime regular de IBS/CBS (LC 214/2025).
+   * Só quem optou credita o imposto embutido na locação.
+   */
+  simplesHibrido: z.boolean(),
 });
 
 export const simulatePJBody = z.object({

@@ -58,7 +58,12 @@ export function Resultado({
   modo: Modo;
 }) {
   const { p, r, equilibrio, absorvido, abs } = d;
-  const cli = modo === 'cliente';
+  // No build do CLIENTE isto é dobrado para `true` em tempo de compilação —
+  // e com isso todos os blocos `!cli` deste arquivo (mensalidade de empate,
+  // medidor de negociação, tabelas da equipe) saem do bundle, não ficam
+  // escondidos. No build do vendedor continua sendo o botão Cliente/Vendedor.
+  const cli =
+    (typeof __PERFIL__ !== 'undefined' && __PERFIL__ === 'cliente') || modo === 'cliente';
   const assinaVence = d.vencedor === 'assinar';
   const gapAss = r.assinar.custo - r.aVista.custo;
   const deprec = p.preco - r.residual;

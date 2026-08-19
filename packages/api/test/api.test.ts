@@ -124,6 +124,11 @@ describe('POST /api/v1/simulate-pj', () => {
           anoInicio: 2027,
           ref: { cbs: 9.21, ibs: 18.7 },
           irpjCsll: 34,
+          // faturamento alto de propósito: acima de R$ 240 mil de lucro no ano
+          // a alíquota marginal é 34% (15 + 9 + adicional de 10)
+          faturamentoAnual: 12_000_000,
+          margemPct: 15,
+          simplesHibrido: false,
         },
       },
     });
@@ -134,21 +139,49 @@ describe('POST /api/v1/simulate-pj', () => {
     expect(body.pj.linhas.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('Simples Nacional: benefício zero', async () => {
+  const pjSimples = (simplesHibrido: boolean, anoInicio: number) => ({
+    simulacao: paramsValidos,
+    pj: {
+      regime: 'simples' as const,
+      anoInicio,
+      ref: { cbs: 9.21, ibs: 18.7 },
+      irpjCsll: 34,
+      faturamentoAnual: 3_600_000,
+      margemPct: 12,
+      simplesHibrido,
+    },
+  });
+
+  it('Simples comum não credita: benefício zero', async () => {
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/simulate-pj',
+      payload: pjSimples(false, 2027),
+    });
+    expect(r.statusCode).toBe(200);
+    expect(r.json().pj.beneficioAssinatura).toBe(0);
+  });
+
+  it('Simples híbrido credita IBS/CBS a partir de 2027', async () => {
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/v1/simulate-pj',
+      payload: pjSimples(true, 2027),
+    });
+    expect(r.statusCode).toBe(200);
+    expect(r.json().pj.beneficioAssinatura).toBeGreaterThan(0);
+  });
+
+  it('rejeita payload sem os campos de faturamento', async () => {
     const r = await app.inject({
       method: 'POST',
       url: '/api/v1/simulate-pj',
       payload: {
         simulacao: paramsValidos,
-        pj: {
-          regime: 'simples',
-          anoInicio: 2026,
-          ref: { cbs: 9.21, ibs: 18.7 },
-          irpjCsll: 34,
-        },
+        pj: { regime: 'real', anoInicio: 2027, ref: { cbs: 9.21, ibs: 18.7 }, irpjCsll: 34 },
       },
     });
-    expect(r.json().pj.beneficioAssinatura).toBe(0);
+    expect(r.statusCode).toBe(400);
   });
 });
 

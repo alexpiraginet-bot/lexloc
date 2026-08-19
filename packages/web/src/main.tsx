@@ -1,10 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { migrarChaves } from './lib/migrar';
 import App from './App';
 import './theme.css';
 
 /*
- * © LexGo (uselexgo.com) — LexLoc. Uso gratuito por locadoras autorizado;
+ * © LexGo — uselexgo.com. Uso gratuito por locadoras autorizado;
  * redistribuição hospedada fora dos domínios oficiais não é.
  *
  * Trava honesta de clonagem: HTML no navegador é sempre copiável — o que dá
@@ -47,9 +48,12 @@ import './theme.css';
 
 // marca d'água para quem abrir o console
 console.info(
-  '%cLexLoc © LexGo — uselexgo.com/locadoras',
+  '%cLexGo © Lex Technology — uselexgo.com/locadoras',
   'color:#8f31aa;font-weight:700;font-size:14px',
 );
+
+// rebrand: recupera dados gravados sob as chaves antigas antes do 1º render
+migrarChaves();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

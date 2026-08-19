@@ -125,33 +125,79 @@ describe('paridade com o motor original', () => {
     }
   });
 
-  it('simularPJ() bate com o original em 200 casos × 3 regimes', () => {
+  /**
+   * PJ: a v2 DIVERGE do original de propósito, e só onde o original errava:
+   *   · Presumido passou a creditar IBS/CBS de 2027 (regime regular);
+   *   · a alíquota de IRPJ virou 24%/34% conforme o lucro (era 34% fixo);
+   *   · a dedução ficou limitada ao lucro do período.
+   * Onde a regra NÃO mudou — Lucro Real com lucro alto, sem o teto morder —
+   * a paridade com o original continua valendo, e é isso que este teste amarra.
+   */
+  it('simularPJ() mantém paridade no Lucro Real com lucro alto (regra inalterada)', () => {
     const rnd = mulberry32(2026);
-    const regimes: RegimeTributario[] = ['real', 'presumido', 'simples'];
+    let negativosNaV1 = 0;
     for (let i = 0; i < 200; i++) {
       const p = caso(rnd);
       const base = simular(p);
       const baseVelha = original.simular(p);
-      const pj = {
-        regime: regimes[i % 3]!,
+      const comum = {
+        regime: 'real' as RegimeTributario,
         anoInicio: 2026 + (i % 8),
         ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
         irpjCsll: MACRO.irpjCsll,
       };
-      const novo = simularPJ(p, base, pj);
-      const velho = original.simularPJ(p, baseVelha, pj);
+      // lucro enorme => alíquota 34% e nenhum teto ativo => v1 e v2 coincidem
+      const novo = simularPJ(p, base, {
+        ...comum,
+        faturamentoAnual: 500_000_000,
+        margemPct: 40,
+        simplesHibrido: false,
+      });
+      const velho = original.simularPJ(p, baseVelha, comum);
       igual(novo.credAssinatura, velho.credAssinatura, `pj ${i}: credAssinatura`);
       igual(novo.credCompra, velho.credCompra, `pj ${i}: credCompra`);
       igual(novo.dedAssinatura, velho.dedAssinatura, `pj ${i}: dedAssinatura`);
-      igual(novo.dedCompra, velho.dedCompra, `pj ${i}: dedCompra`);
       igual(novo.custoLiqAssinatura, velho.custoLiqAssinatura, `pj ${i}: custoLiqAss`);
-      igual(novo.custoLiqCompra, velho.custoLiqCompra, `pj ${i}: custoLiqCompra`);
-      igual(novo.custoLiqFinanciar, velho.custoLiqFinanciar, `pj ${i}: custoLiqFin`);
+      // 3ª correção: quando o crédito da compra superava a base depreciável do
+      // período, a v1 devolvia dedução NEGATIVA — imposto A MAIS por comprar,
+      // que não existe. A v2 calcula ano a ano com base não-negativa, então o
+      // total nunca fica abaixo de zero; nos anos em que a base sobra, ainda
+      // pode haver dedução legítima. Fora desse caso, paridade exata.
+      if (velho.dedCompra < 0) {
+        negativosNaV1++;
+        expect(novo.dedCompra, `pj ${i}: dedCompra nunca negativa`).toBeGreaterThanOrEqual(0);
+      } else {
+        igual(novo.dedCompra, velho.dedCompra, `pj ${i}: dedCompra`);
+        igual(novo.custoLiqCompra, velho.custoLiqCompra, `pj ${i}: custoLiqCompra`);
+        igual(novo.custoLiqFinanciar, velho.custoLiqFinanciar, `pj ${i}: custoLiqFin`);
+        novo.linhas.forEach((l, k) => {
+          igual(l.credAss, velho.linhas[k]!.credAss, `pj ${i}: linha ${k} credAss`);
+        });
+      }
       expect(novo.linhas.length).toBe(velho.linhas.length);
-      novo.linhas.forEach((l, k) => {
-        igual(l.credAss, velho.linhas[k].credAss, `pj ${i}: linha ${k} credAss`);
-        igual(l.dedCompra, velho.linhas[k].dedCompra, `pj ${i}: linha ${k} dedCompra`);
-      });
     }
+    // sem isto o ramo acima poderia deixar de ser exercitado por um ajuste no
+    // corpus e a correção principal ficaria sem cobertura, com o teste verde
+    expect(negativosNaV1, 'corpus não exercita mais o caso de dedução negativa').toBeGreaterThan(0);
+  });
+
+  it('divergência intencional: Presumido em 2027 credita no novo, zerava no antigo', () => {
+    const rnd = mulberry32(99);
+    const p = caso(rnd);
+    const comum = {
+      regime: 'presumido' as RegimeTributario,
+      anoInicio: 2027,
+      ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
+      irpjCsll: MACRO.irpjCsll,
+    };
+    const velho = original.simularPJ(p, original.simular(p), comum);
+    const novo = simularPJ(p, simular(p), {
+      ...comum,
+      faturamentoAnual: 2_000_000,
+      margemPct: 15,
+      simplesHibrido: false,
+    });
+    expect(velho.credAssinatura).toBe(0); // o erro da v1
+    expect(novo.credAssinatura).toBeGreaterThan(0); // a correção
   });
 });

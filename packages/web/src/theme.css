@@ -16,7 +16,7 @@
   --accent-deep: #8a6e16;
   --accent-soft: #f7f0da;
 
-  /* cenários — categórica validada (claro) */
+  /* cenários — categórica validada para ESTE papel (claro único) */
   --c-ass: #8f31aa;
   --c-vis: #0d9488;
   --c-fin: #c2410c;
@@ -48,38 +48,6 @@
   --e-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-:root[data-theme='dark'] {
-  /* escuro premium: roxo profundo, dourado vivo nos detalhes */
-  --brand: #c77ddb;
-  --brand-deep: #b463cc;
-  --brand-dark: #8f31aa;
-  --brand-soft: #2c1d3a;
-  --brand-text: #dcb3e8;
-  --accent: #d9b76b;
-  --accent-deep: #c9a24a;
-  --accent-soft: #2e2713;
-
-  /* cenários — categórica validada (escuro, superfície #17111f) */
-  --c-ass: #ac59c2;
-  --c-vis: #2f9f88;
-  --c-fin: #de7040;
-
-  --ink: #f3eff7;
-  --ink-2: #d8d1e0;
-  --muted: #a99fb8;
-  --faint: #7e7490;
-  --paper: #17111f;
-  --surface: #201830;
-  --surface-2: #292040;
-  --line: #342945;
-  --line-2: #2b2138;
-  --ok: #2f9f88;
-  --warn: #d9b76b;
-  --bad: #de7040;
-  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --sh-2: 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 28px -14px rgba(0, 0, 0, 0.75);
-  --sh-3: 0 8px 44px -10px rgba(180, 99, 204, 0.4);
-}
 
 * {
   box-sizing: border-box;
@@ -179,6 +147,7 @@ a.sr:focus {
 }
 .logo b { color: var(--brand-deep); font-weight: 700; }
 .logo i { color: var(--accent); font-style: normal; font-weight: 700; }
+.logo-img { display:block; max-height:34px; max-width:190px; width:auto; object-fit:contain; }
 .logo small {
   display: block;
   font-size: 9px;
@@ -1100,3 +1069,14 @@ details > .body { padding: 15px 16px 16px; }
   .panel { padding: 0; }
 }
 .print-only { display: none; }
+
+@media print { .pp .pcolab { margin-top:3mm; font-size:8px; color:#9a9a9a; letter-spacing:.06em; } }
+
+/* ───── upload de logo na retaguarda ───── */
+.ret-logo { display:grid; grid-template-columns:auto minmax(0,1fr); gap:14px; align-items:center;
+  background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-sm); padding:13px; }
+.ret-logo-prev { width:120px; height:56px; display:grid; place-items:center; background:var(--paper);
+  border:1px dashed var(--line); border-radius:8px; overflow:hidden; font-size:19px; font-weight:800;
+  letter-spacing:-.03em; }
+.ret-logo-prev img { max-width:108px; max-height:46px; object-fit:contain; }
+@media (max-width:430px){ .ret-logo { grid-template-columns:1fr; } }
