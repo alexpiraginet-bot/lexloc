@@ -1054,6 +1054,15 @@ details > .body { padding: 15px 16px 16px; }
   padding: 26px 0 40px;
   line-height: 1.75;
 }
+/* o crédito é o ÚNICO texto da página que não fica sobre uma superfície,
+   e sem regra própria ele herdava o azul padrão do navegador (#0000ee) */
+.foot a {
+  color: var(--brand-deep);
+  font-weight: 600;
+  text-decoration-color: color-mix(in srgb, var(--brand-deep) 40%, transparent);
+  text-underline-offset: 2px;
+}
+.foot a:hover { text-decoration-color: var(--brand-deep); }
 .badge {
   display: inline-block;
   font-size: 10px;
