@@ -8,6 +8,7 @@
  * passa a ver os mesmos preços.
  */
 import { CATALOGO, CATEGORIAS, type Veiculo } from '@godrive/engine';
+import { sanearMarca, type Marca } from './marca';
 
 export interface AjusteVeiculo {
   /** preço de tabela (R$) */
@@ -100,18 +101,29 @@ export function catalogoEfetivo(custom: CatalogoCustom): Veiculo[] {
 }
 
 /** Blob de exportação — nomeado com a data para a equipe não se perder. */
-export function exportarArquivo(custom: CatalogoCustom): { nome: string; conteudo: string } {
+export function exportarArquivo(
+  custom: CatalogoCustom,
+  marca?: Marca,
+): { nome: string; conteudo: string } {
   const data = new Date().toISOString().slice(0, 10);
   return {
     nome: `tabela-precos-${data}.json`,
-    conteudo: JSON.stringify(custom, null, 2),
+    // a marca (logo, cores, consultor) viaja JUNTO com a tabela: quem
+    // importa o arquivo do gestor herda a identidade inteira da loja
+    conteudo: JSON.stringify(marca ? { ...custom, marca } : custom, null, 2),
   };
 }
 
 /** Valida e normaliza um JSON importado. Devolve erro legível se inválido. */
-export function importarArquivo(texto: string): CatalogoCustom | string {
+export interface ArquivoImportado {
+  custom: CatalogoCustom;
+  /** presente quando o arquivo foi exportado já com a identidade da loja */
+  marca: Marca | null;
+}
+
+export function importarArquivo(texto: string): ArquivoImportado | string {
   try {
-    const bruto = JSON.parse(texto) as CatalogoCustom;
+    const bruto = JSON.parse(texto) as CatalogoCustom & { marca?: unknown };
     if (bruto?.versao !== 1 || typeof bruto.ajustes !== 'object') {
       return 'Este arquivo não é uma tabela de preços desta calculadora.';
     }
@@ -124,10 +136,13 @@ export function importarArquivo(texto: string): CatalogoCustom | string {
       if (Object.keys(limpo).length) ajustes[nome] = limpo;
     }
     return {
-      versao: 1,
-      atualizadoEm: typeof bruto.atualizadoEm === 'string' ? bruto.atualizadoEm : '',
-      ajustes,
-      extras: Array.isArray(bruto.extras) ? bruto.extras.filter(veiculoValido) : [],
+      custom: {
+        versao: 1,
+        atualizadoEm: typeof bruto.atualizadoEm === 'string' ? bruto.atualizadoEm : '',
+        ajustes,
+        extras: Array.isArray(bruto.extras) ? bruto.extras.filter(veiculoValido) : [],
+      },
+      marca: bruto.marca != null ? sanearMarca(bruto.marca) : null,
     };
   } catch {
     return 'Arquivo ilegível — exporte novamente a partir de um aparelho atualizado.';

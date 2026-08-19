@@ -9,7 +9,7 @@
 import { useMemo } from 'react';
 import { UFS, type Veiculo } from '@godrive/engine';
 import type { Derivado, Estado } from '../state';
-import type { Marca } from '../lib/marca';
+import { marcaPropria, type Marca } from '../lib/marca';
 import { n0, reais } from '../lib/format';
 
 export function PropostaPrint({
@@ -46,6 +46,8 @@ export function PropostaPrint({
           .pp .plogo img { max-height: 14mm; max-width: 58mm; object-fit: contain; display: block; }
           .pp .peyebrow { font-size: 9px; font-weight: 700; letter-spacing: 0.16em;
             color: #6e6675; text-transform: uppercase; margin-top: 1mm; }
+          /* sem marca própria, o "proposta de assinatura" vira o título do cabeçalho */
+          .pp .peyebrow.solo { font-size: 15px; letter-spacing: 0.14em; color: #3a3342; margin-top: 0; }
           .pp .pdata { font-size: 10.5px; color: #6e6675; text-align: right; line-height: 1.65; }
           .pp .pdata b { color: #17131c; }
 
@@ -159,8 +161,8 @@ export function PropostaPrint({
       k: 'assinar' as const,
       rot: (
         <b>
-          Assinar {marca.nome}
-          {marca.sufixo}
+          Assinar
+          {marcaPropria(marca) ? ` ${marca.nome}${marca.sufixo}` : ' este carro'}
         </b>
       ),
       custo: r.assinar.custo,
@@ -180,17 +182,23 @@ export function PropostaPrint({
       <div className="pp">
         <header>
           <div>
-            <div className="plogo">
-              {marca.logo ? (
-                <img src={marca.logo} alt={`${marca.nome}${marca.sufixo}`} />
-              ) : (
-                <>
-                  <b>{marca.nome}</b>
-                  <i>{marca.sufixo}</i>
-                </>
-              )}
+            {/* Sem logo anexada e sem nome próprio, o cabeçalho fica NEUTRO:
+                o documento é da locadora, não nosso (decisão do dono). */}
+            {marcaPropria(marca) ? (
+              <div className="plogo">
+                {marca.logo ? (
+                  <img src={marca.logo} alt={`${marca.nome}${marca.sufixo}`} />
+                ) : (
+                  <>
+                    <b>{marca.nome}</b>
+                    <i>{marca.sufixo}</i>
+                  </>
+                )}
+              </div>
+            ) : null}
+            <div className={marcaPropria(marca) ? 'peyebrow' : 'peyebrow solo'}>
+              Proposta de assinatura
             </div>
-            <div className="peyebrow">Proposta de assinatura</div>
           </div>
           <div className="pdata">
             <b>{hoje}</b>

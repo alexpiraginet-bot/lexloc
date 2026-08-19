@@ -139,7 +139,8 @@ export function Retaguarda({
   };
 
   const exportar = () => {
-    const { nome, conteudo } = exportarArquivo(lerCustom());
+    // identidade completa junto: quem importar herda logo, cores e consultor
+    const { nome, conteudo } = exportarArquivo(lerCustom(), lerMarca());
     const blob = new Blob([conteudo], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -154,9 +155,13 @@ export function Retaguarda({
     leitor.onload = () => {
       const r = importarArquivo(String(leitor.result ?? ''));
       if (typeof r === 'string') return avisar(r);
-      if (!gravarCustom(r)) return avisar('Sem armazenamento — a importação não foi salva.');
+      if (!gravarCustom(r.custom)) return avisar('Sem armazenamento — a importação não foi salva.');
+      if (r.marca) {
+        gravarMarca(r.marca);
+        bumpMarca();
+      }
       bump();
-      avisar('Tabela importada. Preços atualizados.');
+      avisar(r.marca ? 'Tabela e marca da loja importadas.' : 'Tabela importada. Preços atualizados.');
     };
     leitor.readAsText(arquivo);
   };

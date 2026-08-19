@@ -59,27 +59,46 @@ const LS = 'lexgo.marca.v1';
 const LOGO_OK = /^data:image\/(png|jpeg|jpg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 export const LOGO_MAX_BYTES = 120_000;
 
+/**
+ * Saneia uma marca vinda de fora (localStorage OU arquivo importado da
+ * equipe): só chaves conhecidas, cores em #rrggbb, creditoUrl http(s) e
+ * logo com tipo e teto validados. Devolve null se não for um objeto.
+ */
+export function sanearMarca(bruto: unknown): Marca | null {
+  if (typeof bruto !== 'object' || bruto == null) return null;
+  const b = bruto as Partial<Marca>;
+  const m: Marca = { ...MARCA_PADRAO };
+  for (const k of Object.keys(MARCA_PADRAO) as (keyof Marca)[]) {
+    const v = b[k];
+    if (typeof v === 'string') m[k] = v;
+  }
+  if (typeof b.logo === 'string' && LOGO_OK.test(b.logo) && b.logo.length <= LOGO_MAX_BYTES * 1.4) {
+    m.logo = b.logo;
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(m.corPrimaria)) m.corPrimaria = MARCA_PADRAO.corPrimaria;
+  if (!/^#[0-9a-fA-F]{6}$/.test(m.corDestaque)) m.corDestaque = MARCA_PADRAO.corDestaque;
+  // creditoUrl vira href no rodapé: só http(s), senão um valor javascript:
+  // gravado aqui executaria no clique com acesso a propostas e preços.
+  // Vazio é permitido (rodapé mostra só o nome, sem link).
+  const url = m.creditoUrl.toLowerCase();
+  if (m.creditoUrl !== '' && !url.startsWith('https://') && !url.startsWith('http://')) {
+    m.creditoUrl = MARCA_PADRAO.creditoUrl;
+  }
+  return m;
+}
+
+/**
+ * A marca é "própria" quando a locadora anexou logo ou trocou o nome.
+ * Enquanto for o padrão de fábrica, o PDF sai com cabeçalho NEUTRO —
+ * nada de marca nossa no documento do vendedor (decisão do dono).
+ */
+export function marcaPropria(m: Marca): boolean {
+  return !!m.logo || m.nome + m.sufixo !== MARCA_PADRAO.nome + MARCA_PADRAO.sufixo;
+}
+
 export function lerMarca(): Marca {
   try {
-    const bruto = JSON.parse(localStorage.getItem(LS) ?? 'null') as Partial<Marca> | null;
-    if (!bruto) return MARCA_PADRAO;
-    const m: Marca = { ...MARCA_PADRAO };
-    for (const k of Object.keys(MARCA_PADRAO) as (keyof Marca)[]) {
-      const v = bruto[k];
-      if (typeof v === 'string') m[k] = v;
-    }
-    if (typeof bruto.logo === 'string' && LOGO_OK.test(bruto.logo) && bruto.logo.length <= LOGO_MAX_BYTES * 1.4) {
-      m.logo = bruto.logo;
-    }
-    if (!/^#[0-9a-fA-F]{6}$/.test(m.corPrimaria)) m.corPrimaria = MARCA_PADRAO.corPrimaria;
-    if (!/^#[0-9a-fA-F]{6}$/.test(m.corDestaque)) m.corDestaque = MARCA_PADRAO.corDestaque;
-    // creditoUrl vira href no rodapé: só http(s), senão um valor `javascript:`
-    // gravado aqui executaria no clique com acesso a propostas e preços.
-    // Vazio é permitido (rodapé mostra só o nome, sem link).
-    if (m.creditoUrl !== '' && !/^https?:\/\//i.test(m.creditoUrl)) {
-      m.creditoUrl = MARCA_PADRAO.creditoUrl;
-    }
-    return m;
+    return sanearMarca(JSON.parse(localStorage.getItem(LS) ?? 'null')) ?? MARCA_PADRAO;
   } catch {
     return MARCA_PADRAO;
   }
