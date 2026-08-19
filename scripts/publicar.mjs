@@ -89,6 +89,16 @@ for (const alvo of ALVOS) {
  * é nos dois sentidos: cada marca TEM de existir no arquivo do vendedor e NÃO
  * pode existir no do cliente.
  */
+/*
+ * TÍTULOS de tela. Cobrem a tela sumir — e só isso.
+ *
+ * Esta lista deixou passar um vazamento real: `Resultado.tsx` importava
+ * `lib/robustez` no topo do arquivo, fora de qualquer ramo `!cli`. A TELA da
+ * prova de estresse não entrava no arquivo do cliente (o título dava 0), mas
+ * o MÓDULO entrava inteiro — os 8 mundos e as réplicas de venda do campo
+ * `contra`, legíveis em Ctrl+U por qualquer cliente. Por isso a segunda
+ * lista abaixo.
+ */
 const MARCAS_DA_EQUIPE = [
   'Retaguarda',
   'Mensalidade de empate',
@@ -96,6 +106,19 @@ const MARCAS_DA_EQUIPE = [
   'Vale negociar',            // medidor de negociação
   'Prova de estresse',        // diagnóstico do vendedor, nunca do cliente
   'Copiloto de negociação',   // repertório de objeções — mesa do vendedor
+];
+
+/*
+ * CONTEÚDO. Trechos do miolo dos módulos restritos, que sobrevivem mesmo
+ * quando a tela é podada e o título some. É aqui que se pega o vazamento por
+ * import solto — mudar a redação de um título não faz esta lista mentir.
+ */
+const MIOLO_DA_EQUIPE = [
+  'CDI despenca',                    // lib/robustez — mundo da prova de estresse
+  'Manutenção surpreende',           // idem
+  'Quanto dele você quer imobilizado', // réplica de VENDA do campo `contra`
+  'parcela-financiamento-menor',     // lib/objecoes — id do repertório
+  'Atacar o financiamento',          // campo `evite` — o que o vendedor NÃO deve dizer
 ];
 /* lê o que ACABOU de ser construído, não o que já está publicado em site/ */
 const lido = (perfil) =>
@@ -125,9 +148,16 @@ if (existsSync(distApi)) {
   }
 }
 
-const vazou = MARCAS_DA_EQUIPE.filter((t) => cliente.includes(t));
+const vazou = [...MARCAS_DA_EQUIPE, ...MIOLO_DA_EQUIPE].filter((t) => cliente.includes(t));
 if (vazou.length) {
   console.error(`\n✗ vazou para o arquivo do CLIENTE: ${vazou.join(', ')}`);
+  process.exit(1);
+}
+/* o miolo também tem de EXISTIR no vendedor, senão esta lista vira decoração */
+const miolonSumiu = MIOLO_DA_EQUIPE.filter((t) => !vendedor.includes(t));
+if (miolonSumiu.length) {
+  console.error(`\n✗ o arquivo do VENDEDOR não contém: ${miolonSumiu.join(', ')}`);
+  console.error('  a guarda de conteúdo ficaria vazia — atualize a lista.');
   process.exit(1);
 }
 /* passou em tudo: agora sim o site/ pode ser tocado */

@@ -52,11 +52,20 @@ export function gerarLink(estado: Estado, marca: Marca): string {
   for (const c of CAMPOS_ESTADO) p.e[c] = estado[c];
   for (const c of CAMPOS_MARCA) if (marca[c]) p.m[c] = marca[c];
   const hash = '#d=' + b64urlCodificar(JSON.stringify(p));
-  // hospedado: usa a própria origem (locadoras.uselexgo.com, preview etc.);
-  // aberto de arquivo: aponta para o endereço oficial
+  /*
+   * O caminho é SEMPRE app.html, nunca `location.pathname`.
+   *
+   * lexgo-vendedor.html também é publicado na raiz, e o vendedor que
+   * favorita essa URL em vez de baixar o arquivo montava a proposta ali. Com
+   * `pathname`, o link saía como `.../lexgo-vendedor.html#d=…` e o CLIENTE
+   * abria o build sem corte, com o alternador Cliente|Vendedor no cabeçalho:
+   * um toque e ele via retaguarda, propostas, copiloto e a margem inteira da
+   * locadora. A origem continua sendo a atual, para preview e domínio
+   * próprio seguirem funcionando.
+   */
   const base =
     typeof location !== 'undefined' && location.protocol.startsWith('http')
-      ? location.origin + location.pathname
+      ? location.origin + location.pathname.replace(/[^/]*$/, '') + 'app.html'
       : 'https://locadoras.uselexgo.com/app.html';
   return base + hash;
 }

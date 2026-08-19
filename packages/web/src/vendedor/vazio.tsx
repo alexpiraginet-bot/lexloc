@@ -16,3 +16,17 @@ export function Propostas(): null {
 export function Copiloto(): null {
   return null;
 }
+
+/*
+ * Contrapartes vazias da prova de estresse. Devolvem o neutro em vez de
+ * lançar: quem consome está sob `!cli` e nunca renderiza no build do
+ * cliente, mas um retorno vazio é mais seguro que uma exceção se algum dia
+ * alguém chamar por engano.
+ */
+export function provaDeEstresse(): { vitoriasAssinar: number; total: number; mundos: never[] } {
+  return { vitoriasAssinar: 0, total: 0, mundos: [] };
+}
+
+export function posicaoMercado(): null {
+  return null;
+}

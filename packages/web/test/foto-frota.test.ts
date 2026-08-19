@@ -129,3 +129,53 @@ describe('lerFotoDeArquivo — o que o vendedor escolhe no aparelho', () => {
     await expect(lerFotoDeArquivo(f)).rejects.toThrow(/pesada/);
   });
 });
+
+describe('lerCustomVerificado — a porta DE TRÁS agora valida igual à da frente', () => {
+  const gravar = (v: unknown) =>
+    localStorage.setItem('lexgo.catalogo.v1', typeof v === 'string' ? v : JSON.stringify(v));
+
+  it('descarta foto que é URL remota — o app promete funcionar sem internet', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    gravar({ versao: 1, atualizadoEm: '', ajustes: { 'Toyota Yaris Cross XR': { fo: 'https://rastreador.exemplo/pixel.png' } }, extras: [] });
+    const { custom, integro } = lerCustomVerificado();
+    expect(integro).toBe(true);
+    expect(custom.ajustes['Toyota Yaris Cross XR']).toBeUndefined();
+  });
+
+  it('descarta preço Infinity — passava em `p > 0` e levava a simulação a NaN', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    gravar('{"versao":1,"atualizadoEm":"","ajustes":{"Toyota Yaris Cross XR":{"p":1e999}},"extras":[]}');
+    expect(lerCustomVerificado().custom.ajustes['Toyota Yaris Cross XR']).toBeUndefined();
+  });
+
+  it('descarta preço que veio como string', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    gravar({ versao: 1, atualizadoEm: '', ajustes: { 'Toyota Yaris Cross XR': { p: '999999' } }, extras: [] });
+    expect(lerCustomVerificado().custom.ajustes['Toyota Yaris Cross XR']).toBeUndefined();
+  });
+
+  it('preserva o que é válido', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    gravar({ versao: 1, atualizadoEm: '', ajustes: { 'Toyota Yaris Cross XR': { p: 155000, fo: PNG } }, extras: [] });
+    const aj = lerCustomVerificado().custom.ajustes['Toyota Yaris Cross XR'];
+    expect(aj?.p).toBe(155000);
+    expect(aj?.fo).toBe(PNG);
+  });
+
+  it('storage vazio é ÍNTEGRO — nunca gravou é diferente de não entendi', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    expect(lerCustomVerificado().integro).toBe(true);
+  });
+
+  it('versão futura NÃO é íntegra — senão a Retaguarda apagaria a tabela por cima', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    gravar({ versao: 2, atualizadoEm: '', ajustes: { 'Toyota Yaris Cross XR': { p: 155000 } }, extras: [] });
+    expect(lerCustomVerificado().integro).toBe(false);
+  });
+
+  it('JSON quebrado NÃO é íntegro', async () => {
+    const { lerCustomVerificado } = await import('../src/lib/catalogo');
+    gravar('{isto nao e json');
+    expect(lerCustomVerificado().integro).toBe(false);
+  });
+});

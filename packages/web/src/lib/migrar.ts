@@ -12,6 +12,14 @@ const RENOMEADAS: [string, string][] = [
 ];
 
 export function migrarChaves(): void {
+  /*
+   * Sessão de link é SALA LIMPA: não lê nem grava nada no aparelho. Esta
+   * função rodava sempre, antes do React montar, e além de ler quatro chaves
+   * ela APAGA as antigas — então o vendedor que abrisse o próprio link para
+   * conferir tinha o storage dele mexido por uma sessão que prometeu não
+   * tocar em nada.
+   */
+  if (typeof location !== 'undefined' && /[#&]d=/.test(location.hash)) return;
   try {
     for (const [velha, nova] of RENOMEADAS) {
       const v = localStorage.getItem(velha);

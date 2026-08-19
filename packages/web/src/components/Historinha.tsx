@@ -18,10 +18,10 @@
  * absorve — depreciação, seguro, manutenção, IPVA, pneus — é verdade em
  * qualquer cenário, porque esses custos ficam mesmo com a locadora.
  *
- * Nada de vídeo: o arquivo do vendedor viaja por WhatsApp e hoje tem 425 KB
- * inteiro. Quinze segundos de vídeo em 720p pesariam de 1,5 a 3 MB — de
- * cinco a sete vezes o app. Quadrinho em CSS e SVG custa alguns KB e ainda
- * usa os números DESTA simulação, o que vídeo pré-renderizado nunca faria.
+ * Nada de vídeo: o arquivo do vendedor viaja por WhatsApp e hoje tem 635 KB
+ * inteiro. Quinze segundos de vídeo em 720p pesariam de 1,5 a 3 MB — de duas
+ * a cinco vezes o app. Quadrinho em CSS e SVG custa alguns KB e ainda usa os
+ * números DESTA simulação, o que vídeo pré-renderizado nunca faria.
  */
 import { useEffect, useState } from 'react';
 import type { Derivado } from '../state';
@@ -150,6 +150,11 @@ export function Historinha({ d, categoria }: { d: Derivado; categoria: string })
   useEffect(() => {
     if (!aberta) return;
     const t = (e: KeyboardEvent) => {
+      // a tabela de custos rola na horizontal e é focável no Chrome 127+;
+      // sem esta checagem, rolá-la com as setas também virava o quadrinho
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      const alvo = e.target as HTMLElement | null;
+      if (alvo && alvo !== document.body && !alvo.closest('.hq')) return;
       if (e.key === 'ArrowRight') ir(1);
       if (e.key === 'ArrowLeft') ir(-1);
     };
@@ -176,7 +181,7 @@ export function Historinha({ d, categoria }: { d: Derivado; categoria: string })
 
   return (
     <section className="card raised rise hq" aria-label="A sua simulação em quadrinhos">
-      <div className="hq-quadro" key={quadro}>
+      <div className="hq-quadro" key={quadro} role="group" aria-live="polite" aria-atomic="true">
         <span className="hq-n">{q.n}</span>
         <h3>{q.titulo}</h3>
         <div className="hq-arte">{q.arte}</div>
@@ -184,28 +189,54 @@ export function Historinha({ d, categoria }: { d: Derivado; categoria: string })
       </div>
 
       <div className="hq-nav">
-        <button type="button" className="btn btn-s sm" onClick={() => ir(-1)} disabled={quadro === 0}>
+        {/* no-op em vez de `disabled`: desabilitar sob o foco faz o browser
+            blurar, e quem navega por teclado perde o lugar */}
+        <button
+          type="button"
+          className={`btn btn-s sm${quadro === 0 ? ' inerte' : ''}`}
+          aria-disabled={quadro === 0}
+          onClick={() => ir(-1)}
+        >
           Anterior
         </button>
-        <span className="hq-pontos" role="tablist" aria-label="Quadros">
+        {/*
+          Isto é um carrossel, não um tablist: não há tabpanel, os botões não
+          controlam painéis irmãos e as setas trocam o conteúdo sem mover o
+          foco. Com role="tab" o leitor de tela anunciava "selecionado" sem
+          dizer de quê. `aria-current` diz a verdade sobre o que isto é.
+        */}
+        <span className="hq-pontos">
           {QUADROS.map((x, i) => (
             <button
               key={x.n}
               type="button"
-              role="tab"
-              aria-selected={i === quadro}
-              aria-label={`Quadro ${i + 1}: ${x.titulo}`}
+              aria-current={i === quadro ? 'true' : undefined}
+              aria-label={`Quadro ${i + 1} de ${total}: ${x.titulo}`}
               className={i === quadro ? 'on' : ''}
               onClick={() => setQuadro(i)}
             />
           ))}
         </span>
+        {/*
+          `key` distinta de propósito: sem ela o React reaproveitava o mesmo nó
+          e o foco ficava. Quem chegasse ao último quadro dando Enter em
+          "Próximo" fechava a história com o sexto Enter — mesma tecla, mesmo
+          foco, mesma posição na tela.
+        */}
         {quadro < total - 1 ? (
-          <button type="button" className="btn btn-x sm" onClick={() => ir(1)}>
+          <button key="proximo" type="button" className="btn btn-x sm" onClick={() => ir(1)}>
             Próximo
           </button>
         ) : (
-          <button type="button" className="btn btn-s sm" onClick={() => { setAberta(false); setQuadro(0); }}>
+          <button
+            key="fechar"
+            type="button"
+            className="btn btn-s sm"
+            onClick={() => {
+              setAberta(false);
+              setQuadro(0);
+            }}
+          >
             Fechar
           </button>
         )}

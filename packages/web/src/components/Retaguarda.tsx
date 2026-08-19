@@ -7,7 +7,7 @@
  * A guarda em scripts/publicar.mjs falha o build se isso deixar de valer.
  */
 import { CATEGORIAS } from '@godrive/engine';
-import type { VeiculoLoja } from '../lib/catalogo';
+import type { CatalogoCustom, VeiculoLoja } from '../lib/catalogo';
 import { useRef, useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
 import { parseNum } from '../lib/format';
@@ -16,6 +16,7 @@ import {
   gravarCustom,
   importarArquivo,
   lerCustom,
+  lerCustomVerificado,
   lerFotoDeArquivo,
   limparCustom,
 } from '../lib/catalogo';
@@ -134,9 +135,29 @@ export function Retaguarda({
     if (okMsg) avisar(okMsg);
   };
 
+  /**
+   * Toda gravação daqui é ler-alterar-gravar. Se a leitura não entendeu o que
+   * está guardado, gravar por cima APAGA a tabela inteira — e o cenário é
+   * real: o HTML viaja por WhatsApp, então convivem versões no mesmo
+   * aparelho. Melhor recusar e dizer a verdade.
+   */
+  const baseParaGravar = (): CatalogoCustom | null => {
+    const { custom, integro } = lerCustomVerificado();
+    if (!integro) {
+      avisar('Não entendi a tabela guardada neste aparelho — não vou gravar por cima. Exporte o que tem e restaure o padrão.');
+      return null;
+    }
+    return custom;
+  };
+
   const salvarPreco = (nome: string, campo: 'p' | 'm', valor: number) => {
-    if (!(valor > 0)) return;
-    const c = lerCustom();
+    if (!(valor > 0)) return avisar('Valor inválido — o preço tem de ser maior que zero.');
+    const c = baseParaGravar();
+    if (!c) return;
+    // A4: sair do campo sem mudar nada reescrevia o catálogo inteiro, fotos
+    // incluídas, e ainda anunciava "salvo" no leitor de tela
+    const atual = c.extras.find((x) => x.n === nome)?.[campo] ?? c.ajustes[nome]?.[campo];
+    if (atual === valor) return;
     const extra = c.extras.find((x) => x.n === nome);
     if (extra) extra[campo] = valor;
     else c.ajustes[nome] = { ...c.ajustes[nome], [campo]: valor };
@@ -169,7 +190,8 @@ export function Retaguarda({
     } catch (erro) {
       return avisar(erro instanceof Error ? erro.message : 'Não consegui usar essa imagem.');
     }
-    const c = lerCustom();
+    const c = baseParaGravar();
+    if (!c) return;
     c.ajustes[nome] = { ...c.ajustes[nome], fo };
     // foto é o item mais pesado do armazenamento: quando a cota estoura, o
     // aviso diz a verdade em vez de comemorar uma gravação que não houve
@@ -181,7 +203,8 @@ export function Retaguarda({
   };
 
   const removerFoto = (nome: string) => {
-    const c = lerCustom();
+    const c = baseParaGravar();
+    if (!c) return;
     const aj = c.ajustes[nome];
     if (!aj?.fo) return;
     const { fo: _descartada, ...resto } = aj;
@@ -202,7 +225,8 @@ export function Retaguarda({
     const c = String(dados.get('c') ?? 'suvc');
     if (!nome || !(p > 0) || !(m > 0)) return avisar('Preencha nome, tabela e mensalidade.');
     if (catalogo.some((v) => v.n === nome)) return avisar('Já existe um modelo com esse nome.');
-    const custom = lerCustom();
+    const custom = baseParaGravar();
+    if (!custom) return;
     custom.extras.push({
       n: nome, p, m, c, f: 'mer', gd: 1,
       e: CATEGORIAS[c]?.kml ?? CATEGORIAS[c]?.kwh100 ?? 12,
