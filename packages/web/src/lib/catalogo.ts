@@ -130,7 +130,13 @@ export function catalogoEfetivo(custom: CatalogoCustom): VeiculoLoja[] {
       ...(aj.fo ? { fo: aj.fo } : {}),
     };
   });
-  return [...base, ...custom.extras];
+  // extras também aceitam foto: ela vive em `ajustes`, indexada pelo nome, para
+  // a validação de imagem na importação acontecer num lugar só
+  const extras: VeiculoLoja[] = custom.extras.map((v) => {
+    const fo = custom.ajustes[v.n]?.fo;
+    return fo ? { ...v, fo } : v;
+  });
+  return [...base, ...extras];
 }
 
 /** Blob de exportação — nomeado com a data para a equipe não se perder. */

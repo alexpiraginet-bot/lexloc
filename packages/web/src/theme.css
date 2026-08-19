@@ -1016,11 +1016,35 @@ details > .body { padding: 15px 16px 16px; }
 
 /* ───── retaguarda ───── */
 .ret-grade { display: grid; gap: 8px; }
-.ret-linha { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+.ret-linha { display: grid; grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
 .ret-linha .ret-nome { font-size: 12.5px; font-weight: 500; line-height: 1.3; min-width: 0; }
 .ret-linha .inp { min-height: 42px; padding: 8px 10px 8px 32px; font-size: 14px; }
+
+/* foto da frota por modelo: a miniatura É o botão de upload */
+.ret-foto-cel { position: relative; display: block; width: 54px; height: 42px; }
+.ret-foto {
+  width: 100%; height: 100%; padding: 0; display: grid; place-items: center;
+  overflow: hidden; cursor: pointer; color: var(--muted); background: var(--paper);
+  border: 1px dashed var(--line); border-radius: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ret-foto.tem { border-style: solid; border-color: var(--line-2); }
+.ret-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ret-foto svg { width: 15px; height: 15px; stroke-width: 2.2; }
+.ret-foto:hover { border-color: var(--brand); color: var(--brand); }
+.ret-foto-x {
+  position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; padding: 0;
+  display: grid; place-items: center; cursor: pointer; border-radius: 50%;
+  color: var(--bad); background: var(--paper); border: 1px solid var(--line-2);
+  box-shadow: var(--sh-1);
+}
+.ret-foto-x svg { width: 11px; height: 11px; stroke-width: 2.2; }
+.ret-foto-x:hover { border-color: var(--bad); }
+
 @media (max-width: 430px) {
-  .ret-linha { grid-template-columns: 1fr; gap: 5px; padding-bottom: 8px; border-bottom: 1px dashed var(--line-2); }
+  .ret-linha { grid-template-columns: auto 1fr; gap: 5px 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--line-2); }
+  /* a miniatura fica à esquerda e o nome/preços empilham ao lado dela */
+  .ret-foto-cel { grid-row: span 3; align-self: start; }
 }
 .src { font-size: 11px; color: var(--muted); line-height: 1.65; }
 .foot {
