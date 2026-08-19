@@ -103,6 +103,19 @@ export default function App() {
 
   return (
     <>
+      {/*
+        A lente do vidro. `backdrop-filter: blur()` embaça mas não DOBRA o que
+        está atrás — e é a deformação que faz o olho ler "vidro" em vez de
+        "camada leitosa". O deslocamento vem daqui, e o filtro precisa existir
+        no documento: nada de asset externo, o arquivo off-line viaja sozinho.
+      */}
+      <svg width="0" height="0" className="sr-svg" aria-hidden="true" focusable="false">
+        <filter id="lex-lente" x="-15%" y="-15%" width="130%" height="130%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.014" numOctaves={2} seed={11} result="ruido" />
+          <feGaussianBlur in="ruido" stdDeviation="1.4" result="suave" />
+          <feDisplacementMap in="SourceGraphic" in2="suave" scale="34" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
       <a className="sr" href="#conteudo">
         Pular para o conteúdo
       </a>
