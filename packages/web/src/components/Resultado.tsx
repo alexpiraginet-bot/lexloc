@@ -12,6 +12,7 @@ import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
 import { Copiloto } from '@vendedor';
 import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';
+import { Historinha } from './Historinha';
 
 /**
  * Contador animado — a diversão do modo cliente.
@@ -52,9 +53,12 @@ function Contador({ valor, formato = reais }: { valor: number; formato?: (v: num
 export function Resultado({
   d,
   modo,
+  categoria,
 }: {
   d: Derivado;
   modo: Modo;
+  /** só a historinha usa: desenha a silhueta do carro que o cliente escolheu */
+  categoria: string;
 }) {
   const { p, r, equilibrio, absorvido, abs } = d;
   // No build do CLIENTE, PERFIL é a constante 'cliente' dobrada em compilação
@@ -202,6 +206,9 @@ export function Resultado({
           </div>
         </div>
       ) : null}
+
+      {/* ── A HISTORINHA (cliente) ── */}
+      {cli ? <Historinha d={d} categoria={categoria} /> : null}
 
       {/* ── MEDIDOR (vendedor) ── */}
       {!cli ? (

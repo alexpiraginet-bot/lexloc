@@ -226,7 +226,7 @@ export default function App() {
         {estado.aba === 'resultado' ? (
           <div className="panel">
             {derivado ? (
-              <Resultado d={derivado} modo={estado.modo} />
+              <Resultado d={derivado} modo={estado.modo} categoria={estado.categoria} />
             ) : (
               <div className="empty">
                 <h4>Preencha a simulação</h4>
