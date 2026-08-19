@@ -217,9 +217,15 @@ if (existsSync(robots) && readFileSync(robots, 'utf8').includes('equipe')) {
 /*
  * O gêmeo e o arquivo da equipe saem com noindex NO PRÓPRIO HTML, e não só
  * no cabeçalho do vercel.json. Motivo: o catch-all '/(.*)' de lá também
- * escreve X-Robots-Tag, e a regra de precedência entre os dois é do Vercel,
- * não nossa — se um dia ela mudar, o cabeçalho some sem avisar. A meta tag
- * viaja dentro do arquivo e não depende de configuração de servidor.
+ * escreve X-Robots-Tag, e a precedência entre os dois é do Vercel, não nossa.
+ *
+ * E não é hipótese: medido em produção depois do primeiro deploy, com a
+ * regra específica ANTES do catch-all, o que chegou no cabeçalho foi
+ * 'noai, noimageai' — a do catch-all. O noindex não chegou. Quem estava
+ * segurando a proteção era esta meta tag. No vercel.json a regra específica
+ * passou para DEPOIS do catch-all para o cabeçalho concordar com o HTML,
+ * mas a garantia continua sendo daqui: a meta viaja dentro do arquivo e não
+ * depende de configuração de servidor nenhuma.
  */
 const NOINDEX = '<meta name="robots" content="noindex, nofollow, noarchive" />';
 
