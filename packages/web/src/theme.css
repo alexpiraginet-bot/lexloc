@@ -1840,118 +1840,96 @@ body::after {
 /* símbolo LexGo ao lado do logotipo — só na marca padrão, nunca em white-label */
 .logo-simb { display: inline-block; height: 24px; width: auto; vertical-align: -3px; margin-right: 6px; }
 
-/* ═══════ A HISTORINHA — o resultado virando quadrinho ═══════
-   Traço grosso, meio-tom e balão. Tudo em CSS e SVG: vídeo não cabe num
-   arquivo que viaja por WhatsApp, e quadrinho ainda usa os números desta
-   simulação, coisa que vídeo pré-renderizado nunca faria. */
-
-.hq-convite { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-.hq-convite b { display: block; font-size: 15px; color: var(--ink); }
-.hq-convite span { font-size: 12.5px; color: var(--muted); }
-
-.hq { overflow: hidden; }
-.hq-quadro {
+/* ═══ A história: sequência animada no fim do resultado (cliente) ═══ */
+.hist { padding: 0; overflow: hidden; }
+.hist-barras { display: flex; gap: 4px; padding: 11px 12px 0; }
+.hist-barra {
+  flex: 1;
+  height: 3px;
+  border: 0;
+  padding: 0;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  cursor: pointer;
+  overflow: hidden;
   position: relative;
-  border: 2.5px solid var(--ink);
-  border-radius: 14px;
-  padding: 30px 18px 18px;
-  background:
-    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--brand) 22%, transparent) 1px, transparent 1.6px)
-      0 0 / 9px 9px,
-    color-mix(in srgb, var(--paper) 88%, #fff);
-  box-shadow: 5px 5px 0 color-mix(in srgb, var(--brand-dark) 26%, transparent);
-  animation: hq-entra 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
 }
-@keyframes hq-entra { from { opacity: 0; transform: translateX(14px) rotate(-0.6deg); } }
-.hq-n {
-  position: absolute; top: -2px; left: -2px;
-  display: grid; place-items: center; width: 34px; height: 34px;
-  font: 800 15px/1 var(--mono, monospace); color: #fff;
-  background: var(--ink); border-radius: 12px 0 12px 0;
+.hist-barra.vista { background: color-mix(in srgb, var(--brand) 55%, transparent); }
+.hist-barra i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: var(--brand-deep);
 }
-.hq-quadro h3 { font-size: 17px; letter-spacing: -0.02em; margin: 0 0 12px; text-align: center; }
-.hq-arte { display: grid; place-items: center; min-height: 108px; margin-bottom: 12px; }
+.hist-barra.agora i { animation: hist-correr linear forwards; }
+@keyframes hist-correr { from { width: 0; } to { width: 100%; } }
 
-/* balão de fala */
-.hq-balao {
-  position: relative; max-width: 46ch; margin: 0 auto;
-  font-size: 13.5px; line-height: 1.6; color: var(--ink);
-  background: #fff; border: 2px solid var(--ink); border-radius: 14px; padding: 11px 14px;
+.hist-palco { cursor: pointer; padding: 6px 0 0; }
+.hist-arte {
+  width: 100%;
+  display: block;
+  aspect-ratio: 832 / 480;
+  object-fit: contain;
+  animation: hist-entra 0.62s var(--e-out) both;
 }
-.hq-balao::after {
-  content: ''; position: absolute; bottom: -9px; width: 0; height: 0;
-  border: 9px solid transparent; border-top-color: var(--ink); border-bottom: 0;
+@keyframes hist-entra {
+  from { opacity: 0; transform: scale(1.05) translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
-.hq-balao.esq::after { left: 26px; }
-.hq-balao.dir::after { right: 26px; }
+.hist-txt {
+  padding: 2px 17px 15px;
+  animation: hist-sobe 0.5s var(--e-out) both;
+  animation-delay: 0.1s;
+}
+@keyframes hist-sobe {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.hist-olho {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hist-txt h4 {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 4px 0 0;
+  text-wrap: balance;
+}
+.hist-valor {
+  font-family: var(--mono);
+  font-size: clamp(30px, 8vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--brand-deep);
+  margin: 4px 0 2px;
+  font-variant-numeric: tabular-nums;
+}
+.hist-txt p { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 6px 0 0; }
+.hist-pe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 17px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hist-arte, .hist-txt { animation: none; }
+  .hist-barra.agora i { animation: none; width: 100%; }
+}
 
-/* quadro 1: as três vias */
-.hq-tres { display: flex; gap: 10px; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
-/* a opacidade fica no DESENHO; o rótulo precisa do contraste dele
-   (0.42 sobre --muted dava ~1,9:1, o mínimo é 4,5:1) */
-.hq-via { display: grid; justify-items: center; gap: 5px; }
-.hq-via svg { opacity: 0.42; }
-.hq-via.ass svg { opacity: 1; }
-.hq-via svg { width: 74px; height: 36px; stroke: var(--ink); stroke-width: 1.6; fill: none; }
-.hq-via.ass svg { stroke: var(--brand-deep); stroke-width: 2.1; }
-.hq-via i {
-  font: 700 10px/1 var(--sans, sans-serif); font-style: normal;
-  text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted);
+/* o fecho da história: onde a intenção é máxima, a sequência para e espera */
+.hist-fim { display: grid; gap: 9px; padding: 4px 17px 15px; }
+.hist-nota {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
 }
-.hq-via.ass i { color: var(--brand-deep); }
-
-/* moedas: o dinheiro em cena, sem banco de imagem */
-.hq-moedas { display: grid; justify-items: center; gap: 9px; }
-.hq-pilha { display: flex; align-items: flex-end; gap: 3px; height: 62px; }
-.hq-pilha i {
-  display: block; width: 15px; border-radius: 3px; border: 2px solid var(--ink);
-  animation: hq-sobe 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
-}
-.hq-pilha i:nth-child(odd) { height: 44px; }
-.hq-pilha i:nth-child(even) { height: 58px; }
-/* tom único de propósito: verde/vermelho aqui seria um veredito, e o
-   veredito é do quadro 5 — que às vezes contraria quem está vendendo */
-.hq-pilha i { background: color-mix(in srgb, var(--brand) 34%, #fff); }
-.hq-moedas b { font: 800 17px/1 var(--mono, monospace); color: var(--ink); }
-@keyframes hq-sobe { from { transform: scaleY(0.1); opacity: 0; } }
-
-/* selo do veredito */
-.hq-selo { display: grid; justify-items: center; gap: 3px; padding: 12px 22px;
-  border: 2.5px solid var(--brand-deep); border-radius: 14px; transform: rotate(-2.5deg);
-  background: color-mix(in srgb, var(--brand) 10%, #fff); }
-.hq-selo.frio { border-color: var(--muted); background: color-mix(in srgb, var(--muted) 9%, #fff); }
-.hq-selo svg { width: 26px; height: 26px; stroke: var(--brand-deep); stroke-width: 2.6; fill: none;
-  stroke-linecap: round; stroke-linejoin: round; }
-.hq-selo.frio svg { stroke: var(--muted); }
-.hq-selo b { font: 800 21px/1.1 var(--mono, monospace); color: var(--ink); }
-.hq-selo i { font-style: normal; font-size: 10.5px; color: var(--muted); }
-
-/* lista do último quadro */
-.hq-lista { display: grid; gap: 7px; width: 100%; max-width: 40ch; }
-.hq-lista span { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink);
-  background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 8px 11px; }
-.hq-lista svg { width: 17px; height: 17px; flex: 0 0 auto; stroke: var(--brand-deep);
-  stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-
-/* navegação */
-.hq-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
-.hq-pontos { display: flex; gap: 6px; }
-/* alvo de 24px (WCAG 2.5.8) com o ponto desenhado dentro: visual igual,
-   mas dá para acertar com o dedo */
-.hq-pontos button {
-  width: 24px; height: 24px; padding: 0; cursor: pointer;
-  display: grid; place-items: center; border: 0; background: transparent;
-}
-.hq-pontos button::before {
-  content: ''; width: 9px; height: 9px; border-radius: 50%;
-  border: 1.6px solid var(--muted); background: transparent;
-}
-.hq-pontos button.on::before { background: var(--brand-deep); border-color: var(--brand-deep); transform: scale(1.25); }
-.hq-nav .btn:disabled { opacity: 0.4; cursor: default; }
-
-@media (max-width: 430px) {
-  .hq-quadro { padding: 28px 12px 14px; }
-  .hq-nav .btn { padding-inline: 12px; }
-}
-/* botão que existe mas não faz nada agora — `disabled` sob o foco blura */
-.btn.inerte { opacity: 0.4; cursor: default; }

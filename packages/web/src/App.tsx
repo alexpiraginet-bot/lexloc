@@ -226,7 +226,12 @@ export default function App() {
         {estado.aba === 'resultado' ? (
           <div className="panel">
             {derivado ? (
-              <Resultado d={derivado} modo={estado.modo} categoria={estado.categoria} />
+              <Resultado
+                d={derivado}
+                modo={estado.modo}
+                marca={marca}
+                aoRefazer={() => dispatch({ t: 'set', campo: 'aba', valor: 'simular' })}
+              />
             ) : (
               <div className="empty">
                 <h4>Preencha a simulação</h4>

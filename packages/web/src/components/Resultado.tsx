@@ -6,12 +6,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { INCLUSO, VANTAGENS, FAQ } from '@godrive/engine';
 import { PERFIL, type Derivado, type Modo } from '../state';
+import type { Marca } from '../lib/marca';
 import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
+/* robustez entra pela FACHADA, não por import direto: solto no topo ele
+   arrastava as réplicas de venda para o arquivo do cliente */
 import { Copiloto, posicaoMercado, provaDeEstresse } from '@vendedor';
+import { Historia } from './Historia';
 import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';
-import { Historinha } from './Historinha';
 
 /**
  * Contador animado — a diversão do modo cliente.
@@ -52,12 +55,13 @@ function Contador({ valor, formato = reais }: { valor: number; formato?: (v: num
 export function Resultado({
   d,
   modo,
-  categoria,
+  marca,
+  aoRefazer,
 }: {
   d: Derivado;
   modo: Modo;
-  /** só a historinha usa: desenha a silhueta do carro que o cliente escolheu */
-  categoria: string;
+  marca: Marca;
+  aoRefazer: () => void;
 }) {
   const { p, r, equilibrio, absorvido, abs } = d;
   // No build do CLIENTE, PERFIL é a constante 'cliente' dobrada em compilação
@@ -205,9 +209,6 @@ export function Resultado({
           </div>
         </div>
       ) : null}
-
-      {/* ── A HISTORINHA (cliente) ── */}
-      {cli ? <Historinha d={d} categoria={categoria} /> : null}
 
       {/* ── MEDIDOR (vendedor) ── */}
       {!cli ? (
@@ -690,6 +691,11 @@ export function Resultado({
           ))}
         </div>
       </details>
+
+      {/* A HISTÓRIA FECHA A TELA — é o último argumento que o cliente lê,
+          depois de já ter visto os números frios. Só no modo cliente: o
+          vendedor tem a mesa dele acima. */}
+      {cli ? <Historia d={d} marca={marca} aoRefazer={aoRefazer} /> : null}
     </>
   );
 }

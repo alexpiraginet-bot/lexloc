@@ -71,7 +71,7 @@ for (const png of fotos) {
   execFileSync(PY, ['-c', script, join(DIR, png), webp], { stdio: 'pipe' });
   const b64 = readFileSync(webp).toString('base64');
   total += b64.length;
-  linhas.push(`  ${id}: 'data:image/webp;base64,${b64}',`);
+  linhas.push(`  '${id}': 'data:image/webp;base64,${b64}',`);
   console.log(`· ${id} → ${Math.round(b64.length / 1000)} KB`);
 }
 
