@@ -211,10 +211,20 @@ export function simularPJ(
     if (anoC >= 2027) {
       credCompra = (p.preco * aliqCreditavelCompra(anoC, ref)) / 100;
     } else if (pj.regime === 'real') {
-      // 2026: PIS/COFINS 9,25% sobre a depreciação do período (só quem é não
-      // cumulativo — Presumido e Simples são cumulativos, sem esse crédito)
-      const depAcum = p.preco - valorNoMes(p.preco, p.curva, N);
-      const depFiscal = Math.min(depAcum, p.preco * 0.2 * (N / 12));
+      /*
+       * 2026: PIS/COFINS 9,25% sobre a depreciação (só quem é não cumulativo
+       * — Presumido e Simples são cumulativos, sem esse crédito).
+       *
+       * SÓ A DEPRECIAÇÃO DE 2026. O cálculo usava `N`, o horizonte inteiro, e
+       * lançava tudo na linha de 2026 — mas PIS/COFINS deixa de existir em
+       * 1º/01/2027, então de 2027 em diante não há o que creditar. Num
+       * horizonte de 60 meses isso dava 2,85× o crédito devido, e a tabela na
+       * tela ficava incoerente: as linhas de 2027 em diante apareciam com
+       * credCompra zerado enquanto 2026 carregava o período todo.
+       */
+      const mesesEm2026 = Math.min(N, 12);
+      const depAcum = p.preco - valorNoMes(p.preco, p.curva, mesesEm2026);
+      const depFiscal = Math.min(depAcum, p.preco * 0.2 * (mesesEm2026 / 12));
       credCompra = (depFiscal * MACRO.pisCofins) / 100;
     }
   }

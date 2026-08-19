@@ -7,10 +7,23 @@ import { MACRO } from './constants.js';
 
 /**
  * Alíquota de IR regressivo sobre renda fixa — Lei 11.033/2004.
- * Meses são convertidos em dias corridos de 30.
+ *
+ * A lei conta DIAS CORRIDOS. O motor original convertia mês em 30 dias, e
+ * isso punha 12 meses em 360 e 24 meses em 720 — exatamente no teto da faixa
+ * anterior, nos dois casos. Na vida real são 365 e 730 dias, que caem na
+ * faixa seguinte: 17,5% e 15%, não 20% e 17,5%.
+ *
+ * O erro não era neutro. Alíquota alta demais reduz o rendimento líquido do
+ * dinheiro investido, o que barateia artificialmente o cenário que imobiliza
+ * capital no mês zero — comprar à vista. Numa varredura de 1650 cenários do
+ * catálogo, 27 vereditos viravam de "assinar" para "comprar" só por causa
+ * disto.
+ *
+ * 365/12 = 30,4167 dias por mês é a conversão honesta para um modelo de
+ * granularidade mensal.
  */
 export function aliquotaIR(meses: number): number {
-  const dias = meses * 30;
+  const dias = (meses * 365) / 12;
   if (dias <= 180) return 0.225;
   if (dias <= 360) return 0.2;
   if (dias <= 720) return 0.175;

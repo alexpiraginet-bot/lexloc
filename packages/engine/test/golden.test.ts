@@ -76,12 +76,51 @@ function igual(a: number, b: number, rotulo: string) {
   expect(Math.abs(a - b) / escala, rotulo).toBeLessThan(REL);
 }
 
+/**
+ * O IR regressivo DIVERGE do original de propósito.
+ *
+ * O original convertia mês em 30 dias; a Lei 11.033/2004 conta dias
+ * corridos. A divergência é só nos meses em que 30 dias e 365/12 caem em
+ * faixas diferentes — e é exatamente isso que este conjunto amarra. Se
+ * alguém mexer na fórmula e a lista mudar, o teste acusa.
+ */
+const MESES_QUE_DIVERGEM = new Set<number>();
+for (let m = 1; m <= 120; m++) {
+  if (aliquotaIR(m) !== original.aliquotaIR(m)) MESES_QUE_DIVERGEM.add(m);
+}
+
+describe('divergência intencional: IR pela lei, não por mês de 30 dias', () => {
+  it('diverge só nos três meses de fronteira: 6, 12 e 24', () => {
+    /*
+     * São exatamente os meses em que 30 dias caem no teto de uma faixa e
+     * 365/12 caem na seguinte:
+     *    6 meses → 180 vs 182,5 dias  → 22,5% virava 20%
+     *   12 meses → 360 vs 365   dias  → 20%   virava 17,5%
+     *   24 meses → 720 vs 730   dias  → 17,5% virava 15%
+     * Dois deles (12 e 24) estão entre os cinco prazos do seletor da tela.
+     */
+    expect([...MESES_QUE_DIVERGEM].sort((a, b) => a - b)).toEqual([6, 12, 24]);
+  });
+
+  it('onde diverge, a alíquota nova é sempre MENOR — o original cobrava demais', () => {
+    for (const m of MESES_QUE_DIVERGEM) {
+      expect(aliquotaIR(m), `${m} meses`).toBeLessThan(original.aliquotaIR(m));
+    }
+  });
+
+  it('fora desses meses, bate com o original', () => {
+    for (let m = 1; m <= 120; m++) {
+      if (MESES_QUE_DIVERGEM.has(m)) continue;
+      expect(aliquotaIR(m), `${m} meses`).toBe(original.aliquotaIR(m));
+    }
+  });
+});
+
 describe('paridade com o motor original', () => {
   it('utilitários financeiros batem em 1000 pontos', () => {
     const rnd = mulberry32(7);
     for (let i = 0; i < 1000; i++) {
       const meses = 1 + Math.floor(rnd() * 72);
-      igual(aliquotaIR(meses), original.aliquotaIR(meses), `aliquotaIR(${meses})`);
       const pv = 1000 + rnd() * 400000;
       const iMes = rnd() * 0.03;
       const n = 1 + Math.floor(rnd() * 72);
@@ -101,8 +140,19 @@ describe('paridade com o motor original', () => {
 
   it('simular() bate com o original em 400 casos aleatórios', () => {
     const rnd = mulberry32(42);
+    /*
+     * O IR entra em `taxaMensalLiquida`, que atravessa os três cenários —
+     * então todo caso cujo prazo caiu na correção diverge por herança. Esses
+     * saem da paridade, mas são CONTADOS: se a contagem zerar, a correção
+     * sumiu do motor e este teste passaria por vacuidade.
+     */
+    let pulados = 0;
     for (let i = 0; i < 400; i++) {
       const p = caso(rnd);
+      if (MESES_QUE_DIVERGEM.has(p.meses)) {
+        pulados++;
+        continue;
+      }
       const novo = simular(p);
       const velho = original.simular(p);
       igual(novo.assinar.custo, velho.assinar.custo, `caso ${i}: assinar.custo`);
@@ -123,26 +173,48 @@ describe('paridade com o motor original', () => {
         igual(a[a.length - 1]!, b[b.length - 1]!, `caso ${i}: ${key}.saldo final`);
       }
     }
+    expect(pulados, 'nenhum caso divergiu — a correção do IR sumiu?').toBeGreaterThan(0);
   });
 
   /**
    * PJ: a v2 DIVERGE do original de propósito, e só onde o original errava:
    *   · Presumido passou a creditar IBS/CBS de 2027 (regime regular);
    *   · a alíquota de IRPJ virou 24%/34% conforme o lucro (era 34% fixo);
-   *   · a dedução ficou limitada ao lucro do período.
+   *   · a dedução ficou limitada ao lucro do período;
+   *   · o crédito de PIS/COFINS de 2026 parou de somar a depreciação dos
+   *     anos seguintes — o tributo acaba em 1º/01/2027 e não há o que
+   *     creditar depois disso.
    * Onde a regra NÃO mudou — Lucro Real com lucro alto, sem o teto morder —
    * a paridade com o original continua valendo, e é isso que este teste amarra.
    */
   it('simularPJ() mantém paridade no Lucro Real com lucro alto (regra inalterada)', () => {
+    /*
+     * A correção do IR muda a BASE, não a camada PJ. Pular os casos afetados
+     * tiraria do corpus justamente os prazos curtos, e a guarda de dedução
+     * negativa lá embaixo deixaria de ser exercitada. Então o original recebe
+     * a base NOVA: assim os dois lados partem do mesmo lugar e o que sobrar
+     * de diferença é da camada PJ, que é o que este teste mede.
+     */
     const rnd = mulberry32(2026);
     let negativosNaV1 = 0;
+    let pisCofins2026 = 0;
     for (let i = 0; i < 200; i++) {
       const p = caso(rnd);
+      const anoInicio = 2026 + (i % 8);
+      /*
+       * Começando em 2026 com prazo acima de um ano, o crédito de PIS/COFINS
+       * diverge de propósito (o original somava o horizonte inteiro). Esses
+       * saem da paridade, mas são contados: contagem zero significaria que a
+       * correção sumiu e este teste passaria por vacuidade.
+       */
+      if (anoInicio === 2026 && p.meses > 12) {
+        pisCofins2026++;
+        continue;
+      }
       const base = simular(p);
-      const baseVelha = original.simular(p);
       const comum = {
         regime: 'real' as RegimeTributario,
-        anoInicio: 2026 + (i % 8),
+        anoInicio,
         ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
         irpjCsll: MACRO.irpjCsll,
       };
@@ -153,7 +225,7 @@ describe('paridade com o motor original', () => {
         margemPct: 40,
         simplesHibrido: false,
       });
-      const velho = original.simularPJ(p, baseVelha, comum);
+      const velho = original.simularPJ(p, base, comum);
       igual(novo.credAssinatura, velho.credAssinatura, `pj ${i}: credAssinatura`);
       igual(novo.credCompra, velho.credCompra, `pj ${i}: credCompra`);
       igual(novo.dedAssinatura, velho.dedAssinatura, `pj ${i}: dedAssinatura`);
@@ -178,6 +250,10 @@ describe('paridade com o motor original', () => {
     }
     // sem isto o ramo acima poderia deixar de ser exercitado por um ajuste no
     // corpus e a correção principal ficaria sem cobertura, com o teste verde
+    expect(
+      pisCofins2026,
+      'nenhum caso de 2026 com prazo longo — a correção do PIS/COFINS sumiu?',
+    ).toBeGreaterThan(0);
     expect(negativosNaV1, 'corpus não exercita mais o caso de dedução negativa').toBeGreaterThan(0);
   });
 
