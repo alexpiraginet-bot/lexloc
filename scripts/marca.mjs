@@ -18,7 +18,30 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGEM = join(raiz, 'marca', 'lexgo-mark.png');
-const PY = 'C:/Users/R2/IA/ComfyUI_windows_portable/python_embeded/python.exe';
+
+/**
+ * Qual python usar. O dono roda no Windows com o do ComfyUI, que já vem com
+ * PIL; a nuvem e o CI rodam com o do sistema. Em vez de fixar um caminho de
+ * uma máquina só, procura — e exige que o PIL importe, porque python sem
+ * Pillow só falha lá na frente, com erro que não diz o que fazer.
+ */
+function acharPython() {
+  const tentativas = [
+    process.env['LEXGO_PYTHON'],
+    'python3',
+    'python',
+    'C:/Users/R2/IA/ComfyUI_windows_portable/python_embeded/python.exe',
+  ].filter((x) => typeof x === 'string' && x.length > 0);
+  for (const py of tentativas) {
+    try {
+      execFileSync(py, ['-c', 'import PIL'], { stdio: 'ignore' });
+      return py;
+    } catch {
+      /* próximo candidato */
+    }
+  }
+  return null;
+}
 
 /** o símbolo é embutido no HTML off-line: acima disto o arquivo engorda demais */
 const TETO_BYTES = 12_000;
@@ -28,8 +51,11 @@ if (!existsSync(ORIGEM)) {
   console.error('  salve o símbolo da marca aí e rode de novo.');
   process.exit(1);
 }
-if (!existsSync(PY)) {
-  console.error(`✗ não achei o python do ComfyUI em ${PY}`);
+const PY = acharPython();
+if (!PY) {
+  console.error('✗ não achei um python com Pillow.');
+  console.error('  instale:  pip install pillow');
+  console.error('  ou aponte o seu:  LEXGO_PYTHON=/caminho/do/python npm run marca');
   process.exit(1);
 }
 
