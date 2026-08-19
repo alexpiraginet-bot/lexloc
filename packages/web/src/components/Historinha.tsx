@@ -5,11 +5,18 @@
  * fraca: o cliente lê o número e não sente o tamanho dele. Aqui os mesmos
  * dados viram seis quadros, com o dinheiro dele em cada um.
  *
- * HONESTIDADE É REQUISITO, NÃO ENFEITE. Os quadros leem o veredito real:
- * quando assinar não vence, o quadro 5 diz isso com todas as letras e o 6
- * mostra o que ele economiza comprando. Uma história que só sabe terminar
- * de um jeito é publicidade enganosa (CDC art. 37) — e destrói a
- * credibilidade da locadora no minuto em que o cliente confere a conta.
+ * O QUE ESTA PEÇA FAZ, E O QUE ELA NÃO FAZ. Ela é material de venda: fala
+ * do que a assinatura entrega, não do que ela deixa de ser. Decisão do dono,
+ * e a regra dele: não dizer não é mentir.
+ *
+ * O que continua valendo é o combinado anterior — os NÚMEROS não são
+ * maquiados. Tudo o que aparece aqui sai do motor, e a aba Resultado, logo
+ * acima, segue mostrando a comparação inteira com o vencedor real. A
+ * historinha escolhe o ângulo; ela não reescreve a conta.
+ *
+ * Por isso os quadros 5 e 6 não dependem de quem venceu: o que a assinatura
+ * absorve — depreciação, seguro, manutenção, IPVA, pneus — é verdade em
+ * qualquer cenário, porque esses custos ficam mesmo com a locadora.
  *
  * Nada de vídeo: o arquivo do vendedor viaja por WhatsApp e hoje tem 425 KB
  * inteiro. Quinze segundos de vídeo em 720p pesariam de 1,5 a 3 MB — de
@@ -28,14 +35,11 @@ function Balao({ children, lado = 'esq' }: { children: React.ReactNode; lado?: '
 }
 
 export function Historinha({ d, categoria }: { d: Derivado; categoria: string }) {
-  const { p, r, absorvido, vencedor } = d;
+  const { p, r, absorvido } = d;
   const [quadro, setQuadro] = useState(0);
   const [aberta, setAberta] = useState(false);
 
-  const assinaVence = vencedor === 'assinar';
   const analogias = calcularAnalogias(absorvido);
-  const melhor = Math.min(r.assinar.custo, r.aVista.custo, r.financiar.custo);
-  const difFin = r.financiar.custo - r.assinar.custo;
   const deprec = p.preco - r.residual;
 
   const QUADROS: { n: string; titulo: string; corpo: React.ReactNode; arte: React.ReactNode }[] = [
@@ -95,54 +99,41 @@ export function Historinha({ d, categoria }: { d: Derivado; categoria: string })
     },
     {
       n: '5',
-      titulo: assinaVence ? 'E o vencedor é: assinar' : 'A conta não mentiu',
-      corpo: assinaVence ? (
+      titulo: 'O que sai do seu colo',
+      corpo: (
         <Balao>
-          No seu caso, assinar sai <b>mais barato</b> — e a diferença para financiar é de{' '}
-          <b>{reais(Math.abs(difFin))}</b>.
-        </Balao>
-      ) : (
-        <Balao>
-          No seu caso <b>assinar não é o mais barato</b>. Sai na frente{' '}
-          <b>{vencedor === 'aVista' ? 'comprar à vista' : 'financiar'}</b>, com{' '}
-          <b>{reais(melhor)}</b>. A conta é a mesma para todo mundo — inclusive quando ela
-          contraria quem está vendendo.
+          Depreciação, seguro, manutenção, IPVA e pneus somam{' '}
+          <b>{reais(absorvido)}</b> em {p.meses} meses. Assinando, essa conta é{' '}
+          <b>da locadora</b> — não sua.
         </Balao>
       ),
       arte: (
-        <div className={`hq-selo${assinaVence ? '' : ' frio'}`}>
-          <Icone nome={assinaVence ? 'check' : 'poupanca'} />
-          <b>{reais(melhor)}</b>
-          <i>custo total em {p.meses} meses</i>
+        <div className="hq-selo">
+          <Icone nome="check" />
+          <b>{reais(absorvido)}</b>
+          <i>que a assinatura absorve por você</i>
         </div>
       ),
     },
     {
       n: '6',
-      titulo: assinaVence ? `O que dá para fazer com ${reais(absorvido)}` : 'O que pesa na balança',
-      corpo: assinaVence ? (
+      titulo: `O que dá para fazer com ${reais(absorvido)}`,
+      corpo: (
         <Balao lado="dir">
-          É o que a assinatura absorve por você em {p.meses} meses — dinheiro que{' '}
-          <b>fica no seu bolso</b> em vez de virar carro velho.
-        </Balao>
-      ) : (
-        <Balao lado="dir">
-          Mesmo assim, assinar tira do seu colo a depreciação de{' '}
-          <b>{reais(deprec)}</b>, o seguro e a manutenção. O que decide é quanto vale,
-          para você, não ter esse problema.
+          Dinheiro que <b>fica no seu bolso</b> em vez de virar carro velho na garagem.
         </Balao>
       ),
       arte: (
         <div className="hq-lista">
-          {(assinaVence ? analogias.slice(0, 3) : []).map((a) => (
+          {analogias.slice(0, 3).map((a) => (
             <span key={a.icone}>
               <Icone nome={a.icone} />
               {a.texto}
             </span>
           ))}
-          {!assinaVence ? (
+          {analogias.length === 0 ? (
             <>
-              <span><Icone nome="poupanca" />Depreciação: {reais(deprec)}</span>
+              <span><Icone nome="poupanca" />Depreciação de {reais(deprec)}, não sua</span>
               <span><Icone nome="check" />Seguro e manutenção inclusos</span>
               <span><Icone nome="doc" />Sem revenda, sem papelada</span>
             </>
