@@ -89,6 +89,48 @@ for (let m = 1; m <= 120; m++) {
   if (aliquotaIR(m) !== original.aliquotaIR(m)) MESES_QUE_DIVERGEM.add(m);
 }
 
+/**
+ * O IOF DIVERGE do original pelo mesmo motivo do IR: mês de 30 dias.
+ * Medido, não escrito à mão — se a correção sair do motor, o conjunto
+ * esvazia e os testes abaixo acusam em vez de passar por vacuidade.
+ */
+const PRAZOS_IOF_QUE_DIVERGEM = new Set<number>();
+for (let n = 1; n <= 72; n++) {
+  if (iofFinanciamento(100000, n) !== original.iofFinanciamento(100000, n)) {
+    PRAZOS_IOF_QUE_DIVERGEM.add(n);
+  }
+}
+
+describe('divergência intencional: IOF conta dia corrido, como o decreto', () => {
+  it('diverge em todo prazo de até 12 meses, e só neles', () => {
+    /*
+     * O componente diário do IOF trava em 3%, o que exige 366 dias. De 13
+     * meses em diante as duas contagens já bateram no teto de 365 e dão o
+     * mesmo número — por isso a correção não toca 24/36/48/60, que é o
+     * grosso do catálogo.
+     */
+    expect([...PRAZOS_IOF_QUE_DIVERGEM].sort((a, b) => a - b)).toEqual(
+      Array.from({ length: 12 }, (_, i) => i + 1),
+    );
+  });
+
+  it('onde diverge, o IOF novo é sempre MAIOR — o original cobrava de menos', () => {
+    for (const n of PRAZOS_IOF_QUE_DIVERGEM) {
+      expect(iofFinanciamento(100000, n), `${n} meses`).toBeGreaterThan(
+        original.iofFinanciamento(100000, n),
+      );
+    }
+  });
+
+  it('de 13 meses em diante, bate com o original', () => {
+    for (let n = 13; n <= 72; n++) {
+      expect(iofFinanciamento(100000, n), `${n} meses`).toBe(
+        original.iofFinanciamento(100000, n),
+      );
+    }
+  });
+});
+
 describe('divergência intencional: IR pela lei, não por mês de 30 dias', () => {
   it('diverge só nos três meses de fronteira: 6, 12 e 24', () => {
     /*
@@ -119,6 +161,7 @@ describe('divergência intencional: IR pela lei, não por mês de 30 dias', () =
 describe('paridade com o motor original', () => {
   it('utilitários financeiros batem em 1000 pontos', () => {
     const rnd = mulberry32(7);
+    let iofPulados = 0;
     for (let i = 0; i < 1000; i++) {
       const meses = 1 + Math.floor(rnd() * 72);
       const pv = 1000 + rnd() * 400000;
@@ -127,15 +170,17 @@ describe('paridade com o motor original', () => {
       const k = Math.floor(rnd() * n);
       igual(parcelaPrice(pv, iMes, n), original.parcelaPrice(pv, iMes, n), 'parcelaPrice');
       igual(saldoDevedor(pv, iMes, n, k), original.saldoDevedor(pv, iMes, n, k), 'saldoDevedor');
-      igual(
-        iofFinanciamento(pv, n),
-        original.iofFinanciamento(pv, n),
-        'iofFinanciamento',
-      );
+      /* prazo de até 12 meses tem divergência própria, amarrada acima */
+      if (PRAZOS_IOF_QUE_DIVERGEM.has(n)) {
+        iofPulados++;
+      } else {
+        igual(iofFinanciamento(pv, n), original.iofFinanciamento(pv, n), 'iofFinanciamento');
+      }
       const curva = Object.values(DEPREC)[Math.floor(rnd() * 3)]!.c;
       const m = Math.floor(rnd() * 72);
       igual(valorNoMes(pv, curva, m), original.valorNoMes(pv, curva, m), 'valorNoMes');
     }
+    expect(iofPulados, 'nenhum IOF divergiu — a correção sumiu?').toBeGreaterThan(0);
   });
 
   it('simular() bate com o original em 400 casos aleatórios', () => {
@@ -147,10 +192,21 @@ describe('paridade com o motor original', () => {
      * sumiu do motor e este teste passaria por vacuidade.
      */
     let pulados = 0;
+    let puladosIof = 0;
     for (let i = 0; i < 400; i++) {
       const p = caso(rnd);
       if (MESES_QUE_DIVERGEM.has(p.meses)) {
         pulados++;
+        continue;
+      }
+      /*
+       * O IOF entra no custo do financiamento, então prazoFin de até 12
+       * meses também diverge por herança. Contado à parte do IR: se as duas
+       * contagens fossem uma só, uma correção poderia sumir escondida
+       * atrás da outra.
+       */
+      if (PRAZOS_IOF_QUE_DIVERGEM.has(p.prazoFin)) {
+        puladosIof++;
         continue;
       }
       const novo = simular(p);
@@ -174,6 +230,7 @@ describe('paridade com o motor original', () => {
       }
     }
     expect(pulados, 'nenhum caso divergiu — a correção do IR sumiu?').toBeGreaterThan(0);
+    expect(puladosIof, 'nenhum caso divergiu — a correção do IOF sumiu?').toBeGreaterThan(0);
   });
 
   /**

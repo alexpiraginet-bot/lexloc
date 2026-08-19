@@ -124,8 +124,14 @@ describe('IOF de financiamento', () => {
     expect(iof).toBeLessThanOrEqual(100000 * 0.0338 + 1e-9);
   });
   it('em prazo curto: fixo + diário', () => {
-    // 6 meses = 180 dias → 0,38 + 0,0082×180 = 1,856%
-    expect(iofFinanciamento(100000, 6)).toBeCloseTo(1856, 0);
+    // 6 meses = 182,5 dias (365/12, como manda o decreto — não 180) →
+    // 0,38 + 0,0082×182,5 = 1,8765%
+    expect(iofFinanciamento(100000, 6)).toBeCloseTo(1876.5, 0);
+  });
+  it('de 13 meses em diante trava no teto de 365 dias', () => {
+    // acima de 12 meses as duas contagens de dias empatam: é o que garante
+    // que a correção não mexeu no grosso do catálogo, que é 24/36/48/60
+    expect(iofFinanciamento(100000, 13)).toBeCloseTo(iofFinanciamento(100000, 60), 6);
   });
 });
 

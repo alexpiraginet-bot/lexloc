@@ -60,9 +60,20 @@ export function saldoDevedor(pv: number, iMes: number, n: number, k: number): nu
  * IOF de financiamento PF: 0,38% fixo + 0,0082% ao dia sobre o principal,
  * com o componente diário limitado a 3,00% e o total ao teto de 3,38%.
  * (Decreto 6.306/2007, redação vigente em 2026.)
+ *
+ * Mesma conversão de dias do IR acima, e pelo mesmo motivo: o decreto conta
+ * DIAS CORRIDOS. Muda todo prazo de ATÉ 12 meses — de 13 em diante os dois
+ * jeitos batem no teto de 365 e dão o mesmo número. Em R$ 100 mil
+ * financiados: 6 meses vai de R$ 1.856 para R$ 1.876, e 12 meses de
+ * R$ 3.332 para R$ 3.373.
+ *
+ * O erro é pequeno, mas apontava para o mesmo lado que o do IR: subestimar
+ * o custo do financiamento é jogar contra a assinatura. E deixar duas
+ * contagens de dias diferentes no mesmo arquivo é como o primeiro erro
+ * sobreviveu tanto tempo — por isso esta também foi corrigida.
  */
 export function iofFinanciamento(valorFinanciado: number, prazoMeses: number): number {
-  const dias = Math.min(prazoMeses * 30, 365);
+  const dias = Math.min((prazoMeses * 365) / 12, 365);
   let pct = MACRO.iofFixo + Math.min(MACRO.iofDia * dias, 3.0);
   pct = Math.min(pct, MACRO.iofTeto);
   return (valorFinanciado * pct) / 100;

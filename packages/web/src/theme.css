@@ -455,7 +455,12 @@ input[type='range']:active::-webkit-slider-thumb { transform: scale(1.18); }
   position: absolute;
   top: 9px;
   right: 9px;
-  font-size: 8.5px;
+  /* 10px, não 8,5px: este selo diz de ONDE vem o preço — "da loja",
+     "publicada", "mercado", "estimada". É procedência de número, não
+     enfeite, e a 8,5px a auditoria visual acusava o menor texto da tela.
+     Caixa alta com espaçamento aguenta ser pequena; aguenta menos que isso
+     não. */
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1932,4 +1937,25 @@ body::after {
   text-align: center;
   font-size: 11.5px;
   color: var(--muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   ALVO DE TOQUE — só onde se toca com o dedo.
+
+   `.modo button` (o alternador Cliente|Vendedor), `.chip` e `.btn.sm`
+   ficam com 38px de altura. Isso passa no WCAG 2.5.8 (AA, mínimo 24px)
+   e reprova na 2.5.5 (AAA) e no guia da Apple, que pedem 44.
+
+   Subir para 44 em todo lugar mexeria no ritmo do layout no desktop, que
+   foi ajustado no olho — e no mouse 38px nunca foi o problema. Então o
+   ganho entra por `pointer: coarse`: no dedo cresce, no cursor fica como
+   estava. O app nasce para rodar no celular, mandado por WhatsApp, então
+   é o dedo que manda aqui.
+   ───────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  .modo button,
+  .chip,
+  .btn.sm {
+    min-height: 44px;
+  }
 }
