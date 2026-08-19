@@ -10,6 +10,7 @@ import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
 import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
 import { Copiloto } from '@vendedor';
+import { Historia } from './Historia';
 import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';
 
@@ -403,6 +404,11 @@ export function Resultado({
         ) : null}
       </div>
       ) : null}
+
+      {/* A história fecha a leitura do cliente: os mesmos números que ele
+          acabou de ver, agora contados em seis quadros. Só no modo cliente —
+          o vendedor já tem a mesa dele logo acima. */}
+      {cli ? <Historia d={d} /> : null}
 
       {/* ── COMPARATIVO LADO A LADO ── */}
       <div className="card raised rise">
