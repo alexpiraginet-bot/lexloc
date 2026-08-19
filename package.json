@@ -21,5 +21,8 @@
     "start": "npm run start -w @godrive/api",
     "publicar": "node scripts/publicar.mjs",
     "marca": "node scripts/marca.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.62.1"
   }
 }

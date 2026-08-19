@@ -17,6 +17,7 @@ import { Simulador } from './components/Simulador';
 import { Resultado } from './components/Resultado';
 import { PJ } from './components/PJ';
 import { Propostas } from '@vendedor';
+import { SIMBOLO_LEXGO } from './marca/simbolo';
 import { PropostaPrint } from './components/PropostaPrint';
 import { Icone } from './components/icones';
 
@@ -48,6 +49,9 @@ export default function App() {
     () => (LINK ? { ...MARCA_PADRAO, ...LINK.marca } : lerMarca()),
     [estado.marcaVersao],
   );
+  /* a marca ainda é a nossa? nome e sufixo intocados = ninguém fez white-label */
+  const ehMarcaLexGo =
+    marca.nome === MARCA_PADRAO.nome && marca.sufixo === MARCA_PADRAO.sufixo;
 
   // simulação vinda pelo link: aplica uma única vez, depois da montagem
   const linkAplicado = useRef(false);
@@ -103,6 +107,19 @@ export default function App() {
 
   return (
     <>
+      {/*
+        A lente do vidro. `backdrop-filter: blur()` embaça mas não DOBRA o que
+        está atrás — e é a deformação que faz o olho ler "vidro" em vez de
+        "camada leitosa". O deslocamento vem daqui, e o filtro precisa existir
+        no documento: nada de asset externo, o arquivo off-line viaja sozinho.
+      */}
+      <svg width="0" height="0" className="sr-svg" aria-hidden="true" focusable="false">
+        <filter id="lex-lente" x="-15%" y="-15%" width="130%" height="130%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.014" numOctaves={2} seed={11} result="ruido" />
+          <feGaussianBlur in="ruido" stdDeviation="1.4" result="suave" />
+          <feDisplacementMap in="SourceGraphic" in2="suave" scale="34" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
       <a className="sr" href="#conteudo">
         Pular para o conteúdo
       </a>
@@ -113,6 +130,12 @@ export default function App() {
               <img src={marca.logo} alt={`${marca.nome}${marca.sufixo}`} className="logo-img" />
             ) : (
               <>
+                {/*
+                  O símbolo é NOSSO: só entra enquanto a locadora não trocou o
+                  nome. Assim que ela põe a marca dela, o "G" sai — o produto é
+                  white-label, e carimbar a LexGo por cima seria quebrar isso.
+                */}
+                {ehMarcaLexGo ? <img src={SIMBOLO_LEXGO} alt="" className="logo-simb" /> : null}
                 <b>{marca.nome}</b>
                 <i>{marca.sufixo}</i>
               </>

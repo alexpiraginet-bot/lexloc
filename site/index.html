@@ -8,7 +8,18 @@
 <meta name="description" content="Calculadora pública e gratuita para locadoras do Brasil e seus clientes: mostra se vale mais assinar, comprar à vista ou financiar um carro. Custo zero, sem cadastro, sem servidor. Da Lex Technology." />
 <meta property="og:title" content="LexGo — a calculadora pública de assinatura de carros" />
 <meta property="og:description" content="Gratuita para toda locadora do Brasil, seus vendedores e seus clientes. Assinar, comprar ou financiar: a conta completa em segundos. Custo zero, sem cadastro." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M22 9.5a9 9 0 1 0 3 6.5h-8' fill='none' stroke='%23892991' stroke-width='4' stroke-linecap='round'/><path d='M16 16l6-6' stroke='%23C9A227' stroke-width='4' stroke-linecap='round'/></svg>" />
+<!-- a landing tinha título e texto, mas nenhuma imagem: o cartão saía pelado -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="LexGo" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:url" content="https://www.uselexgo.com/" />
+<meta property="og:image" content="https://www.uselexgo.com/og.jpg" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="LexGo — assinar, comprar à vista ou financiar, com o custo total de cada caminho" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" href="/favicon.png" />
 <style>
 :root{
   /* tema do site oficial (tech.uselexgo.com): tinta navy e feixe azul→roxo —
@@ -173,6 +184,15 @@ section p.lead{color:var(--muted);max-width:60ch;font-size:17px;margin-bottom:36
 .casa .solu h3 i{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
 .casa .solu .c1 i{background:#2E8BFF}.casa .solu .c2 i{background:#9333EA}.casa .solu .c3 i{background:#35E08A}
 .casa .solu p{font-size:13.5px;color:#46507A;line-height:1.6}
+.casa .jeito{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 0 22px}
+.casa .jeito span{font-size:12.5px;color:#46507A;background:rgba(255,255,255,.72);
+  border:1px solid rgba(255,255,255,.9);border-radius:999px;padding:7px 15px}
+.casa .jeito b{color:#0D1433}
+.casa .frota{margin-top:22px;text-align:left;background:rgba(255,255,255,.62);
+  border:1px solid rgba(255,255,255,.85);border-radius:16px;padding:16px 18px}
+.casa .frota>b{display:block;font-size:15px;color:#0D1433;margin-bottom:6px}
+.casa .frota p b{color:#0D1433}
+.casa .frota p{font-size:13.5px;color:#46507A;line-height:1.6}
 .casa .btn-lex{display:inline-flex;align-items:center;gap:10px;border-radius:99px;padding:16px 28px;
   font-size:16px;font-weight:700;text-decoration:none;background:#0D1433;color:#fff;cursor:pointer;
   box-shadow:0 14px 34px -14px rgba(13,20,51,.55);transition:transform .15s}
@@ -408,23 +428,60 @@ footer .logo{font-size:20px;margin-bottom:8px}
         <div class="sec-k">Quem oferece</div>
         <h2>Conheça a Lex Technology</h2>
         <p class="lead">
-          Esta calculadora é gratuita porque ela é a nossa apresentação. Somos a casa de
-          software por trás dela: <b>criamos seu sistema, seu app, seu site</b> — o que a sua
-          operação precisar, sob medida, com o mesmo cuidado que você acabou de ver aqui.
+          Esta calculadora é gratuita porque ela é a nossa apresentação. Somos o estúdio de
+          software por trás dela — <b>Brasil e Miami</b> — e criamos
+          <b>sistemas, apps e sites sob medida para a sua operação</b>, com o mesmo cuidado
+          que você acabou de ver aqui.
         </p>
+        <div class="jeito">
+          <span><b>Sob medida</b>, não licença</span>
+          <span>Roda na <b>sua infra</b></span>
+          <span>Suporte <b>24h por IA</b></span>
+        </div>
         <div class="solu">
           <div class="c1">
-            <h3><i></i>Seu sistema</h3>
-            <p>Do atendimento ao fechamento: o processo da sua operação virando software, não o contrário.</p>
+            <h3><i></i>Atendimento e ponto de venda</h3>
+            <p>Totem de autoatendimento, PDV, maquininha integrada, tela da cozinha, cardápio digital, fila e senha, pedido por QR na mesa.</p>
           </div>
           <div class="c2">
-            <h3><i></i>Seu app e seu site</h3>
-            <p>A sua marca no bolso do cliente e na primeira página — rápido, bonito e medível.</p>
+            <h3><i></i>Conversas e vendas</h3>
+            <p>CRM de WhatsApp, cliente 360°, funil, follow-up automático, múltiplos atendentes, histórico completo.</p>
           </div>
           <div class="c3">
-            <h3><i></i>Agentes de IA</h3>
-            <p>Uma frota de agentes mantém o que entregamos: correção em minutos, não em dias.</p>
+            <h3><i></i>Agentes de IA no seu negócio</h3>
+            <p>Operador no WhatsApp, briefing diário, atendimento automático, aprovação de conteúdo, resumo de e-mail e contas, agente sob medida.</p>
           </div>
+          <div class="c1">
+            <h3><i></i>Painéis e telemetria</h3>
+            <p>Painel do dono, fechamento diário, ranking de produto, alerta por WhatsApp, comparativo de loja, exportação.</p>
+          </div>
+          <div class="c2">
+            <h3><i></i>Estoque e compras</h3>
+            <p>Entrada e saída, inventário, ponto de reposição, perdas e quebras, fornecedores, baixa automática por venda.</p>
+          </div>
+          <div class="c3">
+            <h3><i></i>Indústria e produção</h3>
+            <p>Ficha técnica, ordem de produção, lote e validade, rastreabilidade, rotulagem, controle de ponto, custo por receita.</p>
+          </div>
+          <div class="c1">
+            <h3><i></i>Presença e vitrine</h3>
+            <p>Site institucional, catálogo, loja, landing de campanha, jogo de marca, widget de captação.</p>
+          </div>
+          <div class="c2">
+            <h3><i></i>Conformidade e documentos</h3>
+            <p>Tabela nutricional, rotulagem, QR na embalagem, laudos e fichas, contratos, documentos jurídicos.</p>
+          </div>
+          <div class="c3">
+            <h3><i></i>Integrações</h3>
+            <p>Pagamento e adquirente, ERP, emissor fiscal, delivery, planilhas, API sob medida.</p>
+          </div>
+        </div>
+
+        <div class="frota">
+          <b>Frota Lex — dezenas de agentes, ao mesmo tempo</b>
+          <p>Um agente por chamado, sem fila: atendente, engenheiro, revisor, vigia, operador e
+          auditor. Chamado às 23h de sábado é atendido às 23h de sábado — e o que separa o
+          relato da correção pronta são <b>minutos</b>, não dias.</p>
         </div>
         <a class="btn-lex" href="https://tech.uselexgo.com" target="_blank" rel="noopener">
           Ver todas as soluções

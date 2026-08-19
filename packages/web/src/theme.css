@@ -455,7 +455,12 @@ input[type='range']:active::-webkit-slider-thumb { transform: scale(1.18); }
   position: absolute;
   top: 9px;
   right: 9px;
-  font-size: 8.5px;
+  /* 10px, não 8,5px: este selo diz de ONDE vem o preço — "da loja",
+     "publicada", "mercado", "estimada". É procedência de número, não
+     enfeite, e a 8,5px a auditoria visual acusava o menor texto da tela.
+     Caixa alta com espaçamento aguenta ser pequena; aguenta menos que isso
+     não. */
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1016,11 +1021,40 @@ details > .body { padding: 15px 16px 16px; }
 
 /* ───── retaguarda ───── */
 .ret-grade { display: grid; gap: 8px; }
-.ret-linha { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+.ret-linha { display: grid; grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
 .ret-linha .ret-nome { font-size: 12.5px; font-weight: 500; line-height: 1.3; min-width: 0; }
 .ret-linha .inp { min-height: 42px; padding: 8px 10px 8px 32px; font-size: 14px; }
+
+/* foto da frota por modelo: a miniatura É o botão de upload */
+.ret-foto-cel { display: flex; align-items: center; gap: 4px; }
+.ret-foto {
+  width: 54px; height: 42px; flex: 0 0 auto; padding: 0; display: grid; place-items: center;
+  overflow: hidden; cursor: pointer; color: var(--muted); background: var(--paper);
+  border: 1px dashed var(--line); border-radius: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ret-foto.tem { border-style: solid; border-color: var(--line-2); }
+.ret-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ret-foto svg { width: 15px; height: 15px; stroke-width: 2.2; }
+.ret-foto:hover { border-color: var(--brand); color: var(--brand); }
+/*
+ * AO LADO da miniatura, nunca sobre ela. Antes eram 20x20 no canto superior
+ * direito do alvo de upload: abaixo dos 24x24 do WCAG 2.5.8 e, pior, a ação
+ * DESTRUTIVA em cima da primária — mirar o canto para trocar a foto apagava
+ * a foto, sem confirmação e sem desfazer.
+ */
+.ret-foto-x {
+  width: 26px; height: 26px; flex: 0 0 auto; padding: 0;
+  display: grid; place-items: center; cursor: pointer; border-radius: 8px;
+  color: var(--bad); background: var(--paper); border: 1px solid var(--line-2);
+}
+.ret-foto-x svg { width: 13px; height: 13px; stroke-width: 2.2; }
+.ret-foto-x:hover { border-color: var(--bad); }
+
 @media (max-width: 430px) {
-  .ret-linha { grid-template-columns: 1fr; gap: 5px; padding-bottom: 8px; border-bottom: 1px dashed var(--line-2); }
+  .ret-linha { grid-template-columns: auto 1fr; gap: 5px 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--line-2); }
+  /* a miniatura fica à esquerda e o nome/preços empilham ao lado dela */
+  .ret-foto-cel { grid-row: span 3; align-self: start; flex-direction: column; }
 }
 .src { font-size: 11px; color: var(--muted); line-height: 1.65; }
 .foot {
@@ -1030,6 +1064,15 @@ details > .body { padding: 15px 16px 16px; }
   padding: 26px 0 40px;
   line-height: 1.75;
 }
+/* o crédito é o ÚNICO texto da página que não fica sobre uma superfície,
+   e sem regra própria ele herdava o azul padrão do navegador (#0000ee) */
+.foot a {
+  color: var(--brand-deep);
+  font-weight: 600;
+  text-decoration-color: color-mix(in srgb, var(--brand-deep) 40%, transparent);
+  text-underline-offset: 2px;
+}
+.foot a:hover { text-decoration-color: var(--brand-deep); }
 .badge {
   display: inline-block;
   font-size: 10px;
@@ -1646,6 +1689,162 @@ body::after {
   padding: 7px 10px;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS v3 — LENTE INTENSA
+   ═══════════════════════════════════════════════════════════════════
+   O que a MEDIÇÃO mostrou sobre a v2, antes de mexer:
+
+   · A atmosfera é `fixed`. O croma fora dos cartões era idêntico
+     (6,4 / 5,0 / 3,7 de 255) nas quatro posições de rolagem — ela não
+     "sumia ao rolar", era fraca em todo lugar, por igual.
+   · O núcleo da mancha mais forte caía em (56, −25) numa viewport de
+     1280×900: FORA da tela. As outras três se agarravam às bordas, e o
+     conteúdo vive em x 266..1014. Nenhum núcleo passava atrás do cartão,
+     e o que chega lá é a cauda do gradiente — poucos por cento de alfa.
+   · O véu de 76–88% apagava o resto. E ele protegia UM texto: dos 90
+     blocos da página, 89 ficam sobre alguma superfície própria.
+
+   Daí as três correções desta versão: núcleos ATRÁS DO CONTEÚDO, véu
+   leve, e a refração que faltava — `feDisplacementMap` sobre o backdrop,
+   o sinal que `blur()` sozinho não produz.
+
+   Contraste conferido DEPOIS: os 12 textos amostrados passam WCAG AA, o
+   pior caso indo de 7,53 para 7,21 — o texto vive sobre superfícies que
+   continuam claras.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── atmosfera: núcleos atrás do conteúdo, não nas margens ── */
+body::before {
+  background:
+    radial-gradient(30vw 26vh at 34% 22%, color-mix(in srgb, var(--brand) 82%, transparent), transparent 74%),
+    radial-gradient(26vw 23vh at 68% 34%, color-mix(in srgb, var(--accent) 74%, transparent), transparent 72%),
+    radial-gradient(32vw 27vh at 46% 68%, color-mix(in srgb, var(--brand) 64%, transparent), transparent 74%),
+    radial-gradient(24vw 21vh at 80% 84%, color-mix(in srgb, var(--accent) 58%, transparent), transparent 72%),
+    radial-gradient(22vw 20vh at 14% 52%, color-mix(in srgb, var(--brand) 52%, transparent), transparent 72%);
+  filter: saturate(1.6);
+}
+/* véu leve: só o crédito do rodapé não tem superfície própria */
+body::after {
+  background: linear-gradient(
+    color-mix(in srgb, var(--paper) 26%, transparent),
+    color-mix(in srgb, var(--paper) 38%, transparent)
+  );
+}
+
+/* ── a lente: o preenchimento sai do elemento e vira ::before ── */
+.card,
+.card.raised,
+.cc,
+.cc[aria-pressed='true'] {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border: 0;
+  overflow: hidden;
+}
+.card::before,
+.cc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  /* o especular diagonal viaja junto do preenchimento */
+  background:
+    linear-gradient(138deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.1) 30%,
+                    rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.14) 100%),
+    color-mix(in srgb, #fff 16%, transparent);
+  backdrop-filter: blur(16px) saturate(2.8) brightness(1.05);
+  -webkit-backdrop-filter: blur(16px) saturate(2.8) brightness(1.05);
+}
+.card.raised::before { background:
+    linear-gradient(138deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.14) 30%,
+                    rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.18) 100%),
+    color-mix(in srgb, #fff 22%, transparent); }
+.cc[aria-pressed='true']::before { background:
+    linear-gradient(138deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 32%,
+                    rgba(255, 255, 255, 0) 58%, rgba(255, 255, 255, 0.14) 100%),
+    color-mix(in srgb, var(--brand) 18%, transparent); }
+
+/*
+ * A refração de verdade custa caro e fica só nos cartões grandes (3 na
+ * tela), nunca nos 22 `.cc` do catálogo aberto — e só onde o navegador
+ * sabe fazer. Sem o `@supports`, quem não suporta perderia o blur junto.
+ */
+@supports (backdrop-filter: url(#lex-lente)) {
+  .card::before {
+    backdrop-filter: url(#lex-lente) blur(16px) saturate(2.8) brightness(1.05);
+    -webkit-backdrop-filter: url(#lex-lente) blur(16px) saturate(2.8) brightness(1.05);
+  }
+}
+
+/* aro de luz: 1,2 px de gradiente só na borda, recortado por máscara */
+.card::after,
+.cc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1.2px;
+  background: linear-gradient(140deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.4) 16%,
+    color-mix(in srgb, var(--brand) 26%, transparent) 46%,
+    rgba(255, 255, 255, 0.3) 72%,
+    rgba(255, 255, 255, 0.92) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.card {
+  box-shadow:
+    0 2px 5px color-mix(in srgb, var(--brand-dark) 15%, transparent),
+    0 22px 48px -22px color-mix(in srgb, var(--brand-dark) 58%, transparent);
+}
+
+/* campos: poço de vidro, mais fundo que na v2 */
+.inp {
+  background: color-mix(in srgb, #fff 30%, transparent);
+  backdrop-filter: blur(12px) saturate(2.1);
+  -webkit-backdrop-filter: blur(12px) saturate(2.1);
+  border: 1px solid color-mix(in srgb, #fff 62%, transparent);
+}
+
+/* ── fallbacks da v3: sem eles a tela fica ilegível ── */
+@supports not (backdrop-filter: blur(1px)) {
+  body::after {
+    background: linear-gradient(
+      color-mix(in srgb, var(--paper) 88%, transparent),
+      color-mix(in srgb, var(--paper) 94%, transparent)
+    );
+  }
+  .card::before, .cc::before { background: color-mix(in srgb, #fff 92%, transparent); }
+  .inp { background: var(--paper); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  body::before { display: none; }
+  body::after { background: var(--paper); }
+  .card::before, .cc::before {
+    background: var(--paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .card::after, .cc::after { background: var(--line); }
+  .inp {
+    background: var(--paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid var(--line);
+  }
+}
+/* o porta-filtros não ocupa espaço nem entra no fluxo */
+.sr-svg { position: absolute; width: 0; height: 0; pointer-events: none; }
+/* símbolo LexGo ao lado do logotipo — só na marca padrão, nunca em white-label */
+.logo-simb { display: inline-block; height: 24px; width: auto; vertical-align: -3px; margin-right: 6px; }
+
 /* ═══ A história: sequência animada no fim do resultado (cliente) ═══ */
 .hist { padding: 0; overflow: hidden; }
 .hist-barras { display: flex; gap: 4px; padding: 11px 12px 0; }
@@ -1738,4 +1937,25 @@ body::after {
   text-align: center;
   font-size: 11.5px;
   color: var(--muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   ALVO DE TOQUE — só onde se toca com o dedo.
+
+   `.modo button` (o alternador Cliente|Vendedor), `.chip` e `.btn.sm`
+   ficam com 38px de altura. Isso passa no WCAG 2.5.8 (AA, mínimo 24px)
+   e reprova na 2.5.5 (AAA) e no guia da Apple, que pedem 44.
+
+   Subir para 44 em todo lugar mexeria no ritmo do layout no desktop, que
+   foi ajustado no olho — e no mouse 38px nunca foi o problema. Então o
+   ganho entra por `pointer: coarse`: no dedo cresce, no cursor fica como
+   estava. O app nasce para rodar no celular, mandado por WhatsApp, então
+   é o dedo que manda aqui.
+   ───────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  .modo button,
+  .chip,
+  .btn.sm {
+    min-height: 44px;
+  }
 }

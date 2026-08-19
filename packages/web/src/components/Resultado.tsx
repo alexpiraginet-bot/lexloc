@@ -9,8 +9,9 @@ import { PERFIL, type Derivado, type Modo } from '../state';
 import type { Marca } from '../lib/marca';
 import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
-import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
-import { Copiloto } from '@vendedor';
+/* robustez entra pela FACHADA, não por import direto: solto no topo ele
+   arrastava as réplicas de venda para o arquivo do cliente */
+import { Copiloto, posicaoMercado, provaDeEstresse } from '@vendedor';
 import { Historia } from './Historia';
 import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';

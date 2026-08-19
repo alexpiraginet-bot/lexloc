@@ -7,10 +7,23 @@ import { MACRO } from './constants.js';
 
 /**
  * Alíquota de IR regressivo sobre renda fixa — Lei 11.033/2004.
- * Meses são convertidos em dias corridos de 30.
+ *
+ * A lei conta DIAS CORRIDOS. O motor original convertia mês em 30 dias, e
+ * isso punha 12 meses em 360 e 24 meses em 720 — exatamente no teto da faixa
+ * anterior, nos dois casos. Na vida real são 365 e 730 dias, que caem na
+ * faixa seguinte: 17,5% e 15%, não 20% e 17,5%.
+ *
+ * O erro não era neutro. Alíquota alta demais reduz o rendimento líquido do
+ * dinheiro investido, o que barateia artificialmente o cenário que imobiliza
+ * capital no mês zero — comprar à vista. Numa varredura de 1650 cenários do
+ * catálogo, 27 vereditos viravam de "assinar" para "comprar" só por causa
+ * disto.
+ *
+ * 365/12 = 30,4167 dias por mês é a conversão honesta para um modelo de
+ * granularidade mensal.
  */
 export function aliquotaIR(meses: number): number {
-  const dias = meses * 30;
+  const dias = (meses * 365) / 12;
   if (dias <= 180) return 0.225;
   if (dias <= 360) return 0.2;
   if (dias <= 720) return 0.175;
@@ -47,9 +60,20 @@ export function saldoDevedor(pv: number, iMes: number, n: number, k: number): nu
  * IOF de financiamento PF: 0,38% fixo + 0,0082% ao dia sobre o principal,
  * com o componente diário limitado a 3,00% e o total ao teto de 3,38%.
  * (Decreto 6.306/2007, redação vigente em 2026.)
+ *
+ * Mesma conversão de dias do IR acima, e pelo mesmo motivo: o decreto conta
+ * DIAS CORRIDOS. Muda todo prazo de ATÉ 12 meses — de 13 em diante os dois
+ * jeitos batem no teto de 365 e dão o mesmo número. Em R$ 100 mil
+ * financiados: 6 meses vai de R$ 1.856 para R$ 1.876, e 12 meses de
+ * R$ 3.332 para R$ 3.373.
+ *
+ * O erro é pequeno, mas apontava para o mesmo lado que o do IR: subestimar
+ * o custo do financiamento é jogar contra a assinatura. E deixar duas
+ * contagens de dias diferentes no mesmo arquivo é como o primeiro erro
+ * sobreviveu tanto tempo — por isso esta também foi corrigida.
  */
 export function iofFinanciamento(valorFinanciado: number, prazoMeses: number): number {
-  const dias = Math.min(prazoMeses * 30, 365);
+  const dias = Math.min((prazoMeses * 365) / 12, 365);
   let pct = MACRO.iofFixo + Math.min(MACRO.iofDia * dias, 3.0);
   pct = Math.min(pct, MACRO.iofTeto);
   return (valorFinanciado * pct) / 100;

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { migrarChaves } from './lib/migrar';
+import { FAVICON_LEXGO } from './marca/simbolo';
 import App from './App';
 import './theme.css';
 
@@ -61,6 +62,17 @@ console.info(
   '%cLexGo © Lex Technology — locadoras.uselexgo.com',
   'color:#8f31aa;font-weight:700;font-size:14px',
 );
+
+/*
+ * Favicon: o índice traz um provisório inline para a primeira pintura não
+ * ficar sem ícone, e aqui ele vira a marca de verdade. Vai por data URI
+ * porque o arquivo do vendedor roda em file:// — nenhum caminho de servidor
+ * resolveria.
+ */
+(() => {
+  const l = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (l) l.href = FAVICON_LEXGO;
+})();
 
 // rebrand: recupera dados gravados sob as chaves antigas antes do 1º render
 migrarChaves();

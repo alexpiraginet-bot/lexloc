@@ -18,7 +18,30 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGEM = join(raiz, 'marca', 'lexgo-mark.png');
-const PY = 'C:/Users/R2/IA/ComfyUI_windows_portable/python_embeded/python.exe';
+
+/**
+ * Qual python usar. O dono roda no Windows com o do ComfyUI, que já vem com
+ * PIL; a nuvem e o CI rodam com o do sistema. Em vez de fixar um caminho de
+ * uma máquina só, procura — e exige que o PIL importe, porque python sem
+ * Pillow só falha lá na frente, com erro que não diz o que fazer.
+ */
+function acharPython() {
+  const tentativas = [
+    process.env['LEXGO_PYTHON'],
+    'python3',
+    'python',
+    'C:/Users/R2/IA/ComfyUI_windows_portable/python_embeded/python.exe',
+  ].filter((x) => typeof x === 'string' && x.length > 0);
+  for (const py of tentativas) {
+    try {
+      execFileSync(py, ['-c', 'import PIL'], { stdio: 'ignore' });
+      return py;
+    } catch {
+      /* próximo candidato */
+    }
+  }
+  return null;
+}
 
 /** o símbolo é embutido no HTML off-line: acima disto o arquivo engorda demais */
 const TETO_BYTES = 12_000;
@@ -28,8 +51,11 @@ if (!existsSync(ORIGEM)) {
   console.error('  salve o símbolo da marca aí e rode de novo.');
   process.exit(1);
 }
-if (!existsSync(PY)) {
-  console.error(`✗ não achei o python do ComfyUI em ${PY}`);
+const PY = acharPython();
+if (!PY) {
+  console.error('✗ não achei um python com Pillow.');
+  console.error('  instale:  pip install pillow');
+  console.error('  ou aponte o seu:  LEXGO_PYTHON=/caminho/do/python npm run marca');
   process.exit(1);
 }
 
@@ -48,6 +74,7 @@ import sys
 from PIL import Image, ImageDraw
 
 orig, fav, simb = sys.argv[1], sys.argv[2], sys.argv[3]
+ORIGINAIS = len(sys.argv) > 4 and sys.argv[4] == "originais"
 im = Image.open(orig).convert("RGBA")
 
 # fundo transparente a partir dos cantos, com tolerância para JPEG/antialias
@@ -63,10 +90,36 @@ caixa = im.getbbox()
 if caixa:
     im = im.crop(caixa)
 
+ROXO = (137, 41, 145)      # #892991, a marca documentada
+DOURADO = (201, 162, 39)   # #C9A227
+
+def recolorir(img):
+    # A arte entregue veio em #731691 / #D5970D -- proximos, mas nao iguais
+    # aos tons que a interface inteira usa. No cabecalho os dois roxos
+    # ficariam lado a lado e leriam como defeito. O alfa e preservado, entao
+    # o antisserrilhado continua correto.
+    px = img.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if a:
+                # no roxo o azul e o canal mais alto; no dourado, o mais baixo
+                px[x, y] = (ROXO if b >= r else DOURADO) + (a,)
+    return img
+
+def acabar(img):
+    return chapar(img if ORIGINAIS else recolorir(img))
+
+def chapar(img):
+    # A marca e chapada: dois tons e alfa. Guardar em paleta preserva o
+    # desenho e corta o arquivo pela metade -- e o teto de 12 KB existe
+    # porque o HTML off-line viaja por WhatsApp.
+    return img.quantize(colors=64, method=Image.FASTOCTREE, dither=Image.NONE)
+
 def salvar(destino, altura):
     escala = altura / im.height
     novo = im.resize((max(1, round(im.width * escala)), altura), Image.LANCZOS)
-    novo.save(destino, "PNG", optimize=True)
+    acabar(novo).save(destino, "PNG", optimize=True)
     return novo.size
 
 print("simbolo", *salvar(simb, 96))
@@ -77,13 +130,14 @@ escala = (lado * 0.88) / max(im.size)
 mini = im.resize((max(1, round(im.width * escala)), max(1, round(im.height * escala))), Image.LANCZOS)
 quadro = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
 quadro.paste(mini, ((lado - mini.width) // 2, (lado - mini.height) // 2), mini)
-quadro.save(fav, "PNG", optimize=True)
+acabar(quadro).save(fav, "PNG", optimize=True)
 print("favicon", lado, lado)
 `;
 
-const saida = execFileSync(PY, ['-c', script, ORIGEM, favicon, simbolo], {
-  encoding: 'utf8',
-});
+/* LEXGO_CORES_ORIGINAIS=1 mantem os tons do arquivo entregue, sem alinhar */
+const argsPy = [ORIGEM, favicon, simbolo];
+if (process.env['LEXGO_CORES_ORIGINAIS'] === '1') argsPy.push('originais');
+const saida = execFileSync(PY, ['-c', script, ...argsPy], { encoding: 'utf8' });
 console.log(saida.trim());
 
 const bytes = readFileSync(simbolo);
@@ -96,11 +150,19 @@ if (bytes.length > TETO_BYTES) {
   process.exit(1);
 }
 
+/*
+ * O favicon vai como data URI também: o HTML do vendedor é off-line e viaja
+ * por WhatsApp, então não pode apontar para /favicon.png de servidor nenhum.
+ */
+const bytesFav = readFileSync(favicon);
 writeFileSync(
   join(saidaWeb, 'simbolo.ts'),
   `/* GERADO por scripts/marca.mjs a partir de marca/lexgo-mark.png — não edite à mão. */
 export const SIMBOLO_LEXGO =
   'data:image/png;base64,${bytes.toString('base64')}';
+
+export const FAVICON_LEXGO =
+  'data:image/png;base64,${bytesFav.toString('base64')}';
 `,
 );
 

@@ -1,6 +1,19 @@
 {
   "headers": [
     {
+      "source": "/equipe-db09ddc3f2b4f45c.html",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive, nosnippet, noai, noimageai"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {

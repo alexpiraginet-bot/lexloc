@@ -14,10 +14,16 @@
  * brasileira — "e no fim não fica nada pra mim" — e ia embora sem
  * responder. Ele concede antes de rebater; é o que torna crível.
  *
- * O quadro 6 se adapta ao VEREDITO. Se a compra vencer no dinheiro, ele
- * diz isso em voz alta em vez de repetir o discurso pró-assinatura: uma
- * calculadora que sempre termina na mesma história é peça de venda de
- * jaleco, e a primeira pessoa que perceber publica.
+ * O quadro 6 NÃO anuncia derrota — decisão do dono, que mudou a regra
+ * anterior: material de venda fala do que o produto entrega, não do que ele
+ * deixa de ser, e não dizer não é mentir. O que sustenta a credibilidade
+ * continua de pé por outro caminho: os NÚMEROS saem do motor, e a aba
+ * Resultado, logo acima, mostra a comparação inteira com o vencedor real.
+ * A história escolhe o ângulo; ela não reescreve a conta.
+ *
+ * O texto do fecho muda de redação conforme o veredito, mas nunca de lado:
+ * o que ele afirma — que a locadora absorve depreciação, seguro, manutenção
+ * e IPVA — é verdade ganhando ou perdendo no total.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { Derivado } from '../state';
@@ -45,12 +51,9 @@ const PADRAO = 6500;
 const LONGO = 7500;
 
 function montar(d: Derivado, meses: number): Quadro[] {
-  const { p, r, absorvido, abs } = d;
+  const { p, absorvido, abs } = d;
   const oficina = abs.manut + abs.pneus;
   const assinaVence = d.vencedor === 'assinar';
-  // com quem comparar no fecho: quem não tem o valor à vista está decidindo
-  // contra o financiamento, e aí "dinheiro parado" não diz nada a ele
-  const gapFin = r.financiar.custo - r.assinar.custo;
 
   return [
     {
@@ -97,28 +100,26 @@ function montar(d: Derivado, meses: number): Quadro[] {
       texto: `Fica um carro com ${meses} meses de uso, que ainda precisa ser vendido. Assinando, você devolve a chave.`,
       dura: LONGO,
     },
-    assinaVence
-      ? {
-          arte: QUADROS_HISTORIA['6-livre']!,
-          olho: 'a escolha é sua',
-          titulo: 'Esse dinheiro continua seu',
-          valor: r.aVista.desembolso,
-          texto: `A assinatura absorve os mesmos ${reais(absorvido)}. E isso não fica parado num carro.`,
-          dura: 0,
-        }
-      : {
-          // o veredito não deu assinar: dizer isso em voz alta é o que
-          // sustenta a credibilidade do resto da conta
-          arte: QUADROS_HISTORIA['6-livre']!,
-          olho: 'a escolha é sua',
-          titulo: 'No dinheiro puro, comprar vence',
-          valor: Math.abs(gapFin),
-          texto:
-            gapFin > 0
-              ? 'Contra o financiamento, assinar ainda sai à frente — e sem entrada, sem revenda e sem risco.'
-              : 'Mas exige o valor à vista e a revenda no fim. O que a assinatura entrega é previsão, não lucro.',
-          dura: 0,
-        },
+    {
+      /*
+       * O FECHO NÃO ANUNCIA DERROTA. Decisão do dono: a peça é material de
+       * venda e fala do que a assinatura entrega, não do que ela deixa de
+       * ser. Não dizer não é mentir — a aba Resultado, logo acima, continua
+       * mostrando a comparação inteira com o vencedor real.
+       *
+       * O que se diz aqui é verdade em qualquer cenário: os custos que a
+       * assinatura absorve ficam mesmo com a locadora, ganhando ou perdendo
+       * no total. Os NÚMEROS seguem saindo do motor.
+       */
+      arte: QUADROS_HISTORIA['6-livre']!,
+      olho: 'a escolha é sua',
+      titulo: 'Esse dinheiro continua seu',
+      valor: absorvido,
+      texto: assinaVence
+        ? `A assinatura absorve ${reais(absorvido)} — e isso não fica parado num carro.`
+        : `A assinatura absorve ${reais(absorvido)}: depreciação, seguro, manutenção e IPVA saem do seu colo, sem entrada e sem revenda no fim.`,
+      dura: 0,
+    },
   ];
 }
 

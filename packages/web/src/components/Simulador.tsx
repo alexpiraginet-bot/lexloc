@@ -7,6 +7,7 @@ import { n2, reais, reais2 } from '../lib/format';
 import type { Marca } from '../lib/marca';
 import { Silhueta, Icone } from './icones';
 import { FOTO_CATEGORIA } from '../fotos/categorias';
+import { FOTO_MODELO } from '../fotos/modelos';
 import { Retaguarda } from '@vendedor';
 import { CampoNum } from './CampoNum';
 
@@ -131,11 +132,12 @@ export function Simulador({
                       todos, para o catálogo não virar colcha de retalhos */}
                   <span className="cc-palco">
                     {/* 1º a foto da FROTA da locadora — é o carro que o cliente
-                        recebe; 2º a foto da categoria (mesmo estúdio para todos);
-                        a silhueta só sobra se a categoria for desconhecida */}
-                    {v.fo ?? FOTO_CATEGORIA[v.c] ? (
+                        recebe, na cor certa; 2º a foto DO MODELO; 3º a da
+                        categoria, que ainda serve aos modelos que a equipe
+                        acrescenta; a silhueta só sobra se nada disso existir */}
+                    {v.fo ?? FOTO_MODELO[v.n] ?? FOTO_CATEGORIA[v.c] ? (
                       <img
-                        src={v.fo ?? FOTO_CATEGORIA[v.c]}
+                        src={v.fo ?? FOTO_MODELO[v.n] ?? FOTO_CATEGORIA[v.c]}
                         alt=""
                         className="cc-foto"
                         /* sem lazy: o data URI já veio no documento, e adiar

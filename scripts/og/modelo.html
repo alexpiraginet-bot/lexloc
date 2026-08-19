@@ -1,0 +1,63 @@
+<!doctype html><meta charset="utf-8">
+<style>
+  :root { --brand:#892991; --brand-claro:#8f31aa; --ouro:#C9A227; --tinta:#16121C; --papel:#F7F5FA; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1200px; height:630px; overflow:hidden; }
+  body {
+    position:relative; background:var(--papel);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display:grid; grid-template-columns: 1fr 452px; align-items:center;
+    padding: 0 60px 0 78px; gap:30px;
+  }
+  /* a mesma atmosfera do app: manchas da marca atrás de tudo */
+  .atm { position:absolute; inset:-12%; z-index:0; filter:saturate(1.5);
+    background:
+      radial-gradient(34% 40% at 22% 22%, #892991cc, transparent 70%),
+      radial-gradient(30% 36% at 78% 26%, #C9A227bb, transparent 70%),
+      radial-gradient(38% 42% at 62% 82%, #892991aa, transparent 72%),
+      radial-gradient(26% 32% at 12% 84%, #C9A22799, transparent 70%); }
+  .veu { position:absolute; inset:0; z-index:1; background:linear-gradient(#F7F5FA55,#F7F5FA6b); }
+  .grid { position:absolute; inset:0; z-index:2; opacity:.5;
+    background-image: radial-gradient(circle at 1px 1px, #89299133 1.4px, transparent 2px);
+    background-size: 15px 15px; }
+  .col { position:relative; z-index:3; }
+  .marca { display:flex; align-items:center; gap:16px; margin-bottom:26px; }
+  .marca .nome { display:flex; }   /* sem gap AQUI: "LexGo" é uma palavra só */
+  .marca img { height:52px; }
+  .marca b { font-size:46px; font-weight:800; letter-spacing:-.045em; color:var(--brand); }
+  .marca i { font-size:46px; font-weight:800; letter-spacing:-.045em; color:var(--ouro); font-style:normal; }
+  h1 { font-size:76px; line-height:1.04; letter-spacing:-.042em; color:var(--tinta); font-weight:800; }
+  h1 em { font-style:normal; color:var(--brand); }
+  p  { margin-top:22px; font-size:31px; line-height:1.4; color:#4a4356; font-weight:500; max-width:19ch; }
+  .selos { margin-top:30px; display:flex; gap:11px; flex-wrap:wrap; }
+  .selos span { font-size:22px; font-weight:700; color:var(--brand);
+    background:#ffffffcc; border:2px solid #89299133; border-radius:999px; padding:9px 20px; }
+  /* o cartão de vidro à direita, com os três caminhos */
+  .vidro { position:relative; z-index:3; border-radius:30px; padding:34px 28px;
+    background:#ffffff4d; backdrop-filter:blur(18px) saturate(2.4);
+    border:2px solid #ffffffcc; box-shadow:0 26px 56px -22px #6b1f7366; }
+  .via { display:flex; align-items:center; justify-content:space-between; gap:18px;
+    padding:17px 0; border-bottom:2px dashed #89299122; font-size:28px; color:#4a4356; font-weight:600; }
+  .via:last-child { border-bottom:0; }
+  .via.on { color:var(--brand); font-weight:800; }
+  .via b { font-variant-numeric:tabular-nums; font-size:31px; color:var(--tinta); font-weight:800;
+    white-space:nowrap; }   /* "R\$ 186.341" quebrava depois do cifrão */
+  .via.on b { color:var(--brand); }
+  .tag { position:absolute; top:-17px; left:30px; font-size:19px; font-weight:800; letter-spacing:.09em;
+    text-transform:uppercase; color:#fff; background:var(--brand); border-radius:999px; padding:7px 17px; }
+</style>
+<div class="atm"></div><div class="veu"></div><div class="grid"></div>
+
+<div class="col">
+  <div class="marca"><img src="marca.png" alt=""><span class="nome"><b>Lex</b><i>Go</i></span></div>
+  <h1>Assinar ou<br><em>comprar?</em></h1>
+  <p>A conta completa em segundos.</p>
+  <div class="selos"><span>grátis</span><span>sem cadastro</span><span>funciona off-line</span></div>
+</div>
+
+<div class="vidro">
+  <span class="tag">exemplo · 36 meses</span>
+  <div class="via">Financiar <b>R$ 186.341</b></div>
+  <div class="via">À vista <b>R$ 147.764</b></div>
+  <div class="via on">Assinar <b>R$ 138.139</b></div>
+</div>

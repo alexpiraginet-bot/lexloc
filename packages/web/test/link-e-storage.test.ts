@@ -8,7 +8,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 /* localStorage de mentira, suficiente para os módulos sob teste */
-function instalarStorage() {
+export function instalarStorage() {
   const m = new Map<string, string>();
   (globalThis as Record<string, unknown>)['localStorage'] = {
     getItem: (k: string) => (m.has(k) ? m.get(k)! : null),
@@ -130,5 +130,47 @@ describe('lerMarca', () => {
     const lida = lerMarca();
     expect(lida.corPrimaria).toBe(MARCA_PADRAO.corPrimaria);
     expect(lida.corDestaque).toBe(MARCA_PADRAO.corDestaque);
+  });
+});
+
+describe('o link mágico nunca aponta para o build do vendedor', () => {
+  it('gerado a partir de lexgo-vendedor.html, sai apontando para app.html', async () => {
+    (globalThis as Record<string, unknown>)['location'] = {
+      hash: '',
+      protocol: 'https:',
+      origin: 'https://locadoras.uselexgo.com',
+      pathname: '/lexgo-vendedor.html',
+    };
+    const { gerarLink } = await import('../src/lib/link');
+    const { estadoInicial } = await import('../src/state');
+    const { MARCA_PADRAO } = await import('../src/lib/marca');
+    const url = gerarLink(estadoInicial, MARCA_PADRAO);
+    expect(url).toContain('/app.html#d=');
+    expect(url).not.toContain('lexgo-vendedor');
+  });
+
+  it('em subpasta, mantém a subpasta e troca só o arquivo', async () => {
+    (globalThis as Record<string, unknown>)['location'] = {
+      hash: '',
+      protocol: 'https:',
+      origin: 'https://uselexgo.com',
+      pathname: '/locadoras/lexgo-vendedor.html',
+    };
+    const { gerarLink } = await import('../src/lib/link');
+    const { estadoInicial } = await import('../src/state');
+    const { MARCA_PADRAO } = await import('../src/lib/marca');
+    expect(gerarLink(estadoInicial, MARCA_PADRAO)).toContain('https://uselexgo.com/locadoras/app.html#d=');
+  });
+});
+
+describe('sala limpa: sessão de link não mexe no aparelho', () => {
+  it('com #d= no endereço, migrarChaves não lê nem apaga nada', async () => {
+    const m = instalarStorage();
+    m.set('lexloc.catalogo.v1', '{"versao":1}');
+    instalarLocation('#d=qualquercoisa');
+    const { migrarChaves } = await import('../src/lib/migrar');
+    migrarChaves();
+    expect(m.get('lexloc.catalogo.v1')).toBe('{"versao":1}');
+    expect(m.has('lexgo.catalogo.v1')).toBe(false);
   });
 });

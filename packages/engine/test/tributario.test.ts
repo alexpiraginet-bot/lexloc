@@ -249,3 +249,67 @@ describe('invariantes por regime (varredura aleatorizada)', () => {
     expect(casos2026).toBeGreaterThan(15);
   });
 });
+
+describe('crédito de PIS/COFINS de 2026 não vaza para os anos seguintes', () => {
+  /*
+   * PIS/COFINS deixa de existir em 1º/01/2027. O cálculo usava o horizonte
+   * INTEIRO para a depreciação e lançava tudo na linha de 2026: num prazo de
+   * 60 meses saía 2,85× o crédito devido, e as linhas de 2027 em diante
+   * apareciam zeradas, o que já denunciava a incoerência na tela.
+   */
+  const params = (meses: number): ParametrosSimulacao => ({
+    preco: 149990,
+    meses,
+    kmMes: 1500,
+    ipca: MACRO.ipca,
+    cdi: MACRO.cdi,
+    cdiPct: 100,
+    curva: DEPREC['fipe']!.c,
+    ipvaAliq: 2,
+    licenc: 150,
+    seguroPct: 4,
+    manutAno: 2200,
+    pneusJogo: 3200,
+    kmPneu: 45000,
+    emplacamento: 1800,
+    mensalidade: 2990,
+    reajusteAssinatura: MACRO.ipca,
+    kmFranquia: 1000,
+    kmExcedente: 1.5,
+    entradaPct: 20,
+    jurosFinMes: MACRO.jurosFin,
+    prazoFin: Math.min(meses, 60),
+    tipoEnergia: 'comb',
+    kml: 12.6,
+    kwh100: 15,
+    precoComb: 6.554,
+    precoKwh: 0.95,
+    incluirEnergia: false,
+    ipvaIsento: true,
+  });
+
+  const comum = {
+    regime: 'real' as RegimeTributario,
+    anoInicio: 2026,
+    ref: { cbs: MACRO.aliqCBS, ibs: MACRO.aliqIBS },
+    irpjCsll: MACRO.irpjCsll,
+    lucroAnual: 300000,
+  };
+
+  const credito2026 = (meses: number) => {
+    const p = params(meses);
+    const linha = simularPJ(p, simular(p), comum).linhas.find((l) => l.ano === 2026);
+    return linha?.credCompra ?? 0;
+  };
+
+  it('não cresce com o horizonte — só 2026 gera crédito', () => {
+    const doze = credito2026(12);
+    expect(doze).toBeGreaterThan(0);
+    expect(credito2026(36)).toBeCloseTo(doze, 6);
+    expect(credito2026(60)).toBeCloseTo(doze, 6);
+  });
+
+  it('horizonte curto credita menos que um ano inteiro', () => {
+    expect(credito2026(6)).toBeLessThan(credito2026(12));
+  });
+});

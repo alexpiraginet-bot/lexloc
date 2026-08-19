@@ -7,7 +7,7 @@
  * A guarda em scripts/publicar.mjs falha o build se isso deixar de valer.
  */
 import { CATEGORIAS } from '@godrive/engine';
-import type { VeiculoLoja } from '../lib/catalogo';
+import type { CatalogoCustom, VeiculoLoja } from '../lib/catalogo';
 import { useRef, useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
 import { parseNum } from '../lib/format';
@@ -16,6 +16,8 @@ import {
   gravarCustom,
   importarArquivo,
   lerCustom,
+  lerCustomVerificado,
+  lerFotoDeArquivo,
   limparCustom,
 } from '../lib/catalogo';
 import {
@@ -34,12 +36,38 @@ import { Icone } from './icones';
 function LinhaPreco({
   v,
   aoSalvar,
+  aoPedirFoto,
+  aoRemoverFoto,
 }: {
   v: VeiculoLoja;
   aoSalvar: (nome: string, campo: 'p' | 'm', valor: number) => void;
+  aoPedirFoto: (nome: string) => void;
+  aoRemoverFoto: (nome: string) => void;
 }) {
   return (
     <div className="ret-linha">
+      {/* a foto da frota REAL da locadora — é o carro que o cliente vai
+          receber, na cor certa. Sem ela o card cai na foto da categoria. */}
+      <span className="ret-foto-cel">
+        <button
+          type="button"
+          className={`ret-foto${v.fo ? ' tem' : ''}`}
+          onClick={() => aoPedirFoto(v.n)}
+          aria-label={v.fo ? `Trocar a foto de ${v.n}` : `Enviar foto da sua frota para ${v.n}`}
+        >
+          {v.fo ? <img src={v.fo} alt="" /> : <Icone nome="mais" />}
+        </button>
+        {v.fo ? (
+          <button
+            type="button"
+            className="ret-foto-x"
+            onClick={() => aoRemoverFoto(v.n)}
+            aria-label={`Remover a foto de ${v.n}`}
+          >
+            <Icone nome="lixo" />
+          </button>
+        ) : null}
+      </span>
       <span className="ret-nome">{v.n}</span>
       <span className="pre">
         <u>R$</u>
@@ -82,6 +110,9 @@ export function Retaguarda({
 }) {
   const arquivoRef = useRef<HTMLInputElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
+  const fotoRef = useRef<HTMLInputElement>(null);
+  /** qual modelo está esperando o arquivo que o vendedor vai escolher */
+  const fotoAlvo = useRef<string | null>(null);
   // o corpo (118 inputs) só monta depois do primeiro toque no <details> —
   // custo pago quando o vendedor abre, não na primeira pintura do app
   const [aberta, setAberta] = useState(false);
@@ -104,9 +135,29 @@ export function Retaguarda({
     if (okMsg) avisar(okMsg);
   };
 
+  /**
+   * Toda gravação daqui é ler-alterar-gravar. Se a leitura não entendeu o que
+   * está guardado, gravar por cima APAGA a tabela inteira — e o cenário é
+   * real: o HTML viaja por WhatsApp, então convivem versões no mesmo
+   * aparelho. Melhor recusar e dizer a verdade.
+   */
+  const baseParaGravar = (): CatalogoCustom | null => {
+    const { custom, integro } = lerCustomVerificado();
+    if (!integro) {
+      avisar('Não entendi a tabela guardada neste aparelho — não vou gravar por cima. Exporte o que tem e restaure o padrão.');
+      return null;
+    }
+    return custom;
+  };
+
   const salvarPreco = (nome: string, campo: 'p' | 'm', valor: number) => {
-    if (!(valor > 0)) return;
-    const c = lerCustom();
+    if (!(valor > 0)) return avisar('Valor inválido — o preço tem de ser maior que zero.');
+    const c = baseParaGravar();
+    if (!c) return;
+    // A4: sair do campo sem mudar nada reescrevia o catálogo inteiro, fotos
+    // incluídas, e ainda anunciava "salvo" no leitor de tela
+    const atual = c.extras.find((x) => x.n === nome)?.[campo] ?? c.ajustes[nome]?.[campo];
+    if (atual === valor) return;
     const extra = c.extras.find((x) => x.n === nome);
     if (extra) extra[campo] = valor;
     else c.ajustes[nome] = { ...c.ajustes[nome], [campo]: valor };
@@ -119,6 +170,53 @@ export function Retaguarda({
     avisar('Preço salvo neste aparelho.');
   };
 
+  /**
+   * Foto por modelo. UM <input type="file"> serve todas as linhas — o alvo
+   * viaja num ref, não no DOM. Um input escondido por modelo custaria memória
+   * à toa, e a retaguarda já monta pesada.
+   */
+  const pedirFoto = (nome: string) => {
+    fotoAlvo.current = nome;
+    fotoRef.current?.click();
+  };
+
+  const receberFoto = async (arquivo: File) => {
+    const nome = fotoAlvo.current;
+    fotoAlvo.current = null;
+    if (!nome) return;
+    let fo: string;
+    try {
+      fo = await lerFotoDeArquivo(arquivo);
+    } catch (erro) {
+      return avisar(erro instanceof Error ? erro.message : 'Não consegui usar essa imagem.');
+    }
+    const c = baseParaGravar();
+    if (!c) return;
+    c.ajustes[nome] = { ...c.ajustes[nome], fo };
+    // foto é o item mais pesado do armazenamento: quando a cota estoura, o
+    // aviso diz a verdade em vez de comemorar uma gravação que não houve
+    if (!gravarCustom(c)) {
+      return avisar('Não deu para salvar a foto — armazenamento cheio. Remova alguma antes.');
+    }
+    bump();
+    avisar(`Foto de ${nome} salva neste aparelho.`);
+  };
+
+  const removerFoto = (nome: string) => {
+    const c = baseParaGravar();
+    if (!c) return;
+    const aj = c.ajustes[nome];
+    if (!aj?.fo) return;
+    const { fo: _descartada, ...resto } = aj;
+    // sem foto e sem preço ajustado, a entrada inteira sai — o arquivo
+    // exportado não carrega chave vazia para a equipe
+    if (Object.keys(resto).length) c.ajustes[nome] = resto;
+    else delete c.ajustes[nome];
+    if (!gravarCustom(c)) return avisar('Sem armazenamento — não deu para remover a foto.');
+    bump();
+    avisar('Foto removida — o card volta à imagem da categoria.');
+  };
+
   const adicionarModelo = (form: HTMLFormElement) => {
     const dados = new FormData(form);
     const nome = String(dados.get('nome') ?? '').trim();
@@ -127,7 +225,8 @@ export function Retaguarda({
     const c = String(dados.get('c') ?? 'suvc');
     if (!nome || !(p > 0) || !(m > 0)) return avisar('Preencha nome, tabela e mensalidade.');
     if (catalogo.some((v) => v.n === nome)) return avisar('Já existe um modelo com esse nome.');
-    const custom = lerCustom();
+    const custom = baseParaGravar();
+    if (!custom) return;
     custom.extras.push({
       n: nome, p, m, c, f: 'mer', gd: 1,
       e: CATEGORIAS[c]?.kml ?? CATEGORIAS[c]?.kwh100 ?? 12,
@@ -184,10 +283,21 @@ export function Retaguarda({
           quem importar passa a ver os mesmos preços.
         </p>
 
-        <div className="sect">Preços por modelo — tabela · mensalidade</div>
+        <div className="sect">Preços por modelo — foto · tabela · mensalidade</div>
+        <p className="hint" style={{ margin: '0 0 10px' }}>
+          A <b>foto</b> é a do carro da <b>sua</b> frota — é o que o cliente vai receber, na
+          cor certa. PNG, JPG ou WEBP até 90 KB. Sem foto, o card usa a imagem da categoria.
+          Ela viaja na tabela exportada, mas <b>não</b> no link mágico.
+        </p>
         <div className="ret-grade">
           {catalogo.map((v) => (
-            <LinhaPreco key={v.n} v={v} aoSalvar={salvarPreco} />
+            <LinhaPreco
+              key={v.n}
+              v={v}
+              aoSalvar={salvarPreco}
+              aoPedirFoto={pedirFoto}
+              aoRemoverFoto={removerFoto}
+            />
           ))}
         </div>
 
@@ -369,6 +479,17 @@ export function Retaguarda({
             Restaurar padrão de fábrica
           </button>
         </div>
+        <input
+          ref={fotoRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) void receberFoto(f);
+          }}
+        />
         <input
           ref={arquivoRef}
           type="file"

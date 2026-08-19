@@ -49,14 +49,49 @@ const base: ParametrosSimulacao = {
 };
 
 describe('IR regressivo (Lei 11.033/2004)', () => {
-  it('degraus corretos: 22,5 → 20 → 17,5 → 15', () => {
-    expect(aliquotaIR(6)).toBe(0.225);
-    expect(aliquotaIR(7)).toBe(0.2);
-    expect(aliquotaIR(12)).toBe(0.2);
-    expect(aliquotaIR(13)).toBe(0.175);
-    expect(aliquotaIR(24)).toBe(0.175);
-    expect(aliquotaIR(25)).toBe(0.15);
+  /*
+   * Este teste foi escrito a partir do CÓDIGO, não da lei, e por isso
+   * cravava aliquotaIR(12) === 0,20 e aliquotaIR(24) === 0,175 — os valores
+   * que a conversão de mês em 30 dias produzia. A Lei 11.033/2004 conta
+   * DIAS CORRIDOS, e 12 meses são 365 dias, não 360.
+   *
+   * As faixas, em dias:  ≤180 → 22,5% · 181-360 → 20% · 361-720 → 17,5% ·
+   * acima de 720 → 15%.
+   */
+  it('degraus pela LEI, contando dias corridos (365/12 por mês)', () => {
+    const dias = (m: number) => (m * 365) / 12;
+
+    // 5 meses = 152 dias, ainda dentro dos 180
+    expect(dias(5)).toBeLessThanOrEqual(180);
+    expect(aliquotaIR(5)).toBe(0.225);
+
+    // 6 meses já são 182,5 dias — passa dos 180 e cai para 20%
+    expect(dias(6)).toBeGreaterThan(180);
+    expect(aliquotaIR(6)).toBe(0.2);
+
+    // 11 meses = 334,6 dias, ainda na faixa de 20%
+    expect(dias(11)).toBeLessThanOrEqual(360);
+    expect(aliquotaIR(11)).toBe(0.2);
+
+    // 12 meses = 365 dias. O motor antigo dizia 360 e cobrava 20%.
+    expect(dias(12)).toBeGreaterThan(360);
+    expect(aliquotaIR(12)).toBe(0.175);
+
+    // 23 meses = 699,6 dias, ainda na faixa de 17,5%
+    expect(dias(23)).toBeLessThanOrEqual(720);
+    expect(aliquotaIR(23)).toBe(0.175);
+
+    // 24 meses = 730 dias. O motor antigo dizia 720 e cobrava 17,5%.
+    expect(dias(24)).toBeGreaterThan(720);
+    expect(aliquotaIR(24)).toBe(0.15);
+
     expect(aliquotaIR(60)).toBe(0.15);
+  });
+
+  it('é monotônica: prazo maior nunca paga alíquota maior', () => {
+    for (let m = 1; m < 120; m++) {
+      expect(aliquotaIR(m + 1)).toBeLessThanOrEqual(aliquotaIR(m));
+    }
   });
 });
 
@@ -89,8 +124,14 @@ describe('IOF de financiamento', () => {
     expect(iof).toBeLessThanOrEqual(100000 * 0.0338 + 1e-9);
   });
   it('em prazo curto: fixo + diário', () => {
-    // 6 meses = 180 dias → 0,38 + 0,0082×180 = 1,856%
-    expect(iofFinanciamento(100000, 6)).toBeCloseTo(1856, 0);
+    // 6 meses = 182,5 dias (365/12, como manda o decreto — não 180) →
+    // 0,38 + 0,0082×182,5 = 1,8765%
+    expect(iofFinanciamento(100000, 6)).toBeCloseTo(1876.5, 0);
+  });
+  it('de 13 meses em diante trava no teto de 365 dias', () => {
+    // acima de 12 meses as duas contagens de dias empatam: é o que garante
+    // que a correção não mexeu no grosso do catálogo, que é 24/36/48/60
+    expect(iofFinanciamento(100000, 13)).toBeCloseTo(iofFinanciamento(100000, 60), 6);
   });
 });
 
