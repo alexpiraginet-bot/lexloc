@@ -44,7 +44,64 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <!--
+      TELA DE SOCORRO. Fica visível por padrão e o React a substitui ao montar.
+      Se o JavaScript não rodar, ela permanece — e o usuário lê uma explicação
+      em vez de encarar uma tela branca.
+
+      O caso real que motivou isto: o Quick Look do iOS (o visualizador de
+      arquivo do iPhone, com o "X" no topo) renderiza CSS mas NÃO EXECUTA JS.
+      Quem abre o .html direto do WhatsApp ou do app Arquivos vê o fundo
+      colorido e mais nada. Não é defeito do arquivo: é limitação do iOS.
+    -->
+    <div id="root">
+      <div class="socorro">
+        <b>Abra em um navegador</b>
+        <p>
+          Você está vendo este arquivo no visualizador do iPhone, que não executa
+          aplicativos. É por isso que a tela aparece vazia.
+        </p>
+        <p>
+          Toque em <b>compartilhar</b> e escolha <b>Abrir no Safari</b> — ou use a
+          versão on-line, que abre direto:
+        </p>
+        <a href="https://locadoras.uselexgo.com/app.html">locadoras.uselexgo.com</a>
+        <p class="socorro-pe">
+          No computador, basta abrir o arquivo normalmente: lá ele funciona sem internet.
+        </p>
+      </div>
+    </div>
+    <script>
+      /* Some na hora, sem piscar: este script é síncrono, então roda antes da
+         primeira pintura. Onde o JS está bloqueado — o caso que a mensagem
+         existe para atender — ele simplesmente não executa e o texto fica. */
+      document.getElementById('root').firstElementChild.hidden = true;
+    </script>
+    <style>
+      /* mora aqui, e não no CSS do app, porque precisa valer mesmo que nada carregue */
+      .socorro {
+        max-width: 30rem;
+        margin: 12vh auto;
+        padding: 0 1.5rem;
+        font: 400 16px/1.6 ui-sans-serif, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        color: #2b3357;
+        text-align: center;
+      }
+      .socorro b { color: #0d1433; }
+      .socorro > b { display: block; font-size: 20px; margin-bottom: 0.75rem; }
+      .socorro p { margin: 0 0 0.9rem; }
+      .socorro a {
+        display: inline-block;
+        margin-top: 0.25rem;
+        padding: 0.85rem 1.5rem;
+        border-radius: 99px;
+        background: #892991;
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .socorro-pe { margin-top: 1.5rem; font-size: 13.5px; color: #6e6675; }
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -31,7 +31,11 @@ const ALVOS = [
     rot: 'vendedor (off-line)',
     env: { OFFLINE: '1', PERFIL: 'vendedor' },
     de: 'dist-offline-vendedor/index.html',
-    para: ['lexgo-vendedor.html'],
+    // 'equipe.html' é o gêmeo HOSPEDADO: no iPhone o Quick Look não executa
+    // JS, então o arquivo local abre em branco na mão do vendedor. O que
+    // fica exposto é só a casca — preços, propostas e marca vivem no
+    // localStorage do aparelho dele, nunca no servidor.
+    para: ['lexgo-vendedor.html', 'equipe.html'],
   },
 ];
 
