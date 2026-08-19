@@ -64,6 +64,12 @@ export function lerMarca(): Marca {
     }
     if (!/^#[0-9a-fA-F]{6}$/.test(m.corPrimaria)) m.corPrimaria = MARCA_PADRAO.corPrimaria;
     if (!/^#[0-9a-fA-F]{6}$/.test(m.corDestaque)) m.corDestaque = MARCA_PADRAO.corDestaque;
+    // creditoUrl vira href no rodapé: só http(s), senão um valor `javascript:`
+    // gravado aqui executaria no clique com acesso a propostas e preços.
+    // Vazio é permitido (rodapé mostra só o nome, sem link).
+    if (m.creditoUrl !== '' && !/^https?:\/\//i.test(m.creditoUrl)) {
+      m.creditoUrl = MARCA_PADRAO.creditoUrl;
+    }
     return m;
   } catch {
     return MARCA_PADRAO;

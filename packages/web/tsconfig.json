@@ -16,7 +16,9 @@
       "@vendedor": [
         "./src/vendedor/real.ts"
       ]
-    }
+    },
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": [
     "src",

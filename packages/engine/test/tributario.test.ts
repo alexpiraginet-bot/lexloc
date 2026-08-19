@@ -176,3 +176,76 @@ describe('projeção da reforma (2026→2033)', () => {
     expect(aliqCreditavelLocacao(2033, ref)).toBeCloseTo(MACRO.aliqCBS + MACRO.aliqIBS, 6);
   });
 });
+
+/*
+ * Varredura aleatorizada por regime — devolve a cobertura que o golden perdeu
+ * quando passou a fixar 'real': as regras de quem NÃO credita e de 2026 valem
+ * para qualquer preço, prazo e faturamento, não só para o cenário de mesa.
+ */
+describe('invariantes por regime (varredura aleatorizada)', () => {
+  const mulberry32 = (a: number) => () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const rnd = mulberry32(20260818);
+  const REGIMES = ['real', 'presumido', 'simples'] as const;
+
+  it('120 casos: quem não credita fica em zero, e 2026 é ano-teste para todos', () => {
+    let casosSimples = 0;
+    let casos2026 = 0;
+    for (let i = 0; i < 120; i++) {
+      const regime = REGIMES[i % 3]!;
+      const meses = [6, 12, 18, 24, 36, 48, 60][Math.floor(rnd() * 7)]!;
+      const anoInicio = 2026 + Math.floor(rnd() * 5);
+      const pi: ParametrosSimulacao = {
+        ...p,
+        preco: 60_000 + Math.floor(rnd() * 240_000),
+        mensalidade: 1500 + Math.floor(rnd() * 4500),
+        meses,
+      };
+      const bi = simular(pi);
+      const r = simularPJ(pi, bi, pj({
+        regime,
+        anoInicio,
+        faturamentoAnual: 100_000 + Math.floor(rnd() * 4_000_000),
+        margemPct: 2 + rnd() * 30,
+        simplesHibrido: false,
+      }));
+
+      const rot = `caso ${i} (${regime}, ${anoInicio}, ${meses}m)`;
+
+      // ninguém deduz IRPJ/CSLL fora do Lucro Real
+      if (regime !== 'real') {
+        expect(r.dedAssinatura, rot).toBe(0);
+        expect(r.dedCompra, rot).toBe(0);
+        expect(r.dedJuros, rot).toBe(0);
+      }
+      // Simples sem a opção pelo regime regular: benefício nenhum
+      if (regime === 'simples') {
+        casosSimples++;
+        expect(r.beneficioAssinatura, rot).toBe(0);
+        expect(r.beneficioCompra, rot).toBe(0);
+        expect(r.custoLiqAssinatura, rot).toBeCloseTo(bi.assinar.custo, 6);
+        expect(r.custoLiqCompra, rot).toBeCloseTo(bi.aVista.custo, 6);
+      }
+      // 2026 é ano-teste: crédito de locação zero para todo regime
+      const l2026 = r.linhas.find((l) => l.ano === 2026);
+      if (l2026) {
+        casos2026++;
+        expect(l2026.credAss, rot).toBe(0);
+        // e o crédito da COMPRA em 2026 só existe no Lucro Real (PIS/COFINS)
+        if (regime !== 'real') expect(l2026.credCompra, rot).toBe(0);
+      }
+      // dedução nunca negativa, nunca acima do teto do lucro do contrato
+      const lucroContrato = ((100_000 + 4_000_000) * 0.32 * meses) / 12; // teto folgado
+      expect(r.dedAssinatura, rot).toBeGreaterThanOrEqual(0);
+      expect(r.dedCompra, rot).toBeGreaterThanOrEqual(0);
+      expect(r.dedAssinatura, rot).toBeLessThanOrEqual(lucroContrato);
+    }
+    // a varredura precisa ter visitado os ramos que diz cobrir
+    expect(casosSimples).toBeGreaterThan(30);
+    expect(casos2026).toBeGreaterThan(15);
+  });
+});

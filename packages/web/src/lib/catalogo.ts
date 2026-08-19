@@ -26,7 +26,7 @@ export interface CatalogoCustom {
 
 const LS = 'lexgo.catalogo.v1';
 
-const vazio = (): CatalogoCustom => ({
+export const vazio = (): CatalogoCustom => ({
   versao: 1,
   atualizadoEm: new Date().toISOString(),
   ajustes: {},

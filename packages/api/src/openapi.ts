@@ -117,18 +117,26 @@ export const openapi = {
         ],
         properties: {
           regime: { type: 'string', enum: ['real', 'presumido', 'simples'] },
-          anoInicio: { type: 'integer' },
+          anoInicio: { type: 'integer', minimum: 2025, maximum: 2040 },
           ref: {
             type: 'object',
-            properties: { cbs: { type: 'number' }, ibs: { type: 'number' } },
+            required: ['cbs', 'ibs'],
+            properties: {
+              cbs: { type: 'number', minimum: 0, maximum: 30 },
+              ibs: { type: 'number', minimum: 0, maximum: 40 },
+            },
           },
-          irpjCsll: { type: 'number' },
+          irpjCsll: { type: 'number', minimum: 0, maximum: 60 },
           faturamentoAnual: {
             type: 'number',
+            minimum: 0,
+            maximum: 1e12,
             description: 'Faturamento anual da empresa (R$). Define a alíquota marginal de IRPJ.',
           },
           margemPct: {
             type: 'number',
+            minimum: 0,
+            maximum: 100,
             description: 'Margem de lucro sobre o faturamento (%). Base do lucro tributável.',
           },
           simplesHibrido: {

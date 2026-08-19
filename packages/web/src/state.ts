@@ -68,6 +68,12 @@ export interface Estado {
   simplesHibrido: boolean;
   /** bump a cada edição da tabela de preços — invalida memos do catálogo */
   catVersao: number;
+  /**
+   * bump a cada edição da MARCA — separado do catálogo de propósito: a marca
+   * pode carregar uma logo de ~160 KB em base64, e reler esse JSON a cada
+   * blur de preço fazia o campo engasgar em celular mediano
+   */
+  marcaVersao: number;
 }
 
 export interface Proposta {
@@ -120,6 +126,7 @@ export const estadoInicial: Estado = {
   margemPct: 15,
   simplesHibrido: false,
   catVersao: 0,
+  marcaVersao: 0,
 };
 
 export type Acao =
@@ -296,14 +303,21 @@ function sanearEstado(bruto: unknown): Partial<Estado> {
   return limpo as Partial<Estado>;
 }
 
-export function useApp() {
+/**
+ * `efemera: true` = sessão de LINK MÁGICO, e é uma sala limpa de verdade:
+ * não LÊ o que está gravado no aparelho (senão preços de uma locadora
+ * vazariam para o link de outra) e não GRAVA nada (a promessa do rodapé —
+ * "nada é armazenado" — tem que ser literal, é o argumento do produto).
+ */
+export function useApp(opts?: { efemera?: boolean }) {
+  const efemera = opts?.efemera === true;
   const [estado, dispatch] = useReducer(
     reducer,
     undefined,
     () =>
       blindar({
         ...estadoInicial,
-        ...sanearEstado(lerLS<unknown>(LS_ESTADO)),
+        ...(efemera ? {} : sanearEstado(lerLS<unknown>(LS_ESTADO))),
         aba: 'simular' as const,
       }),
   );
@@ -311,9 +325,10 @@ export function useApp() {
   // persistência com debounce: o slider dispara dezenas de estados por
   // segundo e gravar JSON síncrono a cada tick é trabalho jogado fora
   useEffect(() => {
+    if (efemera) return; // sessão de link: nada toca o armazenamento
     const t = setTimeout(() => gravarLS(LS_ESTADO, estado), 250);
     return () => clearTimeout(t);
-  }, [estado]);
+  }, [estado, efemera]);
 
   // recalcula SÓ quando um parâmetro financeiro muda — trocar aba ou
   // modo não deve reexecutar a busca binária de equilíbrio (71 simulações)

@@ -3,9 +3,10 @@ import { MACRO, REFORMA, projetarReforma, simularPJ, TETO_SIMPLES } from '@godri
 import type { Dispatch } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import type { Acao, Derivado, Estado } from '../state';
-import { n0, n2, parseNum, reais } from '../lib/format';
+import { n0, n2, reais } from '../lib/format';
 import { AnosPJ, Barras } from './charts';
 import { Icone } from './icones';
+import { CampoNum } from './CampoNum';
 
 /** Janela de opção do Simples pelo regime regular de IBS/CBS. */
 const PRAZO_HIBRIDO = new Date('2026-09-30T23:59:59-03:00');
@@ -70,29 +71,7 @@ export function PJ({
         ? 'comprar'
         : 'financiar';
 
-  const campo = (
-    rotulo: string,
-    valor: number,
-    nome: 'faturamentoAnual' | 'margemPct',
-    prefixo?: string,
-    sufixo?: string,
-  ) => (
-    <label className="f">
-      <span>{rotulo}</span>
-      <span className="pre">
-        {prefixo ? <u>{prefixo}</u> : null}
-        <input
-          className="inp"
-          inputMode="numeric"
-          style={prefixo ? undefined : { paddingLeft: 13 }}
-          key={`${nome}:${valor}`}
-          defaultValue={valor.toLocaleString('pt-BR')}
-          onBlur={(e) => dispatch({ t: 'set', campo: nome, valor: parseNum(e.target.value) })}
-        />
-        {sufixo ? <span className="suf">{sufixo}</span> : null}
-      </span>
-    </label>
-  );
+
 
   return (
     <>
@@ -138,8 +117,22 @@ export function PJ({
               ))}
             </select>
           </label>
-          {campo('Faturamento anual', estado.faturamentoAnual, 'faturamentoAnual', 'R$')}
-          {campo('Margem de lucro', estado.margemPct, 'margemPct', undefined, '%')}
+          <CampoNum
+            rotulo="Faturamento anual"
+            valor={estado.faturamentoAnual}
+            campo="faturamentoAnual"
+            dispatch={dispatch}
+            prefixo="R$"
+            hint="Receita bruta da empresa em 12 meses."
+          />
+          <CampoNum
+            rotulo="Margem de lucro"
+            valor={estado.margemPct}
+            campo="margemPct"
+            dispatch={dispatch}
+            sufixo="%"
+            hint="Lucro antes do IRPJ/CSLL, como % do faturamento."
+          />
         </div>
 
         {estado.regime === 'simples' ? (
@@ -259,7 +252,19 @@ export function PJ({
             </p>
           </div>
         </>
-      ) : null}
+      ) : (
+        /* Sem crédito nem dedução neste recorte (ex.: Presumido começando em
+           2026, Simples sem a opção) — o argumento não morre, muda de base */
+        <div className="note rise">
+          <b>Sem benefício fiscal neste cenário</b> — em {estado.anoInicio},{' '}
+          {estado.regime === 'simples'
+            ? 'o Simples fora do regime regular não credita IBS/CBS'
+            : 'a locação ainda não gera crédito (2026 é ano-teste)'}
+          . A comparação da aba Resultado continua valendo integralmente: mesmo sem crédito,
+          a assinatura elimina entrada, revenda e risco de depreciação — e a parcela é 100%
+          previsível para o caixa da empresa.
+        </div>
+      )}
 
       {/* ── projeção até 2033 ── */}
       <div className="card raised rise">

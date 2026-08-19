@@ -3,6 +3,7 @@
  * Uma página A4, limpa, com a marca: veredito, o que está incluído,
  * comparação e premissas. Renderiza sempre, aparece só no @media print.
  */
+import { useMemo } from 'react';
 import { UFS, type Veiculo } from '@godrive/engine';
 import type { Derivado, Estado } from '../state';
 import type { Marca } from '../lib/marca';
@@ -20,25 +21,11 @@ export function PropostaPrint({
   marca: Marca;
 }) {
   const { p, r, absorvido, abs } = d;
-  const carro = estado.carroIdx != null ? catalogo[estado.carroIdx] : undefined;
-  const uf = UFS[estado.uf];
-  const hoje = new Date().toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-  const linhas: [string, number][] = [
-    ['Depreciação', abs.depreciacao],
-    ['Seguro', abs.seguro],
-    ['Manutenção e revisões', abs.manut],
-    ['IPVA', abs.ipva],
-    ['Pneus', abs.pneus],
-    ['Licenciamento', abs.lic],
-    ['Emplacamento e documentação', abs.emplacamento],
-  ];
-  return (
-    <div className="print-only" aria-hidden="true">
-      <style>{`
+  /* A folha inteira re-renderiza a cada tecla (ela espelha o estado), mas o
+     <style> só muda quando as CORES mudam — com a string estável, o React
+     não toca o nó e o navegador não re-parseia o CSSOM a cada slider. */
+  const css = useMemo(
+    () => `
         @media print {
           .pp { font-family: var(--sans); color: #121212; }
           .pp header { display: flex; justify-content: space-between; align-items: baseline;
@@ -70,7 +57,29 @@ export function PropostaPrint({
           .pp .pcred { margin-top: 3mm; text-align: right; font-size: 8px; letter-spacing: .04em;
             color: #b4b4b4; }
         }
-      `}</style>
+      `,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [marca.corPrimaria, marca.corDestaque],
+  );
+  const carro = estado.carroIdx != null ? catalogo[estado.carroIdx] : undefined;
+  const uf = UFS[estado.uf];
+  const hoje = new Date().toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+  const linhas: [string, number][] = [
+    ['Depreciação', abs.depreciacao],
+    ['Seguro', abs.seguro],
+    ['Manutenção e revisões', abs.manut],
+    ['IPVA', abs.ipva],
+    ['Pneus', abs.pneus],
+    ['Licenciamento', abs.lic],
+    ['Emplacamento e documentação', abs.emplacamento],
+  ];
+  return (
+    <div className="print-only" aria-hidden="true">
+      <style>{css}</style>
       <div className="pp">
         <header>
           <div className="plogo">

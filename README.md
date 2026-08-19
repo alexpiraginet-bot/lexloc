@@ -6,7 +6,7 @@ locadoras do Brasil, seus vendedores e seus clientes.
 **Assinar × comprar à vista × financiar**, com custo de oportunidade (CDI
 líquido de IR), custos de posse por UF, financiamento Price com IOF, camada
 tributária PJ por regime (reforma 2026–2033), **prova de estresse em 8
-cenários** e white-label completo. 49 testes, paridade golden verificada
+cenários** e white-label completo. 65 testes, paridade golden verificada
 contra o motor original.
 
 ## Publicar
@@ -43,15 +43,17 @@ as telas sumirem do arquivo do vendedor (senão a guarda passaria por vacuidade)
 
 O app hospedado é genérico. Preços e marca de cada locadora viajam no
 **fragmento `#d=` da URL** que o vendedor copia — fragmento não é enviado ao
-servidor (HTTP), nada é armazenado em banco e nada persiste no aparelho do
-cliente. Verificado por E2E.
+servidor por definição do protocolo HTTP. A sessão de link é uma **sala
+limpa**: não lê nem grava nada no aparelho (`useApp({ efemera })`), então
+preços de uma locadora nunca vazam para o link de outra. O parse do fragmento
+e a sanitização das chaves têm testes próprios em `packages/web/test`.
 
 ## Desenvolvimento
 
 ```bash
-npm install && npm test    # 38 testes do motor + 11 da API
+npm install && npm test    # 42 do motor + 11 da API + 12 do web (fronteira do corte)
 npm run typecheck          # TS estrito nos três pacotes
-npm run publicar           # três builds + guarda do corte + site/
+npm run publicar           # builds + guarda do corte (site/ e dist/) em um comando
 ```
 
 Monorepo: `packages/engine` (cálculo puro, zero deps) · `packages/api`

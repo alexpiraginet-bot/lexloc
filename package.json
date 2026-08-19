@@ -13,7 +13,7 @@
     "packages/web"
   ],
   "scripts": {
-    "test": "npm run test -w @godrive/engine && npm run test -w @godrive/api",
+    "test": "npm run test -w @godrive/engine && npm run test -w @godrive/api && npm run test -w @godrive/web",
     "build": "npm run build -w @godrive/engine && npm run build -w @godrive/api && npm run build -w @godrive/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "dev:api": "npm run dev -w @godrive/api",

@@ -1,26 +1,12 @@
 /** Aba Simular: carro, plano, onde roda, premissas — e a retaguarda (vendedor). */
 import { CATEGORIAS, DEPREC, UFS, type Veiculo } from '@godrive/engine';
-import { useRef, type Dispatch } from 'react';
+import type { Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
-import { n2, parseNum, reais, reais2 } from '../lib/format';
-import {
-  catalogoEfetivo,
-  exportarArquivo,
-  gravarCustom,
-  importarArquivo,
-  lerCustom,
-  limparCustom,
-} from '../lib/catalogo';
-import {
-  gravarMarca,
-  lerLogoDeArquivo,
-  lerMarca,
-  limparMarca,
-  MARCA_PADRAO,
-  type Marca,
-} from '../lib/marca';
+import { n2, reais, reais2 } from '../lib/format';
+import type { Marca } from '../lib/marca';
 import { Silhueta, Icone } from './icones';
 import { Retaguarda } from '@vendedor';
+import { CampoNum } from './CampoNum';
 
 const CAT_CURTO: Record<string, string> = {
   popular: 'Popular',
@@ -36,55 +22,6 @@ const ORIGEM: Record<string, [string, string]> = {
   mer: ['praticada no mercado para este modelo', 'v'],
   est: ['estimada a partir das mensalidades publicadas', 'o'],
 };
-
-function CampoNum({
-  rotulo,
-  valor,
-  campo,
-  dispatch,
-  prefixo,
-  casas = 0,
-  hint,
-}: {
-  rotulo: string;
-  valor: number;
-  campo: keyof Estado;
-  dispatch: Dispatch<Acao>;
-  prefixo?: string;
-  casas?: number;
-  hint?: string;
-}) {
-  const fmt = casas
-    ? valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })
-    : valor.toLocaleString('pt-BR');
-  const inp = (
-    <input
-      className="inp"
-      inputMode="decimal"
-      defaultValue={fmt}
-      key={`${String(campo)}:${fmt}`}
-      aria-label={rotulo}
-      onBlur={(e) => dispatch({ t: 'set', campo, valor: parseNum(e.target.value) })}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-      }}
-    />
-  );
-  return (
-    <label className="f">
-      <span>{rotulo}</span>
-      {prefixo ? (
-        <span className="pre">
-          <u>{prefixo}</u>
-          {inp}
-        </span>
-      ) : (
-        inp
-      )}
-      {hint ? <span className="hint">{hint}</span> : null}
-    </label>
-  );
-}
 
 export function Simulador({
   estado,

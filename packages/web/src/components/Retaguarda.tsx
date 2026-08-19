@@ -6,12 +6,11 @@
  * chega ao arquivo que o cliente recebe — nem o código, nem os textos.
  * A guarda em scripts/publicar.mjs falha o build se isso deixar de valer.
  */
-import { CATEGORIAS, DEPREC, type Veiculo } from '@godrive/engine';
-import { useRef, type Dispatch } from 'react';
+import { CATEGORIAS, type Veiculo } from '@godrive/engine';
+import { useRef, useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
-import { n2, parseNum, reais, reais2 } from '../lib/format';
+import { parseNum } from '../lib/format';
 import {
-  catalogoEfetivo,
   exportarArquivo,
   gravarCustom,
   importarArquivo,
@@ -82,7 +81,27 @@ export function Retaguarda({
 }) {
   const arquivoRef = useRef<HTMLInputElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
+  // o corpo (118 inputs) só monta depois do primeiro toque no <details> —
+  // custo pago quando o vendedor abre, não na primeira pintura do app
+  const [aberta, setAberta] = useState(false);
   const bump = () => dispatch({ t: 'set', campo: 'catVersao', valor: estado.catVersao + 1 });
+  const bumpMarca = () =>
+    dispatch({ t: 'set', campo: 'marcaVersao', valor: estado.marcaVersao + 1 });
+
+  /**
+   * Toda gravação de marca parte do que está ARMAZENADO, nunca da prop
+   * `marca` — a prop pode carregar sobreposições de um link mágico aberto
+   * para conferência, e salvá-las tornaria permanente a marca de OUTRA
+   * locadora. E quando o armazenamento recusa (quota, aba privada), o aviso
+   * diz a verdade em vez de comemorar.
+   */
+  const gravarMarcaHonesto = (transformar: (base: Marca) => Marca, okMsg: string) => {
+    if (!gravarMarca(transformar(lerMarca()))) {
+      return avisar('Não deu para salvar neste aparelho — armazenamento cheio ou bloqueado.');
+    }
+    bumpMarca();
+    if (okMsg) avisar(okMsg);
+  };
 
   const salvarPreco = (nome: string, campo: 'p' | 'm', valor: number) => {
     if (!(valor > 0)) return;
@@ -113,7 +132,7 @@ export function Retaguarda({
       e: CATEGORIAS[c]?.kml ?? CATEGORIAS[c]?.kwh100 ?? 12,
       d: 'Adicionado pela equipe',
     });
-    gravarCustom(custom);
+    if (!gravarCustom(custom)) return avisar('Sem armazenamento — não deu para adicionar.');
     form.reset();
     bump();
     avisar(`${nome} entrou no catálogo.`);
@@ -135,7 +154,7 @@ export function Retaguarda({
     leitor.onload = () => {
       const r = importarArquivo(String(leitor.result ?? ''));
       if (typeof r === 'string') return avisar(r);
-      gravarCustom(r);
+      if (!gravarCustom(r)) return avisar('Sem armazenamento — a importação não foi salva.');
       bump();
       avisar('Tabela importada. Preços atualizados.');
     };
@@ -143,16 +162,16 @@ export function Retaguarda({
   };
 
   const salvarMarca = (campo: keyof Marca, valor: string) => {
-    gravarMarca({ ...marca, [campo]: valor });
-    bump();
+    gravarMarcaHonesto((base) => ({ ...base, [campo]: valor }), '');
   };
 
   return (
-    <details className="rise" data-vend>
+    <details className="rise" data-vend onToggle={(e) => e.currentTarget.open && setAberta(true)}>
       <summary>
         Retaguarda — preços reais e a sua marca
         <Icone nome="seta" className="ch" />
       </summary>
+      {!aberta ? null : (
       <div className="body">
         <p className="hint" style={{ marginTop: 0 }}>
           Tudo aqui fica <b>neste aparelho</b>. Exporte para levar a tabela atualizada à equipe;
@@ -224,7 +243,9 @@ export function Retaguarda({
           <div>
             <b style={{ fontSize: 13.5 }}>Logo da sua empresa</b>
             <p className="hint" style={{ margin: '2px 0 8px' }}>
-              PNG, JPG, WEBP ou SVG até 120 KB. Aparece no topo do app e no PDF da proposta.
+              PNG, JPG, WEBP ou SVG até 120 KB. Aparece no topo do app, no PDF da proposta e
+              no arquivo off-line. <b>No link mágico vão o nome, as cores e o slogan</b> — a
+              imagem é pesada demais para viajar numa URL.
             </p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
@@ -238,12 +259,12 @@ export function Retaguarda({
                 <button
                   type="button"
                   className="btn btn-d sm"
-                  onClick={() => {
-                    const { logo: _descartado, ...semLogo } = marca;
-                    gravarMarca(semLogo as Marca);
-                    bump();
-                    avisar('Logo removida.');
-                  }}
+                  onClick={() =>
+                    gravarMarcaHonesto((base) => {
+                      const { logo: _descartada, ...semLogo } = base;
+                      return semLogo as Marca;
+                    }, 'Logo removida.')
+                  }
                 >
                   Remover
                 </button>
@@ -260,9 +281,10 @@ export function Retaguarda({
                 if (!f) return;
                 try {
                   const dataUri = await lerLogoDeArquivo(f);
-                  gravarMarca({ ...marca, logo: dataUri });
-                  bump();
-                  avisar('Logo aplicada — já vale no app e no PDF.');
+                  gravarMarcaHonesto(
+                    (base) => ({ ...base, logo: dataUri }),
+                    'Logo aplicada — vale no app, no PDF e no arquivo off-line.',
+                  );
                 } catch (erro) {
                   avisar(erro instanceof Error ? erro.message : 'Não consegui usar essa imagem.');
                 }
@@ -331,6 +353,7 @@ export function Retaguarda({
               limparCustom();
               limparMarca();
               bump();
+              bumpMarca();
               avisar('Retaguarda restaurada ao padrão.');
             }}
           >
@@ -349,6 +372,7 @@ export function Retaguarda({
           }}
         />
       </div>
+      )}
     </details>
   );
 }

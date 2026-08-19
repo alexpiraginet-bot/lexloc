@@ -199,28 +199,6 @@ a.sr:focus {
   color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
-.iconbtn {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line);
-  background: var(--paper);
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  transition: 0.16s var(--e-out);
-  color: var(--ink-2);
-}
-.iconbtn:hover { background: var(--surface); }
-.iconbtn svg {
-  width: 19px;
-  height: 19px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 /* ───── Tabs ───── */
 .tabs {
@@ -1070,7 +1048,6 @@ details > .body { padding: 15px 16px 16px; }
 }
 .print-only { display: none; }
 
-@media print { .pp .pcolab { margin-top:3mm; font-size:8px; color:#9a9a9a; letter-spacing:.06em; } }
 
 /* ───── upload de logo na retaguarda ───── */
 .ret-logo { display:grid; grid-template-columns:auto minmax(0,1fr); gap:14px; align-items:center;

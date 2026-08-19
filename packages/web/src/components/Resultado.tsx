@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { INCLUSO, VANTAGENS, FAQ } from '@godrive/engine';
-import type { Derivado, Estado, Modo } from '../state';
+import { PERFIL, type Derivado, type Modo } from '../state';
 import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
 import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
@@ -49,21 +49,18 @@ function Contador({ valor, formato = reais }: { valor: number; formato?: (v: num
 }
 
 export function Resultado({
-  estado,
   d,
   modo,
 }: {
-  estado: Estado;
   d: Derivado;
   modo: Modo;
 }) {
   const { p, r, equilibrio, absorvido, abs } = d;
-  // No build do CLIENTE isto é dobrado para `true` em tempo de compilação —
-  // e com isso todos os blocos `!cli` deste arquivo (mensalidade de empate,
+  // No build do CLIENTE, PERFIL é a constante 'cliente' dobrada em compilação
+  // — e com isso todos os blocos `!cli` deste arquivo (mensalidade de empate,
   // medidor de negociação, tabelas da equipe) saem do bundle, não ficam
   // escondidos. No build do vendedor continua sendo o botão Cliente/Vendedor.
-  const cli =
-    (typeof __PERFIL__ !== 'undefined' && __PERFIL__ === 'cliente') || modo === 'cliente';
+  const cli = PERFIL === 'cliente' || modo === 'cliente';
   const assinaVence = d.vencedor === 'assinar';
   const gapAss = r.assinar.custo - r.aVista.custo;
   const deprec = p.preco - r.residual;

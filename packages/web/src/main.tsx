@@ -13,36 +13,46 @@ import './theme.css';
  * continuam livres (distribuição por WhatsApp é recurso do produto).
  */
 (() => {
+  /*
+   * 1) Checagem de hospedeiro — roda PRIMEIRO e num try próprio: o
+   *    anti-iframe abaixo pode lançar em sandbox, e antes ele engolia esta
+   *    checagem junto (clone dentro de iframe = banner nenhum).
+   * 2) A lista não usa mais *.vercel.app inteiro: qualquer pessoa registra
+   *    um subdomínio lá de graça. Vale o projeto oficial e seus previews.
+   */
   try {
-    // anti-iframe: ninguém embute a calculadora no site alheio
-    if (window.top !== window.self) {
-      window.top!.location.href = window.location.href;
-      return;
-    }
     const { protocol, hostname } = window.location;
-    if (!protocol.startsWith('http')) return; // file:// = uso legítimo off-line
-    const ok =
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname === 'uselexgo.com' ||
-      hostname.endsWith('.uselexgo.com') ||
-      hostname.endsWith('.vercel.app') ||
-      hostname.endsWith('.claude.ai') ||
-      hostname.endsWith('.claudeusercontent.com');
-    if (ok) return;
-    document.addEventListener('DOMContentLoaded', () => {
-      const aviso = document.createElement('div');
-      aviso.setAttribute('role', 'alert');
-      aviso.style.cssText =
-        'position:fixed;inset:auto 0 0 0;z-index:99999;background:#6b1f73;color:#fff;' +
-        'padding:12px 16px;font:600 13px/1.5 system-ui,sans-serif;text-align:center';
-      aviso.innerHTML =
-        'Cópia não autorizada — a calculadora oficial e gratuita está em ' +
-        '<a href="https://uselexgo.com/locadoras" style="color:#d9b76b">uselexgo.com/locadoras</a>';
-      document.body.appendChild(aviso);
-    });
+    if (protocol.startsWith('http')) {
+      const ok =
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === 'uselexgo.com' ||
+        hostname.endsWith('.uselexgo.com') ||
+        hostname === 'godrive-plataforma-comercial.vercel.app' ||
+        hostname.startsWith('godrive-plataforma-comercial-');
+      if (!ok) {
+        document.addEventListener('DOMContentLoaded', () => {
+          const aviso = document.createElement('div');
+          aviso.setAttribute('role', 'alert');
+          aviso.style.cssText =
+            'position:fixed;inset:auto 0 0 0;z-index:99999;background:#6b1f73;color:#fff;' +
+            'padding:12px 16px;font:600 13px/1.5 system-ui,sans-serif;text-align:center';
+          aviso.innerHTML =
+            'Cópia não autorizada — a calculadora oficial e gratuita está em ' +
+            '<a href="https://uselexgo.com/locadoras" style="color:#d9b76b">uselexgo.com/locadoras</a>';
+          document.body.appendChild(aviso);
+        });
+      }
+    }
   } catch {
-    /* nunca derrubar o app por causa da trava */
+    /* nunca derrubar o app pela trava */
+  }
+
+  // anti-iframe em try separado: lançar aqui não pode calar o banner acima
+  try {
+    if (window.top !== window.self) window.top!.location.replace(window.location.href);
+  } catch {
+    /* sandbox sem permissão de navegação — o banner acima já fez o papel */
   }
 })();
 

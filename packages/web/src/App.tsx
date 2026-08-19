@@ -2,12 +2,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PERFIL, useApp } from './state';
 import { reais } from './lib/format';
-import { catalogoEfetivo, lerCustom } from './lib/catalogo';
-import { aplicarMarca, lerMarca } from './lib/marca';
+import { catalogoEfetivo, lerCustom, vazio } from './lib/catalogo';
+import { aplicarMarca, lerMarca, MARCA_PADRAO } from './lib/marca';
 import { lerLink } from './lib/link';
 
-// dados vindos pelo link mágico (#d=...) — lidos uma vez, nunca persistidos:
-// a marca/preços de uma locadora valem só nesta visita, neste aparelho
+/*
+ * Dados vindos pelo link mágico (#d=...) — a sessão de link é uma SALA LIMPA:
+ * não lê nada do aparelho (senão preços e marca de uma locadora vazariam para
+ * o link de outra) e não grava nada (useApp({ efemera }) desliga a
+ * persistência). "Vale só nesta visita" é literal, e é o argumento do produto.
+ */
 const LINK = typeof window !== 'undefined' ? lerLink() : null;
 import { Simulador } from './components/Simulador';
 import { Resultado } from './components/Resultado';
@@ -24,7 +28,7 @@ const ABAS = [
 ];
 
 export default function App() {
-  const { estado, dispatch, derivado } = useApp();
+  const { estado, dispatch, derivado } = useApp({ efemera: LINK != null });
   const [toast, setToast] = useState('');
   const toastT = useRef<ReturnType<typeof setTimeout> | null>(null);
   const avisar = useCallback((msg: string) => {
@@ -33,10 +37,17 @@ export default function App() {
     toastT.current = setTimeout(() => setToast(''), 3400);
   }, []);
 
-  // catálogo efetivo (referência + retaguarda) e marca white-label;
-  // o link mágico sobrepõe a marca SÓ nesta sessão (nada é gravado)
-  const catalogo = useMemo(() => catalogoEfetivo(lerCustom()), [estado.catVersao]);
-  const marca = useMemo(() => ({ ...lerMarca(), ...(LINK?.marca ?? {}) }), [estado.catVersao]);
+  // catálogo efetivo (referência + retaguarda) e marca white-label.
+  // Na sessão de link, ambos partem do PADRÃO + o que veio no link — nunca
+  // do que está gravado neste aparelho, que pode ser de outra locadora.
+  const catalogo = useMemo(
+    () => catalogoEfetivo(LINK ? vazio() : lerCustom()),
+    [estado.catVersao],
+  );
+  const marca = useMemo(
+    () => (LINK ? { ...MARCA_PADRAO, ...LINK.marca } : lerMarca()),
+    [estado.marcaVersao],
+  );
 
   // simulação vinda pelo link: aplica uma única vez, depois da montagem
   const linkAplicado = useRef(false);
@@ -192,7 +203,7 @@ export default function App() {
         {estado.aba === 'resultado' ? (
           <div className="panel">
             {derivado ? (
-              <Resultado estado={estado} d={derivado} modo={estado.modo} />
+              <Resultado d={derivado} modo={estado.modo} />
             ) : (
               <div className="empty">
                 <h4>Preencha a simulação</h4>
