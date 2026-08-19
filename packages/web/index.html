@@ -10,6 +10,34 @@
       name="description"
       content="Compare assinatura, compra à vista e financiamento de veículo no Brasil — com todos os custos, impostos e o rendimento do dinheiro investido. Funciona off-line."
     />
+    <!--
+      Prévia de link (Open Graph) — é isto que o WhatsApp mostra quando o
+      vendedor manda o link mágico.
+
+      Sem estas tags o cartão saía só com o <title> e a description, sem
+      imagem nenhuma. A URL da imagem tem de ser ABSOLUTA: o rastreador não
+      resolve caminho relativo e não lê data URI. Ela mora em site/og.jpg,
+      fora do HTML, então não pesa no arquivo off-line.
+
+      Cuidado ao trocar a arte: o WhatsApp guarda a prévia por URL. Imagem
+      nova precisa de NOME novo (og-2.jpg), senão os links já enviados
+      continuam mostrando a antiga.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LexGo" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:url" content="https://www.uselexgo.com/app.html" />
+    <meta property="og:title" content="LexGo · Assinar ou comprar?" />
+    <meta
+      property="og:description"
+      content="A conta completa em segundos: assinatura, compra à vista e financiamento com todos os custos. Grátis, sem cadastro, funciona off-line."
+    />
+    <meta property="og:image" content="https://www.uselexgo.com/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="LexGo — assinar, comprar à vista ou financiar, com o custo total de cada caminho" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%23892991'/><circle cx='16' cy='16' r='6' fill='%23F19D38'/></svg>"
