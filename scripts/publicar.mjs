@@ -9,13 +9,35 @@
  * Rode `node scripts/publicar.mjs` depois de qualquer mudança no app.
  */
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const web = join(raiz, 'packages', 'web');
 const site = join(raiz, 'site');
+
+/*
+ * O gêmeo HOSPEDADO da equipe. Existe porque no iPhone o Quick Look não
+ * executa JS: o arquivo local abre em branco na mão do vendedor, e ele
+ * precisa de uma URL que funcione.
+ *
+ * O NOME É PROPOSITALMENTE IMPRONUNCIÁVEL, e isso não é enfeite. Este build
+ * carrega o Copiloto de negociação, a prova de estresse e a retaguarda — o
+ * método de venda inteiro. Servido em '/equipe.html' ele estava a um palpite
+ * de distância de qualquer cliente que recebesse o link mágico e resolvesse
+ * mexer no endereço. Com 64 bits de sufixo, deixa de ser palpite.
+ *
+ * O QUE ISTO NÃO RESOLVE: o repositório é público, e `site/` é versionado.
+ * Quem chega pelo GitHub lê o mesmo conteúdo em `lexgo-vendedor.html` e no
+ * fonte de `negociacao.ts`. Isto fecha a porta da frente — a do cliente
+ * curioso —, não a do competidor que procura. Fechar a outra é decisão de
+ * visibilidade do repositório, não de nome de arquivo.
+ *
+ * Para rodar o endereço: troque o sufixo, publique, avise a equipe. O antigo
+ * deixa de existir na hora.
+ */
+const GEMEO_DA_EQUIPE = 'equipe-db09ddc3f2b4f45c.html';
 
 const ALVOS = [
   {
@@ -31,11 +53,7 @@ const ALVOS = [
     rot: 'vendedor (off-line)',
     env: { OFFLINE: '1', PERFIL: 'vendedor' },
     de: 'dist-offline-vendedor/index.html',
-    // 'equipe.html' é o gêmeo HOSPEDADO: no iPhone o Quick Look não executa
-    // JS, então o arquivo local abre em branco na mão do vendedor. O que
-    // fica exposto é só a casca — preços, propostas e marca vivem no
-    // localStorage do aparelho dele, nunca no servidor.
-    para: ['lexgo-vendedor.html', 'equipe.html'],
+    para: ['lexgo-vendedor.html', GEMEO_DA_EQUIPE],
   },
 ];
 
@@ -164,8 +182,66 @@ if (miolonSumiu.length) {
   console.error('  a guarda de conteúdo ficaria vazia — atualize a lista.');
   process.exit(1);
 }
+
+/*
+ * O nome do gêmeo tem de continuar impronunciável. Sem isto, alguém
+ * "arruma" o nome para algo legível numa refatoração e a porta da frente
+ * reabre em silêncio, com todos os outros testes passando.
+ */
+if (!/^equipe-[0-9a-f]{16}\.html$/.test(GEMEO_DA_EQUIPE)) {
+  console.error(`\n✗ GEMEO_DA_EQUIPE = '${GEMEO_DA_EQUIPE}' — nome adivinhável.`);
+  console.error('  o gêmeo carrega o Copiloto e a retaguarda; precisa de sufixo de 16 hex.');
+  process.exit(1);
+}
+
+/*
+ * E o robots.txt NÃO pode citá-lo. Parece contraintuitivo, mas `Disallow:`
+ * é um anúncio: o arquivo é público por definição, então listar o caminho
+ * ali entrega exatamente o que se queria esconder. Quem lê robots.txt
+ * primeiro é justamente quem está procurando o que não deveria achar.
+ * Para não indexar, o certo é o cabeçalho noindex do vercel.json.
+ */
+const robots = join(site, 'robots.txt');
+if (existsSync(robots) && readFileSync(robots, 'utf8').includes('equipe')) {
+  console.error('\n✗ site/robots.txt cita o gêmeo da equipe — isso publica o caminho.');
+  console.error('  tire a linha; o noindex vive no vercel.json.');
+  process.exit(1);
+}
+
+/*
+ * O gêmeo e o arquivo da equipe saem com noindex NO PRÓPRIO HTML, e não só
+ * no cabeçalho do vercel.json. Motivo: o catch-all '/(.*)' de lá também
+ * escreve X-Robots-Tag, e a regra de precedência entre os dois é do Vercel,
+ * não nossa — se um dia ela mudar, o cabeçalho some sem avisar. A meta tag
+ * viaja dentro do arquivo e não depende de configuração de servidor.
+ */
+const NOINDEX = '<meta name="robots" content="noindex, nofollow, noarchive" />';
+
 /* passou em tudo: agora sim o site/ pode ser tocado */
 for (const { alvo, origem } of construidos) {
-  for (const nome of alvo.para) copyFileSync(origem, join(site, nome));
+  const daEquipe = alvo.env.PERFIL === 'vendedor';
+  for (const nome of alvo.para) {
+    const destino = join(site, nome);
+    if (!daEquipe) {
+      copyFileSync(origem, destino);
+      continue;
+    }
+    const html = readFileSync(origem, 'utf8');
+    if (!html.includes('<head>')) throw new Error(`sem <head> para marcar noindex: ${nome}`);
+    writeFileSync(destino, html.replace('<head>', `<head>${NOINDEX}`));
+  }
 }
+
+/*
+ * Varre gêmeos de endereços antigos. Sem isto, trocar o sufixo publicaria o
+ * novo e deixaria o velho servindo do mesmo jeito — a troca não trocaria nada.
+ */
+for (const nome of readdirSync(site)) {
+  if (/^equipe[-.]/.test(nome) && nome !== GEMEO_DA_EQUIPE) {
+    unlinkSync(join(site, nome));
+    console.log(`· endereço antigo removido: ${nome}`);
+  }
+}
+
 console.log('\n✓ site/ pronto — o corte por build está de pé nos dois sentidos.');
+console.log(`· gêmeo da equipe: /${GEMEO_DA_EQUIPE}`);
