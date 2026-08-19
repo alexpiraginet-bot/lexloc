@@ -1,22 +1,30 @@
 /**
  * A HISTÓRIA — a sequência animada no fim do resultado, para o CLIENTE.
  *
- * Não é vídeo, e isso é uma escolha, não uma limitação: um MP4 de 30 s são
- * megabytes, e este app tem 333 KB e abre sem internet. Aqui a arte é
- * estática (54 KB no total) e o movimento é CSS — com a vantagem decisiva
- * de cada quadro mostrar o número REAL desta simulação. O cliente não vê
- * uma propaganda genérica: vê a conta dele virando história.
+ * Não é vídeo, e isso é escolha: um MP4 de 30 s são megabytes, e este app
+ * tem 333 KB e abre sem internet. A arte é estática (54 KB) e o movimento
+ * é CSS — com a vantagem de cada quadro mostrar o número REAL da simulação.
  *
- * Formato de stories porque é o que qualquer pessoa já sabe usar no
- * celular: avança sozinho, toca para pular, barra de progresso no topo.
+ * ORDEM (auditada): custo total → oficina → depreciação → mensalidade →
+ * a objeção → o fecho. O concreto (pneu, freio) vem antes do abstrato
+ * (depreciação) porque concreto ensina abstrato, nunca o contrário. E os
+ * três primeiros SOBEM em valor, para o argumento não perder fôlego.
+ *
+ * O quadro 5 existe porque a sequência antiga levantava a objeção
+ * brasileira — "e no fim não fica nada pra mim" — e ia embora sem
+ * responder. Ele concede antes de rebater; é o que torna crível.
+ *
+ * O quadro 6 se adapta ao VEREDITO. Se a compra vencer no dinheiro, ele
+ * diz isso em voz alta em vez de repetir o discurso pró-assinatura: uma
+ * calculadora que sempre termina na mesma história é peça de venda de
+ * jaleco, e a primeira pessoa que perceber publica.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { Derivado } from '../state';
+import type { Marca } from '../lib/marca';
 import { reais } from '../lib/format';
 import { QUADROS_HISTORIA } from '../historia/quadros';
-
-/** tempo de cada quadro — leitura confortável sem virar espera */
-const DURACAO = 4200;
+import { Icone } from './icones';
 
 interface Quadro {
   arte: string;
@@ -24,64 +32,112 @@ interface Quadro {
   titulo: string;
   valor?: number;
   texto: string;
+  /** ms deste quadro; 0 = não avança sozinho (só o último) */
+  dura: number;
 }
 
-function montar(d: Derivado): Quadro[] {
+/**
+ * Tempo de leitura: ~180 palavras/minuto, que é confortável no celular.
+ * A auditoria mediu a versão anterior em 25 s para um texto que pedia 71 s —
+ * ninguém terminava um parágrafo. Agora o texto encurtou e o tempo subiu.
+ */
+const PADRAO = 6500;
+const LONGO = 7500;
+
+function montar(d: Derivado, meses: number): Quadro[] {
   const { p, r, absorvido, abs } = d;
   const oficina = abs.manut + abs.pneus;
+  const assinaVence = d.vencedor === 'assinar';
+  // com quem comparar no fecho: quem não tem o valor à vista está decidindo
+  // contra o financiamento, e aí "dinheiro parado" não diz nada a ele
+  const gapFin = r.financiar.custo - r.assinar.custo;
+
   return [
     {
       arte: QUADROS_HISTORIA['1-hoje']!,
       olho: 'ter um carro hoje',
       titulo: 'Não é só a parcela',
       valor: absorvido,
-      texto: `É o que um carro deste valor consome em ${p.meses} meses além de andar: imposto, seguro, oficina, pneu, documentação.`,
-    },
-    {
-      arte: QUADROS_HISTORIA['2-desvaloriza']!,
-      olho: 'a conta invisível',
-      titulo: 'O carro cai de preço todo mês',
-      valor: abs.depreciacao,
-      texto: 'A desvalorização não chega por boleto — ela aparece de uma vez, no dia em que você vai vender.',
+      // a 2ª frase evita a aparência de dupla contagem: os dois quadros
+      // seguintes são PARTES deste número, não golpes novos
+      texto: `Tudo que um carro assim consome em ${meses} meses, além de andar. Duas partes você nunca somou.`,
+      dura: LONGO,
     },
     {
       arte: QUADROS_HISTORIA['3-oficina']!,
       olho: 'o que não avisa',
       titulo: 'Oficina não marca hora',
       valor: oficina,
-      texto: 'Revisão, pneu, freio, suspensão. Some ao seguro e ao IPVA e você tem a conta que ninguém coloca na planilha.',
+      // assume que o número é o menor e transforma isso no argumento
+      texto: 'Revisão, pneu, freio, suspensão. Não é o maior valor da conta — é o que chega sem avisar.',
+      dura: PADRAO,
+    },
+    {
+      arte: QUADROS_HISTORIA['2-desvaloriza']!,
+      olho: 'a conta invisível',
+      titulo: 'O carro cai de preço todo mês',
+      valor: abs.depreciacao,
+      texto: 'Não chega por boleto. Aparece de uma vez, no dia em que você vai vender.',
+      dura: PADRAO,
     },
     {
       arte: QUADROS_HISTORIA['4-parcela']!,
       olho: 'assinando',
       titulo: 'Uma parcela e acabou',
       valor: p.mensalidade,
-      texto: 'Tudo aquilo cabe aqui dentro, com entrada zero. O mês fica previsível — e janeiro deixa de doer.',
+      // sem "entrada zero": é promessa comercial, e a condição real é do
+      // contrato de cada locadora — não da calculadora
+      texto: 'Tudo aquilo cabe aqui dentro. O mês fica previsível — e janeiro deixa de doer.',
+      dura: PADRAO,
     },
     {
       arte: QUADROS_HISTORIA['5-chave']!,
-      olho: 'no fim do contrato',
-      titulo: 'Você devolve a chave',
-      texto: 'Sem anúncio, sem visita, sem vistoria, sem negociar preço com estranho. O risco da revenda não é seu.',
+      olho: 'a pergunta de sempre',
+      titulo: 'Fica alguma coisa pra você?',
+      texto: `Fica um carro com ${meses} meses de uso, que ainda precisa ser vendido. Assinando, você devolve a chave.`,
+      dura: LONGO,
     },
-    {
-      arte: QUADROS_HISTORIA['6-livre']!,
-      olho: 'o que sobra',
-      titulo: 'Esse dinheiro continua seu',
-      valor: absorvido,
-      texto: `É quanto a assinatura absorve em ${p.meses} meses. Enquanto isso, ${reais(r.aVista.desembolso)} não precisam ficar parados num carro.`,
-    },
+    assinaVence
+      ? {
+          arte: QUADROS_HISTORIA['6-livre']!,
+          olho: 'a escolha é sua',
+          titulo: 'Esse dinheiro continua seu',
+          valor: r.aVista.desembolso,
+          texto: `A assinatura absorve os mesmos ${reais(absorvido)}. E isso não fica parado num carro.`,
+          dura: 0,
+        }
+      : {
+          // o veredito não deu assinar: dizer isso em voz alta é o que
+          // sustenta a credibilidade do resto da conta
+          arte: QUADROS_HISTORIA['6-livre']!,
+          olho: 'a escolha é sua',
+          titulo: 'No dinheiro puro, comprar vence',
+          valor: Math.abs(gapFin),
+          texto:
+            gapFin > 0
+              ? 'Contra o financiamento, assinar ainda sai à frente — e sem entrada, sem revenda e sem risco.'
+              : 'Mas exige o valor à vista e a revenda no fim. O que a assinatura entrega é previsão, não lucro.',
+          dura: 0,
+        },
   ];
 }
 
-export function Historia({ d }: { d: Derivado }) {
+export function Historia({
+  d,
+  marca,
+  aoRefazer,
+}: {
+  d: Derivado;
+  marca: Marca;
+  aoRefazer: () => void;
+}) {
   const [i, setI] = useState(0);
   const [rodando, setRodando] = useState(true);
-  const quadros = montar(d);
+  const quadros = montar(d, d.p.meses);
   const total = quadros.length;
   const q = quadros[i]!;
+  const ultimo = i === total - 1;
 
-  // respeita quem pediu menos movimento: sem avanço automático
   const semMovimento = useRef(false);
   useEffect(() => {
     semMovimento.current =
@@ -90,15 +146,20 @@ export function Historia({ d }: { d: Derivado }) {
   }, []);
 
   useEffect(() => {
-    if (!rodando) return;
-    const t = setTimeout(() => setI((n) => (n + 1) % total), DURACAO);
+    // o último quadro SEGURA: é o instante de maior intenção do funil, e
+    // deixar a sequência sumir joga esse instante fora
+    if (!rodando || q.dura === 0) return;
+    const t = setTimeout(() => setI((n) => Math.min(n + 1, total - 1)), q.dura);
     return () => clearTimeout(t);
-  }, [i, rodando, total]);
+  }, [i, rodando, q.dura, total]);
+
+  const zap = (marca.vendedorFone || marca.whatsapp).replace(/\D/g, '');
+  const quem = marca.vendedorNome.trim();
 
   return (
     <div className="card raised rise hist">
       <div className="hist-barras" role="tablist" aria-label="Capítulos">
-        {quadros.map((_, n) => (
+        {quadros.map((qq, n) => (
           <button
             key={n}
             type="button"
@@ -111,7 +172,7 @@ export function Historia({ d }: { d: Derivado }) {
               setRodando(false);
             }}
           >
-            <i style={{ animationDuration: `${DURACAO}ms` }} />
+            <i style={{ animationDuration: `${qq.dura || 0}ms` }} />
           </button>
         ))}
       </div>
@@ -119,12 +180,12 @@ export function Historia({ d }: { d: Derivado }) {
       <div
         className="hist-palco"
         onClick={() => {
-          setI((n) => (n + 1) % total);
+          if (ultimo) return; // no fecho o toque é dos botões, não do palco
+          setI((n) => Math.min(n + 1, total - 1));
           setRodando(false);
         }}
       >
-        {/* key força o remonte: é o que dispara a animação de entrada */}
-        <img key={q.arte} src={q.arte} alt="" className="hist-arte" />
+        <img key={q.arte + i} src={q.arte} alt="" className="hist-arte" />
         <div key={`t${i}`} className="hist-txt">
           <span className="hist-olho">{q.olho}</span>
           <h4>{q.titulo}</h4>
@@ -133,21 +194,36 @@ export function Historia({ d }: { d: Derivado }) {
         </div>
       </div>
 
-      <div className="hist-pe">
-        <span>
-          {i + 1} de {total}
-        </span>
-        <button
-          type="button"
-          className="lnk"
-          onClick={() => {
-            setI(0);
-            setRodando(true);
-          }}
-        >
-          {i === total - 1 ? 'Ver de novo' : rodando ? 'Pausar e ler' : 'Recomeçar'}
-        </button>
-      </div>
+      {ultimo ? (
+        <div className="hist-fim">
+          {zap ? (
+            <a
+              className="btn btn-x full"
+              href={`https://wa.me/55${zap}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {quem ? `Falar com ${quem.split(' ')[0]}` : 'Falar com a loja'}
+              <Icone nome="seta" />
+            </a>
+          ) : null}
+          {/* o CTA mais barato e o mais honesto: convidar a mudar as
+              premissas logo depois do fecho é a prova viva de imparcialidade */}
+          <button type="button" className="btn btn-s full" onClick={aoRefazer}>
+            Refazer com os meus números
+          </button>
+          <p className="hist-nota">Esta conta é sua. Nada foi enviado.</p>
+        </div>
+      ) : (
+        <div className="hist-pe">
+          <span>
+            {i + 1} de {total}
+          </span>
+          <button type="button" className="lnk" onClick={() => setRodando((r) => !r)}>
+            {rodando ? 'Pausar e ler' : 'Continuar'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

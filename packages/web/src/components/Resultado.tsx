@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { INCLUSO, VANTAGENS, FAQ } from '@godrive/engine';
 import { PERFIL, type Derivado, type Modo } from '../state';
+import type { Marca } from '../lib/marca';
 import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
 import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
@@ -53,9 +54,13 @@ function Contador({ valor, formato = reais }: { valor: number; formato?: (v: num
 export function Resultado({
   d,
   modo,
+  marca,
+  aoRefazer,
 }: {
   d: Derivado;
   modo: Modo;
+  marca: Marca;
+  aoRefazer: () => void;
 }) {
   const { p, r, equilibrio, absorvido, abs } = d;
   // No build do CLIENTE, PERFIL é a constante 'cliente' dobrada em compilação
@@ -405,11 +410,6 @@ export function Resultado({
       </div>
       ) : null}
 
-      {/* A história fecha a leitura do cliente: os mesmos números que ele
-          acabou de ver, agora contados em seis quadros. Só no modo cliente —
-          o vendedor já tem a mesa dele logo acima. */}
-      {cli ? <Historia d={d} /> : null}
-
       {/* ── COMPARATIVO LADO A LADO ── */}
       <div className="card raised rise">
         <h3 style={{ fontSize: 16, marginBottom: 4 }}>Lado a lado</h3>
@@ -690,6 +690,11 @@ export function Resultado({
           ))}
         </div>
       </details>
+
+      {/* A HISTÓRIA FECHA A TELA — é o último argumento que o cliente lê,
+          depois de já ter visto os números frios. Só no modo cliente: o
+          vendedor tem a mesa dele acima. */}
+      {cli ? <Historia d={d} marca={marca} aoRefazer={aoRefazer} /> : null}
     </>
   );
 }

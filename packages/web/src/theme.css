@@ -1730,3 +1730,12 @@ body::after {
   .hist-arte, .hist-txt { animation: none; }
   .hist-barra.agora i { animation: none; width: 100%; }
 }
+
+/* o fecho da história: onde a intenção é máxima, a sequência para e espera */
+.hist-fim { display: grid; gap: 9px; padding: 4px 17px 15px; }
+.hist-nota {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
+}
