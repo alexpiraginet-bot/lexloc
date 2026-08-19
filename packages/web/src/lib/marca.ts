@@ -50,7 +50,7 @@ export const MARCA_PADRAO: Marca = {
   vendedorNome: '',
   vendedorFone: '',
   creditoNome: 'LexGo',
-  creditoUrl: 'https://uselexgo.com',
+  creditoUrl: 'https://tech.uselexgo.com',
 };
 
 const LS = 'lexgo.marca.v1';

@@ -1126,3 +1126,28 @@ details > .body { padding: 15px 16px 16px; }
   font-weight: 500;
 }
 .busca .inp::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+/* ───── iOS 26 no celular: a barra de abas FLUTUA no rodapé ─────
+   É o gesto mais reconhecível da linguagem — cápsula de vidro solta,
+   respeitando a safe area do iPhone. O dock do veredito sobe um degrau
+   para não brigar com ela, e o conteúdo ganha respiro no fim. */
+@media (max-width: 640px) {
+  .tabs {
+    position: fixed;
+    top: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    z-index: 60;
+    padding: 0;
+    background: none;
+  }
+  .tabs .row {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      0 16px 40px -14px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+  }
+  .tab { min-height: 50px; }
+  main#conteudo { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .dock { bottom: calc(78px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
+}
