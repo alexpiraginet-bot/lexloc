@@ -34,6 +34,12 @@ const site = join(raiz, 'site');
  * curioso —, não a do competidor que procura. Fechar a outra é decisão de
  * visibilidade do repositório, não de nome de arquivo.
  *
+ * ESTE SUFIXO NASCEU PÚBLICO. Ele foi commitado enquanto o repositório ainda
+ * era público, então quem leu o repo naquela janela já o conhece. Assim que o
+ * repositório virar privado, ROTACIONE — só a partir daí a URL é de fato um
+ * segredo. Enquanto o repo for público, rotacionar não adianta: o sufixo novo
+ * é publicado junto.
+ *
  * Para rodar o endereço: troque o sufixo, publique, avise a equipe. O antigo
  * deixa de existir na hora.
  */
