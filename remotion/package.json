@@ -1,0 +1,22 @@
+{
+  "name": "lexgo-filme",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Peça de marketing da LexGo em Remotion. Fica FORA dos workspaces de propósito: o app é um HTML off-line e não pode carregar nada disto.",
+  "scripts": {
+    "dev": "remotion studio",
+    "reels": "remotion render Reels out/lexgo-reels.mp4",
+    "wide": "remotion render Wide out/lexgo-wide.mp4",
+    "capa": "remotion still Reels out/capa.png --frame=60"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.6.0"
+  }
+}
