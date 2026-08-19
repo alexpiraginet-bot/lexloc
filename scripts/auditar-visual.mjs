@@ -83,28 +83,15 @@ for (const t of TELAS) {
   execFileSync(
     EDGE,
     [
-      '--headless',
+      // headless ANTIGO renderiza com viewport errado e corta a tela — o
+      // print sai mentindo overflow que nao existe. 'new' respeita window-size.
+      '--headless=new',
       '--disable-gpu',
       `--window-size=${t.w},${t.h}`,
       '--hide-scrollbars',
       '--virtual-time-budget=6000',
-      `--user-data-dir=${join(SAIDA, 'perfil')}`,
+      `--user-data-dir=${join(SAIDA, 'perfil-' + t.nome)}`,
       `--screenshot=${png}`,
-      alvo,
-    ],
-    { stdio: 'pipe' },
-  );
-
-  const json = join(SAIDA, `${t.nome}.json`);
-  execFileSync(
-    EDGE,
-    [
-      '--headless',
-      '--disable-gpu',
-      `--window-size=${t.w},${t.h}`,
-      '--virtual-time-budget=6000',
-      `--user-data-dir=${join(SAIDA, 'perfil')}`,
-      '--dump-dom',
       alvo,
     ],
     { stdio: 'pipe' },

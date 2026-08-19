@@ -12,3 +12,7 @@ export function Retaguarda(): null {
 export function Propostas(): null {
   return null;
 }
+
+export function Copiloto(): null {
+  return null;
+}

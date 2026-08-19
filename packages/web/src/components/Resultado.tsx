@@ -9,6 +9,7 @@ import { PERFIL, type Derivado, type Modo } from '../state';
 import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
 import { posicaoMercado, provaDeEstresse } from '../lib/robustez';
+import { Copiloto } from '@vendedor';
 import { Barras, Composicao, Linhas, Medidor } from './charts';
 import { Icone } from './icones';
 
@@ -264,7 +265,15 @@ export function Resultado({
         </div>
       ) : null}
 
-      {/* ── PROVA DE ESTRESSE — ninguém mais tem isto ── */}
+      {!cli ? <Copiloto d={d} /> : null}
+
+      {/* ── PROVA DE ESTRESSE — DIAGNÓSTICO DA MESA DO VENDEDOR ──
+           Reexecuta o motor em 8 mundos alternativos para o vendedor saber
+           onde pisa ANTES de negociar, com a réplica pronta para cada um.
+           Nunca foi tela de cliente: uma grade de X vermelhos na cara de quem
+           está decidindo é tiro no pé, e o placar sem contexto esconde que a
+           comparação de custo puro pressupõe capital parado. ── */}
+      {!cli ? (
       <div className="card raised rise">
         <div className="medhead">
           <h3>Prova de estresse da decisão</h3>
@@ -387,6 +396,7 @@ export function Resultado({
           </p>
         ) : null}
       </div>
+      ) : null}
 
       {/* ── COMPARATIVO LADO A LADO ── */}
       <div className="card raised rise">
@@ -394,6 +404,27 @@ export function Resultado({
         <p className="hint" style={{ margin: '0 0 12px' }}>
           O que cada caminho te dá — e o que cobra de você.
         </p>
+        {/* A comparação de custo puro assume que o comprador TEM o valor do
+            carro em caixa rendendo CDI. Quem não tem esse dinheiro parado não
+            está escolhendo entre assinar e comprar à vista — está entre
+            assinar e financiar. Dizer isso é honesto E é o enquadramento que
+            descreve a decisão da maioria. */}
+        <div className="premissa">
+          <b>Comprar à vista pressupõe {reais(p.preco)} em caixa</b> rendendo CDI hoje. Se esse
+          dinheiro não está parado, a escolha real é entre <b>assinar</b> e <b>financiar</b> — e
+          aí assinar sai{' '}
+          {r.assinar.custo <= r.financiar.custo ? (
+            <b style={{ color: 'var(--c-ass)' }}>
+              {reais(r.financiar.custo - r.assinar.custo)} à frente
+            </b>
+          ) : (
+            <>
+              {reais(r.assinar.custo - r.financiar.custo)} atrás no dinheiro — com entrada zero e
+              sem risco de revenda
+            </>
+          )}
+          .
+        </div>
         <div className="cmp" role="table" aria-label="Comparativo assinar, comprar à vista e financiar">
           <div className="cmp-h" role="row">
             <span role="columnheader" />

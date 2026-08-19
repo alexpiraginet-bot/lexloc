@@ -84,6 +84,8 @@ const MARCAS_DA_EQUIPE = [
   'Mensalidade de empate',
   'Propostas salvas',
   'Vale negociar',            // medidor de negociação
+  'Prova de estresse',        // diagnóstico do vendedor, nunca do cliente
+  'Copiloto de negociação',   // repertório de objeções — mesa do vendedor
 ];
 const cliente = readFileSync(join(site, 'lexgo-cliente.html'), 'utf8');
 const vendedor = readFileSync(join(site, 'lexgo-vendedor.html'), 'utf8');

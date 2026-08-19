@@ -6,3 +6,4 @@
  */
 export { Retaguarda } from '../components/Retaguarda';
 export { Propostas } from '../components/Propostas';
+export { Copiloto } from '../components/Copiloto';

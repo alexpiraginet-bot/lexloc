@@ -1151,3 +1151,389 @@ details > .body { padding: 15px 16px 16px; }
   .dock { bottom: calc(78px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
+
+/* a premissa que decide a comparação, dita antes do número */
+.premissa {
+  background: var(--brand-soft);
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 11px 13px;
+  margin-bottom: 13px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.premissa b { color: var(--ink); }
+
+/* ───── copiloto de negociação (mesa do vendedor) ───── */
+.rep { margin-top: 14px; display: grid; gap: 9px; }
+.rep-tag {
+  align-self: start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--brand-text);
+  background: var(--brand-soft);
+  border-radius: 99px;
+  padding: 5px 12px;
+}
+.rep-bloco {
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 12px 14px;
+}
+.rep-bloco.dev { border-left-color: var(--accent); }
+.rep-bloco.evite { border-left-color: var(--muted); }
+.rep-k {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.rep-bloco p { font-size: 13.5px; line-height: 1.65; margin: 0; color: var(--ink-2); }
+.rep-bloco .btn { margin-top: 10px; }
+.lnk {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--brand-text);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+textarea.inp { min-height: 74px; line-height: 1.55; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS — de verdade, com 3D leve
+   ═══════════════════════════════════════════════════════════════════
+   Vidro só é visível se houver COR ATRÁS para refratar. O app inteiro
+   estava sobre papel liso, então o blur não tinha o que embaçar — daí a
+   sensação de "não tem vidro nenhum". A correção é em duas partes:
+
+   1. ATMOSFERA: manchas de cor da marca vivem atrás de tudo, fixas na
+      viewport. É delas que o vidro tira a cor.
+   2. SUPERFÍCIES: cartões, campos e botões viram material translúcido
+      com aresta de luz no topo (o brilho especular do vidro real) e
+      sombra em duas camadas — contato curto + ambiente longo. É esse
+      par que produz o 3D leve, sem cair em skeuomorfismo.
+   ═══════════════════════════════════════════════════════════════════ */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: -10% -10% auto;
+  height: 120vh;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(46vw 40vh at 12% 6%, color-mix(in srgb, var(--brand) 32%, transparent), transparent 62%),
+    radial-gradient(40vw 36vh at 88% 12%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%),
+    radial-gradient(52vw 42vh at 74% 62%, color-mix(in srgb, var(--brand) 20%, transparent), transparent 64%),
+    radial-gradient(38vw 34vh at 22% 88%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 62%);
+  filter: saturate(1.25);
+}
+/* a atmosfera respira devagar — 24s, quase imperceptível, dá vida ao vidro */
+@media (prefers-reduced-motion: no-preference) {
+  body::before { animation: respirar 24s ease-in-out infinite alternate; }
+}
+@keyframes respirar {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(0, -2.5%, 0) scale(1.06); }
+}
+/* véu que segura o contraste do texto sobre a atmosfera */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    color-mix(in srgb, var(--paper) 76%, transparent),
+    color-mix(in srgb, var(--paper) 88%, transparent)
+  );
+}
+body { background: var(--paper); }
+
+/* ── superfície de vidro: cartões ── */
+.card {
+  background: color-mix(in srgb, #fff 48%, transparent);
+  backdrop-filter: saturate(1.9) blur(30px);
+  -webkit-backdrop-filter: saturate(1.9) blur(30px);
+  border: 1px solid color-mix(in srgb, #fff 85%, transparent);
+  border-radius: 22px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 0 color-mix(in srgb, var(--brand-dark) 8%, transparent),
+    0 1px 2px color-mix(in srgb, var(--brand-dark) 10%, transparent),
+    0 14px 34px -18px color-mix(in srgb, var(--brand-dark) 42%, transparent);
+}
+.card.raised {
+  background: color-mix(in srgb, #fff 56%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 color-mix(in srgb, var(--brand-dark) 10%, transparent),
+    0 2px 4px color-mix(in srgb, var(--brand-dark) 12%, transparent),
+    0 26px 54px -24px color-mix(in srgb, var(--brand-dark) 52%, transparent);
+}
+
+/* ── campos: poço de vidro, afundado em vez de saliente ── */
+.inp {
+  background: color-mix(in srgb, #fff 62%, transparent);
+  backdrop-filter: saturate(1.5) blur(14px);
+  -webkit-backdrop-filter: saturate(1.5) blur(14px);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, #fff);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 2px 5px color-mix(in srgb, var(--brand-dark) 12%, transparent),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.9);
+}
+.inp:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+  box-shadow:
+    inset 0 2px 5px color-mix(in srgb, var(--brand-dark) 10%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+/* ── botões: vidro tintado com brilho no topo e apoio embaixo ── */
+.btn {
+  backdrop-filter: saturate(1.8) blur(16px);
+  -webkit-backdrop-filter: saturate(1.8) blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.1),
+    0 2px 4px color-mix(in srgb, var(--brand-dark) 16%, transparent),
+    0 12px 28px -12px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+  transition: transform 0.14s var(--e-out), box-shadow 0.2s var(--e-out);
+}
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.18),
+    0 1px 2px color-mix(in srgb, var(--brand-dark) 20%, transparent);
+}
+.btn-p { background: color-mix(in srgb, var(--accent) 86%, transparent); }
+.btn-x { background: color-mix(in srgb, var(--brand-deep) 82%, transparent); color: #fff; }
+.btn-s {
+  background: color-mix(in srgb, #fff 55%, transparent);
+  border: 1px solid color-mix(in srgb, #fff 90%, transparent);
+}
+.btn-d { background: color-mix(in srgb, #fff 55%, transparent); }
+
+/* ── cartões de carro: vidro que reage ao toque ── */
+.cc {
+  background: color-mix(in srgb, #fff 52%, transparent);
+  backdrop-filter: saturate(1.7) blur(20px);
+  -webkit-backdrop-filter: saturate(1.7) blur(20px);
+  border: 1px solid color-mix(in srgb, #fff 82%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 8px 22px -14px color-mix(in srgb, var(--brand-dark) 45%, transparent);
+  transition: transform 0.16s var(--e-out), box-shadow 0.22s var(--e-out),
+    border-color 0.2s var(--e-out);
+}
+.cc:active { transform: scale(0.975); }
+.cc[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent),
+    0 16px 34px -16px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+}
+
+/* ── pílulas e chips também são vidro ── */
+.chip, .pill, .badge, .selo, .tag {
+  backdrop-filter: saturate(1.6) blur(14px);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* ── o veredito ganha relevo de vidro escuro ── */
+.verdict {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 28px 60px -26px color-mix(in srgb, var(--brand-dark) 75%, transparent);
+}
+
+/* ── fallbacks: sem blur ou com transparência reduzida, tudo fica opaco ── */
+@supports not (backdrop-filter: blur(1px)) {
+  .card, .card.raised, .inp, .cc, .btn-s, .btn-d { background: var(--paper); }
+  .btn-p { background: var(--accent); }
+  .btn-x { background: var(--brand-deep); }
+  body::before { display: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .card, .card.raised, .inp, .cc, .btn, .chip, .pill, .badge, .selo, .tag {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .card, .card.raised, .inp, .cc, .btn-s, .btn-d { background: var(--paper); }
+  .btn-p { background: var(--accent); }
+  .btn-x { background: var(--brand-deep); }
+  body::before { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS v2 — LENTE, não cor de fundo
+   ═══════════════════════════════════════════════════════════════════
+   O erro da v1: preenchimento translúcido. Sobre fundo claro isso só
+   parece cor lavada. Vidro real é uma LENTE e tem quatro sinais:
+     · refração  — o que está atrás aparece deslocado e mais saturado
+     · rim       — a borda acende onde a luz entra
+     · especular — um brilho diagonal na face, mais forte em cima
+     · espessura — sombra interna embaixo, como um bisel
+
+   Por isso o preenchimento sai do elemento e vai para ::before, que
+   carrega o backdrop-filter. Assim o texto fica ACIMA da lente, com
+   contraste próprio, e o vidro trabalha atrás dele.
+   Translucidez 30% maior que a v1 em todas as superfícies.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.btn {
+  position: relative;
+  z-index: 0;
+  background: transparent;
+  border: 0;
+  overflow: hidden;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--brand-dark) 14%, transparent),
+    0 14px 30px -14px color-mix(in srgb, var(--brand-dark) 50%, transparent);
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  backdrop-filter: blur(24px) saturate(2.1) brightness(1.07);
+  -webkit-backdrop-filter: blur(24px) saturate(2.1) brightness(1.07);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -9px 16px -9px rgba(0, 0, 0, 0.3);
+}
+/* o brilho especular: luz batendo de cima à esquerda, como em vidro real */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    152deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.16) 34%,
+    transparent 58%
+  );
+  pointer-events: none;
+}
+.btn:active { transform: translateY(1px) scale(0.985); }
+.btn:active::before { box-shadow: inset 0 3px 9px rgba(0, 0, 0, 0.22); }
+
+/* o tom vai no ::before (a lente), nunca no elemento */
+.btn-p { background: transparent; color: var(--accent-ink, #1c1206); }
+.btn-p::before { background: color-mix(in srgb, var(--accent) 58%, transparent); }
+.btn-x { background: transparent; color: #fff; }
+.btn-x::before { background: color-mix(in srgb, var(--brand-deep) 56%, transparent); }
+.btn-s { background: transparent; border: 0; color: var(--ink); }
+.btn-s::before { background: color-mix(in srgb, #fff 36%, transparent); }
+.btn-d { background: transparent; border: 0; }
+.btn-d::before { background: color-mix(in srgb, #fff 36%, transparent); }
+
+/* ── superfícies: 30% mais translúcidas, com refração e espessura ── */
+.card {
+  background: color-mix(in srgb, #fff 33%, transparent);
+  backdrop-filter: blur(34px) saturate(2.05) brightness(1.03);
+  -webkit-backdrop-filter: blur(34px) saturate(2.05) brightness(1.03);
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.62),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -14px 24px -18px color-mix(in srgb, var(--brand-dark) 30%, transparent),
+    0 2px 4px color-mix(in srgb, var(--brand-dark) 10%, transparent),
+    0 20px 44px -22px color-mix(in srgb, var(--brand-dark) 45%, transparent);
+}
+.card.raised {
+  background: color-mix(in srgb, #fff 39%, transparent);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+    inset 0 1.5px 0 rgba(255, 255, 255, 1),
+    inset 0 -16px 28px -20px color-mix(in srgb, var(--brand-dark) 34%, transparent),
+    0 3px 6px color-mix(in srgb, var(--brand-dark) 12%, transparent),
+    0 32px 64px -28px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+}
+
+.inp {
+  background: color-mix(in srgb, #fff 43%, transparent);
+  backdrop-filter: blur(18px) saturate(1.7);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    inset 0 3px 7px color-mix(in srgb, var(--brand-dark) 14%, transparent);
+}
+.inp:focus {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--brand) 45%, transparent),
+    inset 0 3px 7px color-mix(in srgb, var(--brand-dark) 12%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+.cc {
+  background: color-mix(in srgb, #fff 36%, transparent);
+  backdrop-filter: blur(26px) saturate(1.95) brightness(1.03);
+  -webkit-backdrop-filter: blur(26px) saturate(1.95) brightness(1.03);
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.9),
+    0 12px 28px -16px color-mix(in srgb, var(--brand-dark) 42%, transparent);
+}
+.cc[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--brand) 50%, transparent),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.9),
+    0 18px 38px -16px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+}
+
+/* a atmosfera fica mais viva: é ela que a lente refrata */
+body::before { filter: saturate(1.5); }
+body::after {
+  background: linear-gradient(
+    color-mix(in srgb, var(--paper) 62%, transparent),
+    color-mix(in srgb, var(--paper) 78%, transparent)
+  );
+}
+
+/* ── fallbacks: sem lente, tudo volta a sólido e legível ── */
+@supports not (backdrop-filter: blur(1px)) {
+  .btn::before, .btn::after { display: none; }
+  .btn-p { background: var(--accent); }
+  .btn-x { background: var(--brand-deep); }
+  .btn-s, .btn-d { background: var(--paper); border: 1.5px solid var(--line); }
+  .card, .card.raised, .inp, .cc { background: var(--paper); border: 1px solid var(--line); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .btn::before, .btn::after { display: none; }
+  .btn-p { background: var(--accent); }
+  .btn-x { background: var(--brand-deep); }
+  .btn-s, .btn-d { background: var(--paper); border: 1.5px solid var(--line); }
+  .card, .card.raised, .inp, .cc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
