@@ -327,6 +327,7 @@ export function Resultado({
               style={{
                 display: 'grid',
                 gridTemplateColumns: '20px minmax(0,1fr) auto',
+                gridTemplateAreas: '"i n v" ". c c"',
                 gap: 10,
                 alignItems: 'center',
                 fontSize: 13,
@@ -339,6 +340,7 @@ export function Resultado({
               <span
                 aria-hidden="true"
                 style={{
+                  gridArea: 'i',
                   width: 18,
                   height: 18,
                   borderRadius: '50%',
@@ -363,7 +365,7 @@ export function Resultado({
                   {m.vencedor === 'assinar' ? <path d="M20 6L9 17l-5-5" /> : <path d="M6 6l12 12M18 6L6 18" />}
                 </svg>
               </span>
-              <span style={{ minWidth: 0 }}>
+              <span style={{ gridArea: 'n', minWidth: 0 }}>
                 <b style={{ fontWeight: 600 }}>{m.nome}</b>
                 <span style={{ color: 'var(--muted)', display: 'block', fontSize: 11.5 }}>
                   {m.detalhe}
@@ -372,6 +374,7 @@ export function Resultado({
               <span
                 className="mono"
                 style={{
+                  gridArea: 'v',
                   fontSize: 11.5,
                   fontWeight: 700,
                   color: m.vencedor === 'assinar' ? 'var(--c-ass)' : 'var(--muted)',
@@ -384,6 +387,9 @@ export function Resultado({
                     ? `à vista +${reais(Math.abs(m.gapAssinar))}`
                     : `financiar +${reais(Math.abs(m.gapAssinar))}`}
               </span>
+              {/* a réplica ocupa a linha inteira, abaixo do placar: é o que o
+                  vendedor fala quando o cliente levanta justamente este "e se" */}
+              <p className="mundo-contra">{m.contra}</p>
             </div>
           ))}
         </div>
