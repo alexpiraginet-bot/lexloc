@@ -74,6 +74,7 @@ import sys
 from PIL import Image, ImageDraw
 
 orig, fav, simb = sys.argv[1], sys.argv[2], sys.argv[3]
+ORIGINAIS = len(sys.argv) > 4 and sys.argv[4] == "originais"
 im = Image.open(orig).convert("RGBA")
 
 # fundo transparente a partir dos cantos, com tolerância para JPEG/antialias
@@ -89,10 +90,36 @@ caixa = im.getbbox()
 if caixa:
     im = im.crop(caixa)
 
+ROXO = (137, 41, 145)      # #892991, a marca documentada
+DOURADO = (201, 162, 39)   # #C9A227
+
+def recolorir(img):
+    # A arte entregue veio em #731691 / #D5970D -- proximos, mas nao iguais
+    # aos tons que a interface inteira usa. No cabecalho os dois roxos
+    # ficariam lado a lado e leriam como defeito. O alfa e preservado, entao
+    # o antisserrilhado continua correto.
+    px = img.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if a:
+                # no roxo o azul e o canal mais alto; no dourado, o mais baixo
+                px[x, y] = (ROXO if b >= r else DOURADO) + (a,)
+    return img
+
+def acabar(img):
+    return chapar(img if ORIGINAIS else recolorir(img))
+
+def chapar(img):
+    # A marca e chapada: dois tons e alfa. Guardar em paleta preserva o
+    # desenho e corta o arquivo pela metade -- e o teto de 12 KB existe
+    # porque o HTML off-line viaja por WhatsApp.
+    return img.quantize(colors=64, method=Image.FASTOCTREE, dither=Image.NONE)
+
 def salvar(destino, altura):
     escala = altura / im.height
     novo = im.resize((max(1, round(im.width * escala)), altura), Image.LANCZOS)
-    novo.save(destino, "PNG", optimize=True)
+    acabar(novo).save(destino, "PNG", optimize=True)
     return novo.size
 
 print("simbolo", *salvar(simb, 96))
@@ -103,13 +130,14 @@ escala = (lado * 0.88) / max(im.size)
 mini = im.resize((max(1, round(im.width * escala)), max(1, round(im.height * escala))), Image.LANCZOS)
 quadro = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
 quadro.paste(mini, ((lado - mini.width) // 2, (lado - mini.height) // 2), mini)
-quadro.save(fav, "PNG", optimize=True)
+acabar(quadro).save(fav, "PNG", optimize=True)
 print("favicon", lado, lado)
 `;
 
-const saida = execFileSync(PY, ['-c', script, ORIGEM, favicon, simbolo], {
-  encoding: 'utf8',
-});
+/* LEXGO_CORES_ORIGINAIS=1 mantem os tons do arquivo entregue, sem alinhar */
+const argsPy = [ORIGEM, favicon, simbolo];
+if (process.env['LEXGO_CORES_ORIGINAIS'] === '1') argsPy.push('originais');
+const saida = execFileSync(PY, ['-c', script, ...argsPy], { encoding: 'utf8' });
 console.log(saida.trim());
 
 const bytes = readFileSync(simbolo);
@@ -122,11 +150,19 @@ if (bytes.length > TETO_BYTES) {
   process.exit(1);
 }
 
+/*
+ * O favicon vai como data URI também: o HTML do vendedor é off-line e viaja
+ * por WhatsApp, então não pode apontar para /favicon.png de servidor nenhum.
+ */
+const bytesFav = readFileSync(favicon);
 writeFileSync(
   join(saidaWeb, 'simbolo.ts'),
   `/* GERADO por scripts/marca.mjs a partir de marca/lexgo-mark.png — não edite à mão. */
 export const SIMBOLO_LEXGO =
   'data:image/png;base64,${bytes.toString('base64')}';
+
+export const FAVICON_LEXGO =
+  'data:image/png;base64,${bytesFav.toString('base64')}';
 `,
 );
 

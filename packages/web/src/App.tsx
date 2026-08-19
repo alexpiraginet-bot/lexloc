@@ -17,6 +17,7 @@ import { Simulador } from './components/Simulador';
 import { Resultado } from './components/Resultado';
 import { PJ } from './components/PJ';
 import { Propostas } from '@vendedor';
+import { SIMBOLO_LEXGO } from './marca/simbolo';
 import { PropostaPrint } from './components/PropostaPrint';
 import { Icone } from './components/icones';
 
@@ -48,6 +49,9 @@ export default function App() {
     () => (LINK ? { ...MARCA_PADRAO, ...LINK.marca } : lerMarca()),
     [estado.marcaVersao],
   );
+  /* a marca ainda é a nossa? nome e sufixo intocados = ninguém fez white-label */
+  const ehMarcaLexGo =
+    marca.nome === MARCA_PADRAO.nome && marca.sufixo === MARCA_PADRAO.sufixo;
 
   // simulação vinda pelo link: aplica uma única vez, depois da montagem
   const linkAplicado = useRef(false);
@@ -126,6 +130,12 @@ export default function App() {
               <img src={marca.logo} alt={`${marca.nome}${marca.sufixo}`} className="logo-img" />
             ) : (
               <>
+                {/*
+                  O símbolo é NOSSO: só entra enquanto a locadora não trocou o
+                  nome. Assim que ela põe a marca dela, o "G" sai — o produto é
+                  white-label, e carimbar a LexGo por cima seria quebrar isso.
+                */}
+                {ehMarcaLexGo ? <img src={SIMBOLO_LEXGO} alt="" className="logo-simb" /> : null}
                 <b>{marca.nome}</b>
                 <i>{marca.sufixo}</i>
               </>
