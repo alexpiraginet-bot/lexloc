@@ -27,6 +27,12 @@ export interface Marca {
   whatsapp: string;
   /** cidades/unidades, uma linha no PDF */
   cidades: string;
+  /** CNPJ da empresa — credibilidade no rodapé do PDF */
+  cnpj: string;
+  /** nome de quem atende — "Seu consultor" no PDF do cliente */
+  vendedorNome: string;
+  /** WhatsApp direto do vendedor — o telefone que fecha negócio */
+  vendedorFone: string;
   /** crédito no rodapé — a software house que oferece a ferramenta */
   creditoNome: string;
   creditoUrl: string;
@@ -40,6 +46,9 @@ export const MARCA_PADRAO: Marca = {
   corDestaque: '#C9A227',
   whatsapp: '',
   cidades: '',
+  cnpj: '',
+  vendedorNome: '',
+  vendedorFone: '',
   creditoNome: 'LexGo',
   creditoUrl: 'https://uselexgo.com',
 };

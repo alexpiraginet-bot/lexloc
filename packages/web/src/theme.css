@@ -1054,11 +1054,13 @@ details > .body { padding: 15px 16px 16px; }
 
 /* ═══════ IMPRESSÃO — a proposta em PDF sai daqui ═══════ */
 @media print {
-  @page { size: A4; margin: 14mm 13mm; }
+  @page { size: A4; margin: 12mm 13mm; }
   body { background: #fff !important; color: #121212 !important; }
-  .appbar, .tabs, .dock, .toast, .no-print { display: none !important; }
-  .print-only { display: block !important; }
-  .panel { padding: 0; }
+  /* só a folha existe no papel — o app inteiro sai do fluxo, não fica
+     invisível ocupando página */
+  #root > *:not(.print-only) { display: none !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; margin: 0; }
 }
 .print-only { display: none; }
 

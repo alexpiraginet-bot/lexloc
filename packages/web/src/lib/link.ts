@@ -23,6 +23,9 @@ const CAMPOS_ESTADO = [
 
 const CAMPOS_MARCA = [
   'nome', 'sufixo', 'slogan', 'corPrimaria', 'corDestaque', 'whatsapp', 'cidades',
+  // o consultor viaja junto: o PDF impresso do aparelho do cliente sai com o
+  // nome e o WhatsApp de quem mandou o link — é esse contato que fecha
+  'cnpj', 'vendedorNome', 'vendedorFone',
 ] as const;
 
 interface Pacote {

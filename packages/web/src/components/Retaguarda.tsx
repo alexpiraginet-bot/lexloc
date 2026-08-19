@@ -300,6 +300,9 @@ export function Retaguarda({
               ['slogan', 'Slogan', MARCA_PADRAO.slogan],
               ['cidades', 'Cidades / unidades', MARCA_PADRAO.cidades],
               ['whatsapp', 'WhatsApp da loja (com DDD)', '27 99999 0000'],
+              ['cnpj', 'CNPJ (sai no rodapé do PDF)', '00.000.000/0001-00'],
+              ['vendedorNome', 'Seu nome (consultor no PDF)', 'Alex Piragine'],
+              ['vendedorFone', 'Seu WhatsApp direto', '27 98888 0000'],
               ['creditoNome', 'Crédito do rodapé (sua software house)', 'Nome da empresa'],
               ['creditoUrl', 'Link do crédito', 'https://…'],
             ] as [keyof Marca, string, string][]
