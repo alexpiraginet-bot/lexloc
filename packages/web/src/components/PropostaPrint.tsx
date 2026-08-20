@@ -37,7 +37,7 @@ export function PropostaPrint({
 
           /* ── cabeçalho: marca + dados, fechado por um fio degradê ── */
           .pp header { display: flex; justify-content: space-between; align-items: flex-end;
-            padding-bottom: 5mm; margin-bottom: 6mm; position: relative; }
+            padding-bottom: 4mm; margin-bottom: 4.6mm; position: relative; }
           .pp header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0;
             height: 1.2mm; border-radius: 1mm;
             background: linear-gradient(90deg, ${marca.corPrimaria}, ${marca.corDestaque}); }
@@ -52,15 +52,15 @@ export function PropostaPrint({
           .pp .pdata { font-size: 10.5px; color: #6e6675; text-align: right; line-height: 1.65; }
           .pp .pdata b { color: #17131c; }
 
-          .pp h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 1.5mm; }
-          .pp .psub { font-size: 11px; color: #6e6675; margin: 0 0 5mm; }
+          .pp h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 1.2mm; }
+          .pp .psub { font-size: 10.5px; color: #6e6675; margin: 0 0 3.8mm; }
 
           /* ── herói: o mesmo painel escuro do site, com o número em dourado ── */
           .pp .phero { position: relative;
             background: linear-gradient(138deg, ${marca.corPrimaria} 0%,
               color-mix(in srgb, ${marca.corPrimaria} 62%, #1c0b24) 58%,
               color-mix(in srgb, ${marca.corPrimaria} 34%, #14081c) 100%);
-            border-radius: 5mm; padding: 7mm 8mm 6.5mm; margin-bottom: 4.5mm; color: #fff;
+            border-radius: 5mm; padding: 5.5mm 7mm 5mm; margin-bottom: 3.6mm; color: #fff;
             box-shadow: inset 0 0.4mm 0 rgba(255,255,255,0.22); }
           .pp .phero .pk { font-size: 9.5px; letter-spacing: 0.15em; text-transform: uppercase;
             color: rgba(255,255,255,0.78); font-weight: 700; }
@@ -70,7 +70,7 @@ export function PropostaPrint({
           .pp .phero .pd b { color: #fff; }
 
           /* ── cápsulas de resumo (a linguagem dos selos do site) ── */
-          .pp .pchips { display: flex; gap: 2.6mm; flex-wrap: wrap; margin-bottom: 6mm; }
+          .pp .pchips { display: flex; gap: 2.4mm; flex-wrap: wrap; margin-bottom: 4.4mm; }
           .pp .pchip { display: inline-flex; align-items: baseline; gap: 1.6mm;
             border: 0.35mm solid color-mix(in srgb, ${marca.corPrimaria} 26%, #fff);
             background: color-mix(in srgb, ${marca.corPrimaria} 5%, #fff);
@@ -78,22 +78,22 @@ export function PropostaPrint({
           .pp .pchip b { font-family: var(--mono); font-weight: 700; font-size: 11px; color: ${marca.corPrimaria}; }
 
           /* ── rótulo de seção: caixa alta + filete, como as faixas do app ── */
-          .pp .psec { display: flex; align-items: center; gap: 3mm; margin: 0 0 2.6mm;
+          .pp .psec { display: flex; align-items: center; gap: 3mm; margin: 0 0 2.1mm;
             font-size: 8.5px; font-weight: 800; letter-spacing: 0.14em;
             text-transform: uppercase; color: #6e6675; }
           .pp .psec::after { content: ''; flex: 1; height: 0.3mm; background: #e6e1ec; }
 
-          .pp .pgrid { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: 6mm; margin-bottom: 6mm; }
+          .pp .pgrid { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: 5.5mm; margin-bottom: 4.4mm; }
 
           .pp table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
-          .pp td { padding: 1.9mm 2mm 1.9mm 0; border-bottom: 0.25mm solid #eee9f2; }
+          .pp td { padding: 1.4mm 2mm 1.4mm 0; border-bottom: 0.25mm solid #eee9f2; }
           .pp td:last-child { text-align: right; font-family: var(--mono); font-weight: 600;
             white-space: nowrap; font-variant-numeric: tabular-nums; }
           .pp tr.tot td { font-weight: 800; color: ${marca.corPrimaria};
             border-top: 0.6mm solid ${marca.corPrimaria}; border-bottom: 0; padding-top: 2.2mm; }
 
           /* ── incluído na mensalidade: cartão suave com checks da marca ── */
-          .pp .pbox { border: 0.35mm solid color-mix(in srgb, ${marca.corPrimaria} 20%, #fff);
+          .pp .pbox { padding-block: 3.6mm; border: 0.35mm solid color-mix(in srgb, ${marca.corPrimaria} 20%, #fff);
             background: color-mix(in srgb, ${marca.corPrimaria} 4%, #fff);
             border-radius: 4mm; padding: 4.5mm 5mm; }
           .pp .pbox h3 { font-size: 11.5px; font-weight: 800; margin: 0 0 2.6mm; color: ${marca.corPrimaria}; }
@@ -123,6 +123,20 @@ export function PropostaPrint({
           .pp .pwin.neutro { background: transparent; color: #6e6675;
             border: 0.3mm solid #cfc7d8; }
 
+          /* ── balanço: quatro colunas, três delas numéricas ── */
+          .pp .ppat th:not(:first-child) { width: 21%; }
+          .pp .ppat td:not(:first-child) { font-family: var(--mono); font-weight: 600;
+            font-variant-numeric: tabular-nums; white-space: nowrap; }
+          /* a linha "e no fim você tem" é frase, não número: volta ao texto e quebra */
+          .pp .ppat tr.tem td { vertical-align: top; }
+          .pp .ppat tr.tem td:not(:first-child) { font-family: var(--sans); font-weight: 400;
+            font-size: 9.4px; white-space: normal; line-height: 1.45; }
+          .pp .ppat tr.tem td b { font-family: var(--mono); font-weight: 700; font-size: 10.5px;
+            color: ${marca.corPrimaria}; }
+          .pp .ppat .pnota { display: block; font-style: normal; font-size: 8.2px;
+            color: #8d8595; line-height: 1.45; margin-top: 0.9mm; }
+          .pp .ppat th .pwin.neutro { display: block; margin: 1.2mm 0 0 auto; width: fit-content; }
+
           /* ── chamada final: o contato que fecha, no dourado da marca ── */
           .pp .pcall { display: flex; justify-content: space-between; align-items: center; gap: 6mm;
             margin-top: 6mm; padding: 4.2mm 6mm;
@@ -135,13 +149,13 @@ export function PropostaPrint({
             color: ${marca.corPrimaria}; letter-spacing: -0.01em; }
 
           /* o lembrete que fecha a comparação — tom de texto, não de alerta */
-          .pp .plembra { margin-top: 3.4mm; padding: 3.4mm 4.5mm; font-size: 10px;
+          .pp .plembra { margin-top: 2.6mm; padding: 2.8mm 4mm; font-size: 9.6px;
             line-height: 1.6; color: #3a3342; border-radius: 3mm;
             background: color-mix(in srgb, ${marca.corPrimaria} 4%, #fff);
             border: 0.3mm solid color-mix(in srgb, ${marca.corPrimaria} 18%, #fff); }
           .pp .plembra b { color: #17131c; }
 
-          .pp .pfoot { margin-top: 4.5mm; padding-top: 3.4mm; border-top: 0.25mm solid #e6e1ec;
+          .pp .pfoot { margin-top: 3.4mm; padding-top: 2.6mm; border-top: 0.25mm solid #e6e1ec;
             font-size: 8.6px; color: #8d8595; line-height: 1.6; }
           .pp .pcred { margin-top: 2.4mm; text-align: right; font-size: 7.6px;
             letter-spacing: 0.05em; color: #b9b3c2; }
@@ -166,26 +180,33 @@ export function PropostaPrint({
     ['Licenciamento', abs.lic],
     ['Emplacamento e documentação', abs.emplacamento],
   ];
-  const cenarios = [
-    {
-      k: 'assinar' as const,
-      rot: (
-        <b>
-          Assinar
-          {marcaPropria(marca) ? ` ${marca.nome}${marca.sufixo}` : ' este carro'}
-        </b>
-      ),
-      custo: r.assinar.custo,
-      ato: 'R$ 0',
-    },
-    { k: 'aVista' as const, rot: 'Comprar à vista', custo: r.aVista.custo, ato: reais(r.aVista.desembolso) },
-    {
-      k: 'financiar' as const,
-      rot: `Financiar (${n0(p.entradaPct)}% entrada, ${p.prazoFin}×)`,
-      custo: r.financiar.custo,
-      ato: reais(r.financiar.desembolso),
-    },
-  ];
+  /*
+   * Os números do BALANÇO, não do veredito. O "custo líquido" é a conta certa
+   * (e continua no app), mas é número de economista: o cliente no balcão
+   * pergunta "quanto sai do meu bolso e o que eu tenho no fim". Estas duas
+   * perguntas, lado a lado, são a comparação honesta — cada coluna ganha uma
+   * e perde a outra, e quem lê decide o que vale mais.
+   */
+  const parcelasPagas = r.financiar.parcela * Math.min(p.meses, p.prazoFin);
+  const saiu = {
+    assinar: r.assinar.custos,
+    aVista: r.aVista.desembolso + r.aVista.custos,
+    financiar: r.financiar.desembolso + parcelasPagas + r.financiar.custos,
+  };
+  const carroFinanciado = r.residual - r.financiar.devedor;
+  /*
+   * A conta rigorosa continua declarada — em UMA linha, no rodapé. Não é
+   * escrúpulo: a tabela acima é caixa, e um cliente que subtrair o carro do
+   * total sozinho chega a uma diferença MAIOR contra a assinatura do que a
+   * real, porque a napkin math esquece de creditar o rendimento do dinheiro
+   * que ele não imobilizou. Declarar o número certo é o que nos protege.
+   */
+  const ranking = [
+    { rot: 'da assinatura', v: r.assinar.custo },
+    { rot: 'da compra à vista', v: r.aVista.custo },
+    { rot: 'do financiamento', v: r.financiar.custo },
+  ].sort((a, b) => a.v - b.v);
+
   return (
     <div className="print-only" aria-hidden="true">
       <style>{css}</style>
@@ -296,42 +317,63 @@ export function PropostaPrint({
           </div>
         </div>
 
-        <div className="psec">Comparação no período ({p.meses} meses)</div>
-        <table className="pcmp">
+        <div className="psec">Onde você chega em {p.meses} meses</div>
+        <table className="pcmp ppat">
           <thead>
             <tr>
-              <th>Cenário</th>
-              <th>Custo líquido*</th>
-              <th>Desembolso no ato</th>
+              <th />
+              <th>
+                Assinar
+                <span className="pwin neutro">nossa proposta</span>
+              </th>
+              <th>Comprar à vista</th>
+              <th>Financiar {n0(p.entradaPct)}%</th>
             </tr>
           </thead>
           <tbody>
-            {cenarios.map((c) => (
-              <tr key={c.k} className={c.k === 'assinar' ? 'win' : undefined}>
-                <td>
-                  {c.rot}
-                  {/*
-                    O selo é do NOSSO cenário, não um troféu para o vizinho.
-                    Os três números continuam na tabela, sem maquiagem — quem
-                    lê compara sozinho. Mas a proposta é da locadora: coroar a
-                    compra à vista com um selo era o documento fazendo campanha
-                    contra quem o imprimiu.
-                  */}
-                  {c.k === 'assinar' ? (
-                    d.vencedor === 'assinar' ? (
-                      <span className="pwin">melhor do período</span>
-                    ) : (
-                      /* a linha destacada é o assunto da proposta — dizer isso
-                         em voz alta evita que o realce seja lido como "a mais
-                         barata" quando não é */
-                      <span className="pwin neutro">nossa proposta</span>
-                    )
-                  ) : null}
-                </td>
-                <td>{reais(c.custo)}</td>
-                <td>{c.ato}</td>
-              </tr>
-            ))}
+            <tr>
+              <td>Sai do seu bolso hoje</td>
+              <td>R$ 0</td>
+              <td>{reais(r.aVista.desembolso)}</td>
+              <td>{reais(r.financiar.desembolso)}</td>
+            </tr>
+            <tr>
+              <td>
+                Pago ao longo dos {p.meses} meses
+                <i className="pnota">
+                  assinatura: a mensalidade · compra: IPVA, seguro, revisão, pneus ·
+                  financiamento: parcelas (com {reais(r.financiar.juros)} de juros) mais os
+                  mesmos custos de dono
+                </i>
+              </td>
+              <td>{reais(saiu.assinar)}</td>
+              <td>{reais(r.aVista.custos)}</td>
+              <td>{reais(parcelasPagas + r.financiar.custos)}</td>
+            </tr>
+            <tr className="tot">
+              <td>Total que saiu do bolso</td>
+              <td>{reais(saiu.assinar)}</td>
+              <td>{reais(saiu.aVista)}</td>
+              <td>{reais(saiu.financiar)}</td>
+            </tr>
+            <tr className="tem">
+              <td>E no fim você tem</td>
+              <td>
+                nenhum carro — <b>e nenhuma revenda para resolver</b>
+              </td>
+              <td>
+                um carro de <b>{reais(r.residual)}</b>
+              </td>
+              <td>
+                um carro de <b>{reais(carroFinanciado)}</b>
+              </td>
+            </tr>
+            <tr>
+              <td>Desvalorização que o dono engoliu</td>
+              <td>—</td>
+              <td>{reais(abs.depreciacao)}</td>
+              <td>{reais(abs.depreciacao)}</td>
+            </tr>
           </tbody>
         </table>
 
@@ -343,15 +385,12 @@ export function PropostaPrint({
           assinatura, e ele vale igual quando a compra sai na frente.
         */}
         <p className="plembra">
-          <b>Comprar exige {reais(r.aVista.desembolso)} no ato</b> e, daqui a {p.meses} meses,
-          depender do que o mercado pagar por um carro com {(p.meses / 12).toFixed(0)} anos de uso —
-          a desvalorização de <b>{reais(abs.depreciacao)}</b> é do dono, não da tabela. IPVA,
-          seguro, revisão, pneus e imprevisto continuam chegando todo ano.{' '}
-          <b>Assinando, nada disso é seu problema:</b> é uma parcela só, sem entrada, e o carro
-          volta no fim do contrato.
-        </p>
-
-        {marca.vendedorNome || marca.vendedorFone || marca.whatsapp ? (
+          <b>O carro que sai por {reais(r.aVista.desembolso)} hoje vale {reais(r.residual)} em{' '}
+          {(p.meses / 12).toFixed(0)} anos</b> — e ainda depende de você achar comprador. IPVA,
+          seguro, revisão, pneus e imprevisto continuam chegando todo ano, e o dinheiro que virou
+          carro parou de render. <b>Assinando, nada disso é seu problema:</b> é uma parcela só, sem
+          entrada, e o carro volta no fim do contrato.
+        </p>  {marca.vendedorNome || marca.vendedorFone || marca.whatsapp ? (
           <div className="pcall">
             <div>
               <b>Gostou da conta?</b> Fale{' '}
@@ -371,8 +410,10 @@ export function PropostaPrint({
         ) : null}
 
         <div className="pfoot">
-          * Custo líquido considera o rendimento do dinheiro não gasto (CDI líquido de IR) e o
-          valor residual do veículo — metodologia de patrimônio equivalente. Premissas: depreciação{' '}
+          Os valores do quadro são de caixa: o que sai do bolso e o que sobra na garagem.
+          Somando também o rendimento do dinheiro não imobilizado (CDI líquido de IR) e o valor
+          residual do carro — metodologia de patrimônio equivalente —, no período a diferença fica
+          em {reais(ranking[1]!.v - ranking[0]!.v)} a favor {ranking[0]!.rot}. Premissas: depreciação{' '}
           {estado.curva === 'fipe' ? 'FIPE' : estado.curva === 'mercado' ? 'de mercado' : 'medida para elétricos'}, IPCA{' '}
           {p.ipca.toFixed(2).replace('.', ',')}% a.a., CDI {p.cdi.toFixed(2).replace('.', ',')}% a.a. Valores de referência
           verificados em agosto/2026; proposta sujeita a análise cadastral. Simulação não é oferta
