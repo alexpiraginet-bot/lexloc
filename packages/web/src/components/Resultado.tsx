@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { INCLUSO, VANTAGENS, FAQ } from '@godrive/engine';
-import { PERFIL, type Derivado, type Modo } from '../state';
+import { PERFIL, type Derivado, type Estado, type Modo } from '../state';
 import type { Marca } from '../lib/marca';
 import { n0, n2, reais } from '../lib/format';
 import { calcularAnalogias } from '../lib/analogias';
@@ -57,11 +57,15 @@ export function Resultado({
   modo,
   marca,
   aoRefazer,
+  comparaCom,
+  aoCompararCom,
 }: {
   d: Derivado;
   modo: Modo;
   marca: Marca;
   aoRefazer: () => void;
+  comparaCom: Estado['comparaCom'];
+  aoCompararCom: (v: Estado['comparaCom']) => void;
 }) {
   const { p, r, equilibrio, absorvido, abs } = d;
   // No build do CLIENTE, PERFIL é a constante 'cliente' dobrada em compilação
@@ -148,6 +152,35 @@ export function Resultado({
           Imprimir ou salvar em PDF
         </button>
         <span>Sai uma folha A4 com esta conta completa — para papel ou WhatsApp.</span>
+        {/*
+          Com o que a FOLHA compara. Esta aba continua mostrando os três
+          cenários para todo mundo — o seletor não esconde conta, escolhe
+          com qual alternativa a proposta impressa conversa. Comparar com
+          compra à vista quem não tem o valor do carro no banco é comparar
+          com uma opção que aquele cliente não tem.
+        */}
+        <div className="compsel" role="group" aria-label="Na folha impressa, comparar a assinatura com">
+          <span className="lb">Na folha, comparar com</span>
+          <div className="ops">
+            {(
+              [
+                ['financiar', 'quem financiaria'],
+                ['aVista', 'quem pagaria à vista'],
+                ['ambos', 'as duas'],
+              ] as const
+            ).map(([k, rot]) => (
+              <button
+                key={k}
+                type="button"
+                className={comparaCom === k ? 'on' : ''}
+                aria-pressed={comparaCom === k}
+                onClick={() => aoCompararCom(k)}
+              >
+                {rot}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ── KPIs ── */}

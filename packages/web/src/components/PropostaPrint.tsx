@@ -188,11 +188,6 @@ export function PropostaPrint({
    * e perde a outra, e quem lê decide o que vale mais.
    */
   const parcelasPagas = r.financiar.parcela * Math.min(p.meses, p.prazoFin);
-  const saiu = {
-    assinar: r.assinar.custos,
-    aVista: r.aVista.desembolso + r.aVista.custos,
-    financiar: r.financiar.desembolso + parcelasPagas + r.financiar.custos,
-  };
   const carroFinanciado = r.residual - r.financiar.devedor;
   /*
    * A conta rigorosa continua declarada — em UMA linha, no rodapé. Não é
@@ -201,11 +196,45 @@ export function PropostaPrint({
    * real, porque a napkin math esquece de creditar o rendimento do dinheiro
    * que ele não imobilizou. Declarar o número certo é o que nos protege.
    */
-  const ranking = [
-    { rot: 'da assinatura', v: r.assinar.custo },
-    { rot: 'da compra à vista', v: r.aVista.custo },
-    { rot: 'do financiamento', v: r.financiar.custo },
-  ].sort((a, b) => a.v - b.v);
+  /*
+   * As colunas da folha saem da escolha do vendedor (estado.comparaCom).
+   * A aba Resultado continua mostrando os três cenários para todo mundo —
+   * aqui só se decide com qual alternativa a PROPOSTA conversa.
+   */
+  const todas = [
+    {
+      k: 'assinar' as const,
+      rot: 'Assinar',
+      hoje: 0,
+      periodo: r.assinar.custos,
+      total: r.assinar.custos,
+      custo: r.assinar.custo,
+      nome: 'da assinatura',
+    },
+    {
+      k: 'aVista' as const,
+      rot: 'Comprar à vista',
+      hoje: r.aVista.desembolso,
+      periodo: r.aVista.custos,
+      total: r.aVista.desembolso + r.aVista.custos,
+      custo: r.aVista.custo,
+      nome: 'da compra à vista',
+    },
+    {
+      k: 'financiar' as const,
+      rot: `Financiar ${n0(p.entradaPct)}%`,
+      hoje: r.financiar.desembolso,
+      periodo: parcelasPagas + r.financiar.custos,
+      total: r.financiar.desembolso + parcelasPagas + r.financiar.custos,
+      custo: r.financiar.custo,
+      nome: 'do financiamento',
+    },
+  ];
+  const cols = todas.filter(
+    (c) => c.k === 'assinar' || estado.comparaCom === 'ambos' || estado.comparaCom === c.k,
+  );
+  const ranking = [...cols].sort((a, b) => a.custo - b.custo);
+  const mostraVista = cols.some((c) => c.k === 'aVista');
 
   return (
     <div className="print-only" aria-hidden="true">
@@ -322,57 +351,64 @@ export function PropostaPrint({
           <thead>
             <tr>
               <th />
-              <th>
-                Assinar
-                <span className="pwin neutro">nossa proposta</span>
-              </th>
-              <th>Comprar à vista</th>
-              <th>Financiar {n0(p.entradaPct)}%</th>
+              {cols.map((c) => (
+                <th key={c.k}>
+                  {c.rot}
+                  {c.k === 'assinar' ? <span className="pwin neutro">nossa proposta</span> : null}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Sai do seu bolso hoje</td>
-              <td>R$ 0</td>
-              <td>{reais(r.aVista.desembolso)}</td>
-              <td>{reais(r.financiar.desembolso)}</td>
+              {cols.map((c) => (
+                <td key={c.k}>{c.hoje === 0 ? 'R$ 0' : reais(c.hoje)}</td>
+              ))}
             </tr>
             <tr>
               <td>
                 Pago ao longo dos {p.meses} meses
                 <i className="pnota">
-                  assinatura: a mensalidade · compra: IPVA, seguro, revisão, pneus ·
-                  financiamento: parcelas (com {reais(r.financiar.juros)} de juros) mais os
-                  mesmos custos de dono
+                  assinatura: a mensalidade
+                  {mostraVista ? ' · compra: IPVA, seguro, revisão e pneus' : ''}
+                  {cols.some((c) => c.k === 'financiar')
+                    ? ` · financiamento: as parcelas (com ${reais(r.financiar.juros)} de juros) mais os mesmos custos de dono`
+                    : ''}
                 </i>
               </td>
-              <td>{reais(saiu.assinar)}</td>
-              <td>{reais(r.aVista.custos)}</td>
-              <td>{reais(parcelasPagas + r.financiar.custos)}</td>
+              {cols.map((c) => (
+                <td key={c.k}>{reais(c.periodo)}</td>
+              ))}
             </tr>
             <tr className="tot">
               <td>Total que saiu do bolso</td>
-              <td>{reais(saiu.assinar)}</td>
-              <td>{reais(saiu.aVista)}</td>
-              <td>{reais(saiu.financiar)}</td>
+              {cols.map((c) => (
+                <td key={c.k}>{reais(c.total)}</td>
+              ))}
             </tr>
             <tr className="tem">
               <td>E no fim você tem</td>
-              <td>
-                nenhum carro — <b>e nenhuma revenda para resolver</b>
-              </td>
-              <td>
-                um carro de <b>{reais(r.residual)}</b>
-              </td>
-              <td>
-                um carro de <b>{reais(carroFinanciado)}</b>
-              </td>
+              {cols.map((c) => (
+                <td key={c.k}>
+                  {c.k === 'assinar' ? (
+                    <>
+                      nenhum carro — <b>e nenhuma revenda para resolver</b>
+                    </>
+                  ) : (
+                    <>
+                      um carro de{' '}
+                      <b>{reais(c.k === 'aVista' ? r.residual : carroFinanciado)}</b>
+                    </>
+                  )}
+                </td>
+              ))}
             </tr>
             <tr>
               <td>Desvalorização que o dono engoliu</td>
-              <td>—</td>
-              <td>{reais(abs.depreciacao)}</td>
-              <td>{reais(abs.depreciacao)}</td>
+              {cols.map((c) => (
+                <td key={c.k}>{c.k === 'assinar' ? '—' : reais(abs.depreciacao)}</td>
+              ))}
             </tr>
           </tbody>
         </table>
@@ -385,11 +421,25 @@ export function PropostaPrint({
           assinatura, e ele vale igual quando a compra sai na frente.
         */}
         <p className="plembra">
-          <b>O carro que sai por {reais(r.aVista.desembolso)} hoje vale {reais(r.residual)} em{' '}
-          {(p.meses / 12).toFixed(0)} anos</b> — e ainda depende de você achar comprador. IPVA,
-          seguro, revisão, pneus e imprevisto continuam chegando todo ano, e o dinheiro que virou
-          carro parou de render. <b>Assinando, nada disso é seu problema:</b> é uma parcela só, sem
-          entrada, e o carro volta no fim do contrato.
+          {mostraVista ? (
+            <>
+              <b>
+                O carro que sai por {reais(r.aVista.desembolso)} hoje vale {reais(r.residual)} em{' '}
+                {(p.meses / 12).toFixed(0)} anos
+              </b>{' '}
+              — e ainda depende de você achar comprador.
+            </>
+          ) : (
+            <>
+              <b>
+                O carro financiado perde {reais(abs.depreciacao)} enquanto você paga as parcelas
+              </b>{' '}
+              — a dívida não encolhe junto, e a revenda no fim é problema seu.
+            </>
+          )}{' '}
+          IPVA, seguro, revisão, pneus e imprevisto continuam chegando todo ano, e o dinheiro que
+          virou carro parou de render. <b>Assinando, nada disso é seu problema:</b> é uma parcela
+          só, sem entrada, e o carro volta no fim do contrato.
         </p>  {marca.vendedorNome || marca.vendedorFone || marca.whatsapp ? (
           <div className="pcall">
             <div>
@@ -413,7 +463,7 @@ export function PropostaPrint({
           Os valores do quadro são de caixa: o que sai do bolso e o que sobra na garagem.
           Somando também o rendimento do dinheiro não imobilizado (CDI líquido de IR) e o valor
           residual do carro — metodologia de patrimônio equivalente —, no período a diferença fica
-          em {reais(ranking[1]!.v - ranking[0]!.v)} a favor {ranking[0]!.rot}. Premissas: depreciação{' '}
+          em {reais(ranking[1]!.custo - ranking[0]!.custo)} a favor {ranking[0]!.nome}. Premissas: depreciação{' '}
           {estado.curva === 'fipe' ? 'FIPE' : estado.curva === 'mercado' ? 'de mercado' : 'medida para elétricos'}, IPCA{' '}
           {p.ipca.toFixed(2).replace('.', ',')}% a.a., CDI {p.cdi.toFixed(2).replace('.', ',')}% a.a. Valores de referência
           verificados em agosto/2026; proposta sujeita a análise cadastral. Simulação não é oferta
