@@ -93,7 +93,14 @@ const SUVC = CATEGORIAS['suvc']!;
 export const estadoInicial: Estado = {
   modo: 'cliente',
   aba: 'simular',
-  carroIdx: 0,
+  /*
+   * null = NINGUÉM escolheu ainda — e o catálogo fica em cena. Era 0, mas
+   * pré-marcar o primeiro carro passou a abrir o palco do escolhido no
+   * primeiro acesso, escondendo o catálogo de quem nem escolheu. Os números
+   * padrão abaixo continuam contando uma simulação completa sem carro
+   * marcado (todo consumidor de carroIdx já tratava null desde o início).
+   */
+  carroIdx: null,
   uf: 'ES',
   categoria: 'suvc',
   curva: 'fipe',

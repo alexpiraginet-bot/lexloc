@@ -64,6 +64,13 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: calc(116px + env(safe-area-inset-top));
   overflow-x: hidden;
+  /*
+   * O app usa swipe horizontal como troca de aba — e o Chrome no Android
+   * usa o MESMO gesto como "voltar página" (overscroll history). Quem
+   * chegava pela home e deslizava para a direita era ejetado do app no
+   * meio da simulação. Só o eixo X: puxar para baixo (refresh) continua.
+   */
+  overscroll-behavior-x: none;
 }
 body {
   margin: 0;
@@ -451,7 +458,8 @@ input[type='range']:active::-webkit-slider-thumb { transform: scale(1.18); }
 }
 .cc .mn i { font-style: normal; font-size: 10px; font-weight: 500; color: var(--muted); }
 .cc .tb { font-size: 10px; color: var(--muted); font-family: var(--mono); }
-.cc .fl {
+.cc .fl,
+.pc-palco .fl {
   position: absolute;
   top: 9px;
   right: 9px;
@@ -469,7 +477,8 @@ input[type='range']:active::-webkit-slider-thumb { transform: scale(1.18); }
   background: var(--brand-soft);
   color: var(--brand-text);
 }
-.cc .fl.est { background: var(--surface-2); color: var(--muted); }
+.cc .fl.est,
+.pc-palco .fl.est { background: var(--surface-2); color: var(--muted); }
 .chip {
   border: 1.5px solid var(--line);
   background: var(--paper);
@@ -1032,7 +1041,9 @@ details > .body { padding: 15px 16px 16px; }
 .ret-grade { display: grid; gap: 8px; }
 .ret-linha { display: grid; grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
 .ret-linha .ret-nome { font-size: 12.5px; font-weight: 500; line-height: 1.3; min-width: 0; }
-.ret-linha .inp { min-height: 42px; padding: 8px 10px 8px 32px; font-size: 14px; }
+/* 16px, não 14: fonte menor que 16 em input faz o iPhone dar auto-zoom
+   na página inteira ao focar — e a mesa do vendedor é um iPhone. */
+.ret-linha .inp { min-height: 42px; padding: 8px 10px 8px 32px; font-size: 16px; }
 
 /* foto da frota por modelo: a miniatura É o botão de upload */
 .ret-foto-cel { display: flex; align-items: center; gap: 4px; }
@@ -1108,6 +1119,9 @@ details > .body { padding: 15px 16px 16px; }
 @media print {
   @page { size: A4; margin: 12mm 13mm; }
   body { background: #fff !important; color: #121212 !important; }
+  /* a atmosfera fica na tela: com "imprimir fundos" ligado (padrão dos
+     PDFs de celular) os borrões roxo/dourado vazavam para a folha */
+  body::before, body::after { display: none !important; }
   /* só a folha existe no papel — o app inteiro sai do fluxo, não fica
      invisível ocupando página */
   #root > *:not(.print-only) { display: none !important; }
@@ -1199,7 +1213,9 @@ details > .body { padding: 15px 16px 16px; }
       0 16px 40px -14px color-mix(in srgb, var(--brand-dark) 55%, transparent);
   }
   .tab { min-height: 50px; }
-  main#conteudo { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  /* 152px, não 96: dock (~67px em cima do vão de 78) + tabs somam ~145px
+     — com 96 o rodapé de crédito terminava embaixo do dock no fim do scroll */
+  main#conteudo { padding-bottom: calc(152px + env(safe-area-inset-bottom)); }
   .dock { --dock-baixo: calc(78px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
@@ -2110,3 +2126,98 @@ body::after {
   .trilho-card { transition: none; }
   .trilho-quadro { perspective: none; }
 }
+
+/* ═══════ PALCO DO CARRO ESCOLHIDO ═══════
+   Escolheu, o catálogo sai de cena e o carro fica sozinho, grande — acabou
+   o "qual deles está marcado?". Trocar = botão com seta ou um toque fora
+   do cartão (o botão é o caminho acessível; o clique fora é atalho). */
+.sec-palco { cursor: pointer; }
+.palco-carro {
+  cursor: default;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1.5px solid color-mix(in srgb, var(--brand) 36%, var(--line));
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-2);
+}
+.pc-palco {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 8.4;
+  overflow: hidden;
+  /* a mesma luz de palco dos cards do trilho, em dose de herói */
+  background:
+    radial-gradient(90% 70% at 50% 106%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 70%),
+    linear-gradient(color-mix(in srgb, #fff 55%, transparent), color-mix(in srgb, var(--brand) 8%, transparent));
+}
+.pc-palco img {
+  width: 90%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 18px color-mix(in srgb, var(--brand-dark) 30%, transparent));
+}
+.pc-palco .sil {
+  width: 58%;
+  height: auto;
+  color: var(--brand-deep);
+  opacity: 0.9;
+}
+.pc-selo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: var(--brand-deep);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--brand-dark) 55%, transparent);
+}
+.pc-selo svg { width: 12px; height: 12px; }
+.pc-palco .fl { position: absolute; top: 10px; right: 10px; margin: 0; }
+.pc-ficha { display: flex; flex-direction: column; gap: 8px; padding: 13px 14px 14px; }
+.pc-ficha h4 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 17px; }
+.pc-spec { margin: -4px 0 0; font-size: 12.5px; color: var(--muted); }
+.pc-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 2px; }
+.pc-nums > div {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+}
+.pc-nums b {
+  display: block;
+  font-family: var(--mono);
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  color: var(--brand-deep);
+  font-variant-numeric: tabular-nums;
+}
+.pc-nums span { display: block; margin-top: 1px; font-size: 10px; line-height: 1.3; color: var(--muted); }
+.pc-origem { margin: 0; }
+.pc-trocar { align-self: flex-start; margin-top: 2px; }
+.pc-manter { margin-bottom: 12px; }
+/* estreito: a mensalidade (o número que decide) ocupa a linha inteira */
+@media (max-width: 420px) {
+  .pc-nums { grid-template-columns: 1fr 1fr; }
+  .pc-nums > div:first-child { grid-column: 1 / -1; }
+}
+
+/* seta espelhada = "voltar" — o mesmo desenho, sem segundo ícone */
+.volta { transform: scaleX(-1); }
+
+/* ═══════ EXPORTAR A CONTA ═══════ */
+.exporta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 12px 2px 2px;
+}
+.exporta span { flex: 1; min-width: 200px; font-size: 12px; color: var(--muted); }

@@ -3,7 +3,7 @@ import { CATEGORIAS, DEPREC, UFS } from '@godrive/engine';
 import type { VeiculoLoja } from '../lib/catalogo';
 import { useState, type Dispatch } from 'react';
 import type { Acao, Estado } from '../state';
-import { n2, reais, reais2 } from '../lib/format';
+import { n0, n2, reais, reais2 } from '../lib/format';
 import type { Marca } from '../lib/marca';
 import { Silhueta, Icone } from './icones';
 import { FOTO_CATEGORIA } from '../fotos/categorias';
@@ -32,6 +32,11 @@ const ORIGEM: Record<string, [string, string]> = {
  * O card do carro. Um só, usado pelo trilho E pela grade — se a marcação
  * ficasse duplicada nos dois caminhos, um deles envelheceria escondido.
  */
+/* 1º a foto da FROTA da locadora — é o carro que o cliente recebe, na cor
+   certa; 2º a foto DO MODELO; 3º a da categoria, que ainda serve aos
+   modelos que a equipe acrescenta; a silhueta só sobra se nada existir */
+const fotoDe = (v: VeiculoLoja) => v.fo ?? fotoDoModelo(v.n) ?? FOTO_CATEGORIA[v.c];
+
 function CardCarro({
   v,
   escolhido,
@@ -41,10 +46,7 @@ function CardCarro({
   escolhido: boolean;
   aoEscolher: () => void;
 }) {
-  /* 1º a foto da FROTA da locadora — é o carro que o cliente recebe, na cor
-     certa; 2º a foto DO MODELO; 3º a da categoria, que ainda serve aos
-     modelos que a equipe acrescenta; a silhueta só sobra se nada existir */
-  const foto = v.fo ?? fotoDoModelo(v.n) ?? FOTO_CATEGORIA[v.c];
+  const foto = fotoDe(v);
   return (
     <button
       type="button"
@@ -118,6 +120,15 @@ export function Simulador({
 
   const [busca, setBusca] = useState('');
   const semMovimento = SEM_MOVIMENTO;
+  /*
+   * Escolheu um carro, o catálogo SAI DE CENA e só o escolhido fica, grande
+   * — com trilhos à mostra ninguém sabia dizer qual card estava marcado
+   * (reclamação do dono). `trocando` reabre os trilhos sem desfazer a
+   * escolha: ela só muda quando outro carro é tocado. Local de propósito:
+   * voltar à aba com carro escolhido reabre direto no palco.
+   */
+  const [trocando, setTrocando] = useState(false);
+  const mostrarCatalogo = carro == null || trocando;
 
   const escolherCarro = (i: number) => {
     const v = catalogo[i]!;
@@ -130,6 +141,7 @@ export function Simulador({
      * `pl`) continua no valor único de sempre.
      */
     const plano = planoDaTabela(v.pl, estado.meses, estado.kmMes);
+    setTrocando(false); // carro novo escolhido → o palco volta
     dispatch({
       t: 'muitos',
       valores: {
@@ -188,17 +200,99 @@ export function Simulador({
 
   return (
     <>
-      <section className="card rise" aria-labelledby="t-carro">
+      <section
+        className={`card rise${carro && !trocando ? ' sec-palco' : ''}`}
+        aria-labelledby="t-carro"
+        /*
+         * Com o palco em cena, QUALQUER toque na seção fora do cartão do
+         * escolhido reabre o catálogo — é o "clicar fora" pedido pelo dono,
+         * contido na própria seção para não sequestrar toques do resto da
+         * página (um listener global transformaria cada tap num "trocar").
+         */
+        onClick={
+          carro && !trocando
+            ? (e) => {
+                if (!(e.target as HTMLElement).closest('.palco-carro')) setTrocando(true);
+              }
+            : undefined
+        }
+      >
         <div className="step">
           <i>1</i>
           <div>
             <h3 id="t-carro">Escolha o carro</h3>
             <small>
-              Catálogo da loja com mensalidade de referência — ou informe qualquer valor abaixo.
+              {carro && !trocando
+                ? 'Este é o seu. Quer comparar outros? Toque em Trocar carro.'
+                : 'Catálogo da loja com mensalidade de referência — ou informe qualquer valor abaixo.'}
             </small>
           </div>
         </div>
-        {referencias.map((f) => {
+
+        {carro && !trocando ? (
+          /*
+           * O PALCO — o escolhido sozinho, grande. Tocar fora dele (na
+           * seção) reabre o catálogo; o caminho acessível é o botão
+           * Trocar carro, sempre visível no rodapé da ficha.
+           */
+          <div className="palco-carro rise" role="group" aria-label={`Carro escolhido: ${carro.n}`}>
+              <span className="pc-palco">
+                {fotoDe(carro) ? (
+                  <img src={fotoDe(carro)} alt="" draggable={false} />
+                ) : (
+                  <Silhueta cat={carro.c} />
+                )}
+                <span className="pc-selo">
+                  <Icone nome="check" />
+                  Escolhido
+                </span>
+                <span className={`fl${carro.f === 'est' ? ' est' : ''}`}>
+                  {carro.gd === 1 ? 'da loja' : carro.f === 'pub' ? 'publicada' : carro.f === 'mer' ? 'mercado' : 'estimada'}
+                </span>
+              </span>
+              <div className="pc-ficha">
+                <h4>
+                  {carro.n}
+                  {carro.gd ? <span className="badge o">{marca.nome}{marca.sufixo}</span> : null}
+                </h4>
+                <p className="pc-spec">{carro.d}</p>
+                <div className="pc-nums">
+                  <div>
+                    <b>{reais(estado.mensalidade)}</b>
+                    <span>por mês no plano atual</span>
+                  </div>
+                  <div>
+                    <b>{estado.kmFranquia ? `${n0(estado.kmFranquia)} km` : 'Livre'}</b>
+                    <span>franquia mensal</span>
+                  </div>
+                  <div>
+                    <b>{reais(carro.p)}</b>
+                    <span>tabela 0 km</span>
+                  </div>
+                </div>
+                <p className="hint pc-origem">
+                  Mensalidade <b>{ORIGEM[carro.f]![0]}</b>{' '}
+                  <span className={`badge ${ORIGEM[carro.f]![1]}`}>
+                    {carro.f === 'est' ? 'estimativa' : 'verificado'}
+                  </span>
+                </p>
+                <button type="button" className="btn btn-s pc-trocar" onClick={() => setTrocando(true)}>
+                  <Icone nome="seta" className="volta" />
+                  Trocar carro
+                </button>
+              </div>
+          </div>
+        ) : null}
+
+        {carro && trocando ? (
+          <button type="button" className="btn btn-s sm pc-manter" onClick={() => setTrocando(false)}>
+            <Icone nome="seta" className="volta" />
+            Manter o {carro.n}
+          </button>
+        ) : null}
+
+        {mostrarCatalogo
+          ? referencias.map((f) => {
           const cards = f.escolhidos.map(({ v, i }) => (
             <CardCarro
               key={v.n}
@@ -230,23 +324,26 @@ export function Simulador({
               )}
             </div>
           );
-        })}
+            })
+          : null}
 
-        <label className="busca">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.4-3.4" />
-          </svg>
-          <input
-            type="search"
-            className="inp"
-            placeholder="Procurar um modelo específico…"
-            aria-label="Procurar um modelo específico no catálogo"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </label>
-        {alvo.length >= 2 ? (
+        {mostrarCatalogo ? (
+          <label className="busca">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.4-3.4" />
+            </svg>
+            <input
+              type="search"
+              className="inp"
+              placeholder="Procurar um modelo específico…"
+              aria-label="Procurar um modelo específico no catálogo"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </label>
+        ) : null}
+        {mostrarCatalogo && alvo.length >= 2 ? (
           achados.length ? (
             <div className="chips" role="group" aria-label="Modelos encontrados">
               {achados.map(({ v, i }) => (
@@ -272,7 +369,7 @@ export function Simulador({
             </p>
           )
         ) : null}
-        {carro ? (
+        {carro && mostrarCatalogo ? (
           <div className="carinfo" style={{ marginTop: 13 }}>
             <div className="ci">
               <h5>
