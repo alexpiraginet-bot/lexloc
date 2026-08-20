@@ -120,6 +120,8 @@ export function PropostaPrint({
             border-radius: 99px; background: ${marca.corPrimaria}; color: #fff;
             font-size: 8px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
             vertical-align: 0.4mm; }
+          .pp .pwin.neutro { background: transparent; color: #6e6675;
+            border: 0.3mm solid #cfc7d8; }
 
           /* ── chamada final: o contato que fecha, no dourado da marca ── */
           .pp .pcall { display: flex; justify-content: space-between; align-items: center; gap: 6mm;
@@ -131,6 +133,13 @@ export function PropostaPrint({
           .pp .pfone { white-space: nowrap; font-size: 11px; }
           .pp .pfone b { font-family: var(--mono); font-weight: 800; font-size: 12.5px;
             color: ${marca.corPrimaria}; letter-spacing: -0.01em; }
+
+          /* o lembrete que fecha a comparação — tom de texto, não de alerta */
+          .pp .plembra { margin-top: 3.4mm; padding: 3.4mm 4.5mm; font-size: 10px;
+            line-height: 1.6; color: #3a3342; border-radius: 3mm;
+            background: color-mix(in srgb, ${marca.corPrimaria} 4%, #fff);
+            border: 0.3mm solid color-mix(in srgb, ${marca.corPrimaria} 18%, #fff); }
+          .pp .plembra b { color: #17131c; }
 
           .pp .pfoot { margin-top: 4.5mm; padding-top: 3.4mm; border-top: 0.25mm solid #e6e1ec;
             font-size: 8.6px; color: #8d8595; line-height: 1.6; }
@@ -298,10 +307,26 @@ export function PropostaPrint({
           </thead>
           <tbody>
             {cenarios.map((c) => (
-              <tr key={c.k} className={d.vencedor === c.k ? 'win' : undefined}>
+              <tr key={c.k} className={c.k === 'assinar' ? 'win' : undefined}>
                 <td>
                   {c.rot}
-                  {d.vencedor === c.k ? <span className="pwin">melhor do período</span> : null}
+                  {/*
+                    O selo é do NOSSO cenário, não um troféu para o vizinho.
+                    Os três números continuam na tabela, sem maquiagem — quem
+                    lê compara sozinho. Mas a proposta é da locadora: coroar a
+                    compra à vista com um selo era o documento fazendo campanha
+                    contra quem o imprimiu.
+                  */}
+                  {c.k === 'assinar' ? (
+                    d.vencedor === 'assinar' ? (
+                      <span className="pwin">melhor do período</span>
+                    ) : (
+                      /* a linha destacada é o assunto da proposta — dizer isso
+                         em voz alta evita que o realce seja lido como "a mais
+                         barata" quando não é */
+                      <span className="pwin neutro">nossa proposta</span>
+                    )
+                  ) : null}
                 </td>
                 <td>{reais(c.custo)}</td>
                 <td>{c.ato}</td>
@@ -309,6 +334,22 @@ export function PropostaPrint({
             ))}
           </tbody>
         </table>
+
+        {/*
+          O que a coluna do meio NÃO mostra. Nenhum número novo, nenhum número
+          escondido: só o que o cliente esquece de somar quando olha o preço da
+          compra — o caixa que sai hoje, a revenda que é problema dele e a
+          conta que continua chegando todo ano. É o argumento honesto da
+          assinatura, e ele vale igual quando a compra sai na frente.
+        */}
+        <p className="plembra">
+          <b>Comprar exige {reais(r.aVista.desembolso)} no ato</b> e, daqui a {p.meses} meses,
+          depender do que o mercado pagar por um carro com {(p.meses / 12).toFixed(0)} anos de uso —
+          a desvalorização de <b>{reais(abs.depreciacao)}</b> é do dono, não da tabela. IPVA,
+          seguro, revisão, pneus e imprevisto continuam chegando todo ano.{' '}
+          <b>Assinando, nada disso é seu problema:</b> é uma parcela só, sem entrada, e o carro
+          volta no fim do contrato.
+        </p>
 
         {marca.vendedorNome || marca.vendedorFone || marca.whatsapp ? (
           <div className="pcall">
