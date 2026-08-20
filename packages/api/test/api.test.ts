@@ -62,12 +62,19 @@ describe('GET /api/v1/reference', () => {
 });
 
 describe('GET /api/v1/catalog', () => {
-  it('catálogo completo, com godrive e mercado', async () => {
+  it('catálogo oficial de agosto/2026: oito carros, todos da loja, todos com planos', async () => {
     const r = await app.inject({ method: 'GET', url: '/api/v1/catalog' });
     const body = r.json();
-    expect(body.veiculos.length).toBeGreaterThan(15);
+    /*
+     * Era `> 15` quando o catálogo misturava loja e mercado. Decisão do
+     * dono (ago/2026): SÓ os oito da tabela oficial — o teste agora prende
+     * a contagem exata, porque carro fantasma reaparecendo aqui é regressão,
+     * não riqueza.
+     */
+    expect(body.veiculos.length).toBe(8);
     expect(body.veiculos.filter((v: { gd: number }) => v.gd === 1).length).toBe(8);
-    expect(body.txRef).toBeCloseTo(2.129, 6);
+    expect(body.veiculos.every((v: { pl?: unknown[] }) => (v.pl?.length ?? 0) === 4)).toBe(true);
+    expect(body.txRef).toBeCloseTo(2.28, 6);
   });
 });
 

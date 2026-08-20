@@ -9,6 +9,7 @@
  * Rode `node scripts/publicar.mjs` depois de qualquer mudança no app.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -255,5 +256,46 @@ for (const nome of readdirSync(site)) {
   }
 }
 
+/*
+ * ── PWA: o service worker é CARIMBADO aqui, nunca editado à mão ──
+ * A versão do cache é o hash do próprio app.html: app igual → versão igual
+ * → nenhum churn; app novo → cache novo e o activate apaga o velho. Versão
+ * escrita à mão é como usuário fica preso num app antigo para sempre.
+ */
+const swModelo = readFileSync(join(raiz, 'scripts', 'sw-app.js'), 'utf8');
+const hashApp = createHash('sha256').update(readFileSync(join(site, 'app.html'))).digest('hex').slice(0, 12);
+writeFileSync(join(site, 'sw.js'), swModelo.replace('__LEXGO_SW_VERSAO__', hashApp));
+
+/* guardas do PWA — instalável pela metade é pior que não instalável */
+const swFinal = readFileSync(join(site, 'sw.js'), 'utf8');
+if (swFinal.includes('__LEXGO_SW_VERSAO__')) {
+  console.error('\n✗ sw.js saiu sem versão carimbada — o placeholder mudou de nome?');
+  process.exit(1);
+}
+const manifesto = JSON.parse(readFileSync(join(site, 'manifest.webmanifest'), 'utf8'));
+if (manifesto.start_url !== '/app.html' || manifesto.scope !== '/app.html') {
+  console.error('\n✗ manifest.webmanifest fora de /app.html — instalado, abriria a página errada.');
+  process.exit(1);
+}
+const appPublicado = readFileSync(join(site, 'app.html'), 'utf8');
+if (!appPublicado.includes('rel="manifest"') || !appPublicado.includes('serviceWorker')) {
+  console.error('\n✗ app.html publicado sem manifesto ou sem registro do service worker.');
+  process.exit(1);
+}
+for (const arq of ['icone-192.png', 'icone-512.png', 'icone-512-mask.png', 'apple-touch-icon.png']) {
+  if (!existsSync(join(site, arq))) {
+    console.error(`\n✗ falta ${arq} — rode: node scripts/pwa.mjs`);
+    process.exit(1);
+  }
+}
+for (const vc of [join(raiz, 'vercel.json'), join(site, 'vercel.json')]) {
+  const txt = readFileSync(vc, 'utf8');
+  if (!txt.includes("worker-src 'self'") || !txt.includes("manifest-src 'self'")) {
+    console.error(`\n✗ ${vc} sem worker-src/manifest-src — a CSP bloquearia o registro do worker.`);
+    process.exit(1);
+  }
+}
+
 console.log('\n✓ site/ pronto — o corte por build está de pé nos dois sentidos.');
 console.log(`· gêmeo da equipe: /${GEMEO_DA_EQUIPE}`);
+console.log(`· service worker carimbado: lexgo-app-${hashApp}`);

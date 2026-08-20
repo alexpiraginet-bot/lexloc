@@ -7,9 +7,10 @@ import { n2, reais, reais2 } from '../lib/format';
 import type { Marca } from '../lib/marca';
 import { Silhueta, Icone } from './icones';
 import { FOTO_CATEGORIA } from '../fotos/categorias';
-import { FOTO_MODELO } from '../fotos/modelos';
+import { fotoDoModelo } from '../fotos/alias';
 import { Retaguarda } from '@vendedor';
 import { CampoNum } from './CampoNum';
+import { planoDaTabela } from '../lib/plano';
 import { Trilho } from './Trilho';
 
 const CAT_CURTO: Record<string, string> = {
@@ -43,7 +44,7 @@ function CardCarro({
   /* 1º a foto da FROTA da locadora — é o carro que o cliente recebe, na cor
      certa; 2º a foto DO MODELO; 3º a da categoria, que ainda serve aos
      modelos que a equipe acrescenta; a silhueta só sobra se nada existir */
-  const foto = v.fo ?? FOTO_MODELO[v.n] ?? FOTO_CATEGORIA[v.c];
+  const foto = v.fo ?? fotoDoModelo(v.n) ?? FOTO_CATEGORIA[v.c];
   return (
     <button
       type="button"
@@ -121,13 +122,22 @@ export function Simulador({
   const escolherCarro = (i: number) => {
     const v = catalogo[i]!;
     const c = CATEGORIAS[v.c]!;
+    /*
+     * Carro da tabela oficial não usa a mensalidade "a partir de": usa a
+     * LINHA da matriz que casa com o prazo e o km que já estão na tela —
+     * mensalidade, franquia e preço do excedente andam juntos, porque na
+     * tabela eles são um contrato só. Carro cadastrado pela equipe (sem
+     * `pl`) continua no valor único de sempre.
+     */
+    const plano = planoDaTabela(v.pl, estado.meses, estado.kmMes);
     dispatch({
       t: 'muitos',
       valores: {
         carroIdx: i,
         preco: v.p,
         categoria: v.c,
-        mensalidade: v.m,
+        mensalidade: plano?.mensalidade ?? v.m,
+        ...(plano ? { kmFranquia: plano.kmFranquia, kmExcedente: plano.kmExcedente } : {}),
         manutAno: c.manut,
         pneusJogo: c.pneus,
         kmPneu: c.kmPneu,
@@ -139,21 +149,13 @@ export function Simulador({
   };
 
   /*
-   * Até SETE por faixa, num trilho que folheia.
+   * Faixas por MENSALIDADE, cada uma num trilho que folheia.
    *
-   * Eram dois, porque o catálogo inteiro em grade virava poluição. O trilho
-   * resolve a poluição pelo formato — um carro grande no centro, os vizinhos
-   * deitados atrás — então dá para mostrar a faixa inteira sem encher a tela.
-   * Os outros dezesseis carros deixam de existir só na busca.
-   *
-   * As faixas continuam saindo da MENSALIDADE, não do nome: valem também
-   * para o catálogo custom de qualquer locadora. Carro da loja (gd) fura a
-   * fila da sua faixa.
-   *
-   * DOZE é o tamanho da maior faixa do catálogo de hoje (6 / 12 / 4), então
-   * nenhum carro nosso fica só na busca. O teto continua existindo para a
-   * locadora que importar duzentos modelos: trilho de duzentos cards não é
-   * folhear, é rolar para sempre.
+   * O catálogo oficial de agosto/2026 tem OITO carros (a faixa Popular fica
+   * vazia e some sozinha — o filtro abaixo já cuidava disso). O teto de doze
+   * por faixa segue existindo para a locadora que importar duzentos modelos:
+   * trilho de duzentos cards não é folhear, é rolar para sempre. Carro da
+   * loja (gd) fura a fila da sua faixa.
    */
   const POR_FAIXA = 12;
   const indexado = catalogo.map((v, i) => ({ v, i }));
@@ -315,7 +317,25 @@ export function Simulador({
             <select
               className="inp"
               value={estado.meses}
-              onChange={(e) => dispatch({ t: 'set', campo: 'meses', valor: Number(e.target.value) })}
+              onChange={(e) => {
+                const meses = Number(e.target.value);
+                // prazo novo, linha nova da tabela — mensalidade editada à
+                // mão sobrevive até o usuário mexer de novo em prazo/km/carro
+                const plano = planoDaTabela(carro?.pl, meses, estado.kmMes);
+                dispatch({
+                  t: 'muitos',
+                  valores: {
+                    meses,
+                    ...(plano
+                      ? {
+                          mensalidade: plano.mensalidade,
+                          kmFranquia: plano.kmFranquia,
+                          kmExcedente: plano.kmExcedente,
+                        }
+                      : {}),
+                  },
+                });
+              }}
             >
               {[12, 24, 36, 48, 60].map((m) => (
                 <option key={m} value={m}>
@@ -337,7 +357,23 @@ export function Simulador({
             value={estado.kmMes}
             aria-label="Quilometragem mensal"
             style={{ ['--pos' as never]: `${((estado.kmMes - 300) / 4700) * 100}%` }}
-            onChange={(e) => dispatch({ t: 'set', campo: 'kmMes', valor: Number(e.target.value) })}
+            onChange={(e) => {
+              const kmMes = Number(e.target.value);
+              const plano = planoDaTabela(carro?.pl, estado.meses, kmMes);
+              dispatch({
+                t: 'muitos',
+                valores: {
+                  kmMes,
+                  ...(plano
+                    ? {
+                        mensalidade: plano.mensalidade,
+                        kmFranquia: plano.kmFranquia,
+                        kmExcedente: plano.kmExcedente,
+                      }
+                    : {}),
+                },
+              });
+            }}
           />
         </label>
         <div className="grid g2" style={{ marginTop: 4 }}>

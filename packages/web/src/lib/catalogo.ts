@@ -178,10 +178,19 @@ export function catalogoEfetivo(custom: CatalogoCustom): VeiculoLoja[] {
   const base: VeiculoLoja[] = CATALOGO.map((v) => {
     const aj = custom.ajustes[v.n];
     if (!aj) return v;
+    /*
+     * Mensalidade mexida pela equipe DESLIGA a tabela de planos deste
+     * carro — a chave `pl` é OMITIDA, não posta em undefined (o tsconfig
+     * usa exactOptionalPropertyTypes). Sem isso o card mostrava o preço da
+     * equipe e o clique aplicava o da tabela oficial: dois preços para o
+     * mesmo carro na mesma tela, e o vendedor sem saber qual valeu.
+     */
+    const mexeuNaMensalidade = aj.m != null && aj.m > 0;
+    const { pl: _plOficial, ...semPlano } = v;
     return {
-      ...v,
+      ...(mexeuNaMensalidade ? semPlano : v),
       p: aj.p != null && aj.p > 0 ? aj.p : v.p,
-      m: aj.m != null && aj.m > 0 ? aj.m : v.m,
+      m: mexeuNaMensalidade ? aj.m! : v.m,
       // preço mexido pela equipe = fonte "mercado local", não mais a publicada
       f: (aj.m != null && aj.m !== v.m ? 'mer' : v.f) as Veiculo['f'],
       ...(aj.fo ? { fo: aj.fo } : {}),

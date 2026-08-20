@@ -89,7 +89,15 @@ export default function App() {
     toque.current = {
       x: t.clientX,
       y: t.clientY,
-      ignora: !!alvo.closest('.scroll, .tabs, input, select, textarea, svg'),
+      /*
+       * .trilho-quadro entrou na lista pelo bug mais reclamado do carrossel:
+       * folhear os carros com o dedo é um swipe lateral — igualzinho ao
+       * gesto de trocar de aba. Sem a exceção, arrastar o trilho jogava o
+       * cliente direto no Resultado no meio da escolha. O trilho captura o
+       * PONTEIRO, mas touchstart/touchend continuam borbulhando até aqui:
+       * capturar pointer não silencia evento de toque do ancestral.
+       */
+      ignora: !!alvo.closest('.scroll, .tabs, .trilho-quadro, input, select, textarea, svg'),
     };
   };
   const aoSoltar = (e: React.TouchEvent) => {
