@@ -38,6 +38,18 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="LexGo — assinar, comprar à vista ou financiar, com o custo total de cada caminho" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!--
+      PWA — o QR na mesa do vendedor abre /app.html; daí o cliente pode
+      "Adicionar à tela de início" e o app passa a abrir sem internet.
+      O manifesto e os ícones moram em site/ (gerados por scripts/pwa.mjs);
+      o service worker é carimbado a cada publicação (publicar.mjs).
+      Nos arquivos off-line (file://) estas tags são inertes — nada quebra.
+    -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#892991" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="LexGo" />
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%23892991'/><circle cx='16' cy='16' r='6' fill='%23F19D38'/></svg>"
@@ -252,5 +264,39 @@ Error generating stack: `+l.message+`
       }
       .socorro-pe { margin-top: 1.5rem; font-size: 13.5px; color: #6e6675; }
     </style>
+    <script>
+      /*
+       * Registro do service worker — com TRÊS travas, cada uma por um motivo:
+       * · só em /app.html: a landing e as páginas da equipe não podem cair
+       *   sob um worker (escopo também vai amarrado no register);
+       * · só em https/localhost: nos arquivos que viajam por WhatsApp
+       *   (file://) isto não existe e não pode reclamar;
+       * · catch vazio: PWA é melhoria progressiva — se o registro falhar,
+       *   o app continua exatamente como era. Nunca pode derrubá-lo.
+       * A sala limpa fica de pé: o cache guarda os bytes genéricos do app;
+       * o fragmento #d= nem chega ao worker.
+       */
+      if (
+        'serviceWorker' in navigator &&
+        /\/app\.html$/.test(location.pathname) &&
+        (location.protocol === 'https:' ||
+          location.hostname === 'localhost' ||
+          location.hostname === '127.0.0.1')
+      ) {
+        addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js', { scope: '/app.html', updateViaCache: 'none' })
+            /*
+             * A checagem de versão vai PEDIDA, não esperada. Medido: só
+             * recarregar a página não instalava o worker novo (o navegador
+             * adia a checagem por navegação); reg.update() instalou e ativou
+             * em ~2,5 s. Sem esta linha, quem instalou o app ficaria na
+             * versão velha por tempo indeterminado.
+             */
+            .then((reg) => reg.update())
+            .catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
