@@ -64,6 +64,13 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: calc(116px + env(safe-area-inset-top));
   overflow-x: hidden;
+  /*
+   * O app usa swipe horizontal como troca de aba — e o Chrome no Android
+   * usa o MESMO gesto como "voltar página" (overscroll history). Quem
+   * chegava pela home e deslizava para a direita era ejetado do app no
+   * meio da simulação. Só o eixo X: puxar para baixo (refresh) continua.
+   */
+  overscroll-behavior-x: none;
 }
 body {
   margin: 0;
@@ -1206,7 +1213,9 @@ details > .body { padding: 15px 16px 16px; }
       0 16px 40px -14px color-mix(in srgb, var(--brand-dark) 55%, transparent);
   }
   .tab { min-height: 50px; }
-  main#conteudo { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  /* 152px, não 96: dock (~67px em cima do vão de 78) + tabs somam ~145px
+     — com 96 o rodapé de crédito terminava embaixo do dock no fim do scroll */
+  main#conteudo { padding-bottom: calc(152px + env(safe-area-inset-bottom)); }
   .dock { --dock-baixo: calc(78px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
