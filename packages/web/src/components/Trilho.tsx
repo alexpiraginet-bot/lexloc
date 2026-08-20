@@ -92,9 +92,29 @@ export function Trilho({
       const giro = Math.min(52 * rampa, 74) * Math.sign(desvio);
 
       // sem -50%: quem centraliza é a grade do palco, não a transform
+      /*
+       * O recuo é ESCALA, não translateZ — e essa troca é a correção de um
+       * defeito grave, não gosto pessoal.
+       *
+       * Com translateZ o card central ficava intocável por segundos depois
+       * de qualquer movimento do trilho: Z negativo põe o elemento atrás do
+       * plano do palco na ordem de hit-test 3D, e `elementFromPoint` no meio
+       * do card devolvia `.trilho-palco`. Medido: -67px logo após a seta,
+       * chegando a zero só lá pelos 6 s. Ajustar o easing não resolvia,
+       * porque quem segura o Z é a rampa: `d^0.56` decai muito mais devagar
+       * que a distância, então mesmo a 0,05 de card o Z ainda valia -24px.
+       *
+       * Escala reproduz o mesmo encolhimento — sob perspectiva, translateZ
+       * lê como tamanho de qualquer forma — e não tira o card do plano. O
+       * fator 0.175 é a equivalência medida: com perspectiva de 2.6 larguras
+       * e recuo de 0.55, o vizinho a uma distância ficava em 0.825.
+       *
+       * O rotateY fica: no centro ele é zero, então não atrapalha o toque.
+       */
+      const escala = 1 - 0.175 * rampa;
       card.style.transform =
         `translateX(${desvio * passo}px) ` +
-        `translateZ(${-0.55 * largura * rampa}px) ` +
+        `scale(${escala}) ` +
         `rotateY(${-giro}deg)`;
       card.style.opacity = String(Math.max(0, 1 - 0.16 * d));
       card.style.zIndex = String(100 - Math.round(d * 10));
@@ -103,21 +123,44 @@ export function Trilho({
     });
   }, []);
 
+  /*
+   * Assentamento por TEMPO, não por quadro — e isso não é preciosismo.
+   *
+   * A versão anterior fazia `pos += falta * 0.16` a cada quadro. Duas coisas
+   * quebram nisso. A primeira é que a velocidade passa a depender do FPS: a
+   * mesma animação leva 0,8 s a 60 fps e 6 s onde o navegador estrangula o
+   * rAF. A segunda é pior e foi medida: enquanto o assentamento não termina,
+   * o card central carrega `translateZ` negativo, e card com Z negativo fica
+   * ATRÁS do plano do palco na ordem de hit-test 3D. `elementFromPoint` no
+   * meio do card devolvia `.trilho-palco`, e o carro ficava impossível de
+   * tocar por vários segundos depois de qualquer movimento do trilho — o
+   * seletor não selecionava, de novo, por outro caminho.
+   *
+   * Decaimento exponencial com constante de tempo em milissegundos resolve
+   * os dois: 300 ms em qualquer aparelho, e o `translateZ` volta a zero
+   * junto. O corte é em SUB-PIXEL, não em fração de card, porque é pixel que
+   * o olho vê — e abaixo dele o salto para o alvo exato é invisível.
+   */
+  const TAU = 90; // ms; ~300 ms para assentar
   const assentar = useCallback(
     (alvo: number) => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       alvoRef.current = alvo;
       setCentro(Math.round(alvo));
 
-      const passo = () => {
+      let antes = performance.now();
+      const passo = (agora: number) => {
+        const dt = Math.min(agora - antes, 64); // quadro perdido não teleporta
+        antes = agora;
         const falta = alvo - posRef.current;
-        if (Math.abs(falta) < 0.0004) {
-          posRef.current = alvo;
+        const passoPx = larguraRef.current * 0.62 || 1;
+        if (Math.abs(falta) * passoPx < 0.5) {
+          posRef.current = alvo; // exato: é aqui que o translateZ zera
           pintar();
           rafRef.current = null;
           return;
         }
-        posRef.current += falta * 0.16;
+        posRef.current += falta * (1 - Math.exp(-dt / TAU));
         pintar();
         rafRef.current = requestAnimationFrame(passo);
       };

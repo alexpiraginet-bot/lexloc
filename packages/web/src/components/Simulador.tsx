@@ -463,7 +463,7 @@ export function Simulador({
           </div>
           <div className="sect">Financiamento (para comparação)</div>
           <div className="grid g3">
-            <CampoNum rotulo="Entrada %" valor={estado.entradaPct} campo="entradaPct" dispatch={dispatch} />
+            <CampoNum rotulo="Entrada %" valor={estado.entradaPct} campo="entradaPct" dispatch={dispatch} max={100} />
             <CampoNum rotulo="Juros % a.m." valor={estado.jurosFinMes} campo="jurosFinMes" dispatch={dispatch} casas={2} />
             <label className="f">
               <span>Prazo</span>

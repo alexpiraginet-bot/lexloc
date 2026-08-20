@@ -841,7 +841,16 @@ details > .body { padding: 15px 16px 16px; }
   position: fixed;
   left: max(14px, env(safe-area-inset-left));
   right: max(14px, env(safe-area-inset-right));
-  bottom: calc(12px + env(safe-area-inset-bottom));
+  /*
+   * UM número manda na altura do dock, e ele é usado nos dois lugares.
+   * Antes o `bottom` e a distância de esconder eram escritos separados: o
+   * `bottom` virava 78px no celular e o `translateY` continuava calibrado
+   * para 12px, então o dock parava 52px DENTRO da tela — a etiqueta e o
+   * botão laranja apareciam por trás da barra de abas. Dois números que
+   * precisam concordar sempre acabam discordando; agora é um só.
+   */
+  --dock-baixo: calc(12px + env(safe-area-inset-bottom));
+  bottom: var(--dock-baixo);
   z-index: 50;
   background: var(--vidro);
   backdrop-filter: var(--vidro-blur);
@@ -850,7 +859,7 @@ details > .body { padding: 15px 16px 16px; }
   border-radius: 24px;
   box-shadow: var(--vidro-brilho), 0 18px 44px -18px color-mix(in srgb, var(--brand-dark) 55%, transparent);
   padding: 10px 14px;
-  transform: translateY(calc(100% + 26px));
+  transform: translateY(calc(100% + var(--dock-baixo) + 14px));
   transition: transform 0.34s var(--e-out);
 }
 .dock.on { transform: none; }
@@ -1191,7 +1200,7 @@ details > .body { padding: 15px 16px 16px; }
   }
   .tab { min-height: 50px; }
   main#conteudo { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  .dock { bottom: calc(78px + env(safe-area-inset-bottom)); }
+  .dock { --dock-baixo: calc(78px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
 
@@ -1857,12 +1866,20 @@ body::after {
 
 /* ═══ A história: sequência animada no fim do resultado (cliente) ═══ */
 .hist { padding: 0; overflow: hidden; }
-.hist-barras { display: flex; gap: 4px; padding: 11px 12px 0; }
+.hist-barras { display: flex; gap: 4px; padding: 0 12px; }
+/*
+ * A BARRA desenhada tem 3px; o BOTÃO tem 25. O respiro é padding, e o fundo
+ * é recortado no content-box, então o que se vê continua sendo um fio fino
+ * enquanto o dedo pega um alvo de verdade. Mesmo erro que eu tinha cometido
+ * nos pontinhos do trilho: alvo de toque não é o tamanho do desenho.
+ */
 .hist-barra {
   flex: 1;
   height: 3px;
+  padding: 11px 0;
+  background-clip: content-box;
+  box-sizing: content-box;
   border: 0;
-  padding: 0;
   border-radius: 99px;
   background: color-mix(in srgb, var(--ink) 12%, transparent);
   cursor: pointer;
