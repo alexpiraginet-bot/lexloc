@@ -242,12 +242,19 @@ export function Trilho({
           }
         }}
         onKeyDown={(e) => {
-          if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            andar(-1);
-          } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            andar(1);
+          const passo = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+          if (!passo) return;
+          e.preventDefault();
+          const destino = preso(Math.round(alvoRef.current) + passo);
+          andar(passo);
+          /*
+           * Se o foco está num card, ele vai junto. Sem isto a seta move a
+           * vista e deixa o foco para trás: o leitor de tela anuncia um carro
+           * e a tela mostra outro.
+           */
+          const focado = document.activeElement;
+          if (focado instanceof HTMLElement && focado.closest('.trilho-card')) {
+            cardsRef.current[destino]?.querySelector('button')?.focus();
           }
         }}
       >
@@ -259,6 +266,16 @@ export function Trilho({
                 cardsRef.current[i] = el;
               }}
               className="trilho-card"
+              /*
+               * Tab entra nos cards, e um card fora do centro está girado 74°
+               * com 16% de opacidade: o anel de foco cairia onde ninguém vê.
+               * Receber foco traz o trilho até ele — é o mesmo contrato do
+               * `scrollIntoView` de uma lista rolável, só que a rolagem aqui
+               * é uma transform.
+               */
+              onFocus={() => {
+                if (Math.round(alvoRef.current) !== i) assentar(preso(i));
+              }}
             >
               {render(i, { distancia: Math.abs(i - centro), central: i === centro })}
             </div>
