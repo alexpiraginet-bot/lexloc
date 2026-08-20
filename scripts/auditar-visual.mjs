@@ -83,11 +83,20 @@ function sonda() {
     return (e.clip !== 'auto' && e.clip !== '') || (e.clipPath !== 'none' && e.position === 'absolute');
   };
 
+  /*
+   * Carrossel corta por desenho: o card vizinho recua e some na moldura. A
+   * regra da borda existe para pegar vazamento ACIDENTAL, então o que mora
+   * dentro de um recorte declarado sai da conta. `data-corta` é a declaração
+   * — quem escreve o recorte assume que ele é intencional.
+   */
+  const noRecorte = (el) => el.closest('[data-corta]') !== null;
+
   // 1) texto colado na borda (o bug do .hero sobrescrevendo o .wrap)
   for (const el of document.querySelectorAll('h1,h2,h3,p,li,span,a,button,label')) {
     if (!el.textContent.trim()) continue;
     const r = el.getBoundingClientRect();
     if (invisivel(el)) continue;
+    if (noRecorte(el)) continue;
     if (getComputedStyle(el).position === 'fixed') continue;
     if (r.left < RESPIRO || vw - r.right < RESPIRO) {
       falhas.push({ tipo: 'texto-na-borda', el: nome(el), esq: Math.round(r.left),
@@ -100,15 +109,27 @@ function sonda() {
     falhas.push({ tipo: 'rolagem-lateral', largura: document.documentElement.scrollWidth, tela: vw });
   }
 
-  // 3) alvo de toque menor que 44px (Apple HIG). Link dentro de parágrafo
-  //    não é alvo de toque isolado — cobrá-lo só produziria ruído.
+  /*
+   * 3) Alvo de toque pequeno demais — e "demais" depende do ponteiro.
+   *
+   * 44px é a WCAG 2.5.5 (AAA) e o guia da Apple, escritos para o DEDO. No
+   * mouse o mínimo é a 2.5.8 (AA), que pede 24. Cobrar 44 numa tela de
+   * cursor acusava botão que está certo e afogava o achado de verdade: com
+   * o critério fixo, 28 apontamentos por tela escondiam os pontos de 7px do
+   * carrossel, que eram o defeito real.
+   *
+   * A regra continua com dentes: 7px reprova nos dois mundos.
+   *
+   * Link dentro de parágrafo não é alvo isolado — cobrá-lo só faria ruído.
+   */
+  const MIN_ALVO = matchMedia('(pointer: coarse)').matches ? 44 : 24;
   for (const el of document.querySelectorAll('a,button,input,select')) {
     const r = el.getBoundingClientRect();
     if (invisivel(el)) continue;
     if (el.type === 'range' || el.type === 'hidden') continue;
     if (el.tagName === 'A' && el.closest('p,li,.foot')) continue;
-    if (r.height < 44) {
-      falhas.push({ tipo: 'alvo-pequeno', el: nome(el), altura: Math.round(r.height),
+    if (r.height < MIN_ALVO) {
+      falhas.push({ tipo: 'alvo-pequeno', el: nome(el), altura: Math.round(r.height), minimo: MIN_ALVO,
         txt: (el.textContent || '').trim().slice(0, 30) });
     }
   }

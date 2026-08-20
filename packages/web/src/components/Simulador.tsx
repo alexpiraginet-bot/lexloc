@@ -10,6 +10,7 @@ import { FOTO_CATEGORIA } from '../fotos/categorias';
 import { FOTO_MODELO } from '../fotos/modelos';
 import { Retaguarda } from '@vendedor';
 import { CampoNum } from './CampoNum';
+import { Trilho } from './Trilho';
 
 const CAT_CURTO: Record<string, string> = {
   popular: 'Popular',
@@ -25,6 +26,75 @@ const ORIGEM: Record<string, [string, string]> = {
   mer: ['praticada no mercado para este modelo', 'v'],
   est: ['estimada a partir das mensalidades publicadas', 'o'],
 };
+
+/**
+ * O card do carro. Um só, usado pelo trilho E pela grade — se a marcação
+ * ficasse duplicada nos dois caminhos, um deles envelheceria escondido.
+ */
+function CardCarro({
+  v,
+  escolhido,
+  aoEscolher,
+}: {
+  v: VeiculoLoja;
+  escolhido: boolean;
+  aoEscolher: () => void;
+}) {
+  /* 1º a foto da FROTA da locadora — é o carro que o cliente recebe, na cor
+     certa; 2º a foto DO MODELO; 3º a da categoria, que ainda serve aos
+     modelos que a equipe acrescenta; a silhueta só sobra se nada existir */
+  const foto = v.fo ?? FOTO_MODELO[v.n] ?? FOTO_CATEGORIA[v.c];
+  return (
+    <button
+      type="button"
+      className="cc"
+      aria-pressed={escolhido}
+      aria-label={`${v.n}, tabela ${reais(v.p)}, assinatura a partir de ${reais(v.m)} por mês`}
+      onClick={aoEscolher}
+    >
+      {/* PALCO — a foto da frota quando existir; a silhueta da categoria é o
+          padrão de fábrica, igual para todos, para o catálogo não virar
+          colcha de retalhos */}
+      <span className="cc-palco">
+        {foto ? (
+          <img
+            src={foto}
+            alt=""
+            className="cc-foto"
+            draggable={false}
+            /* sem lazy: o data URI já veio no documento, e adiar só cria
+               dependência de composição — em aba oculta a imagem nunca entra
+               na viewport e não carrega */
+          />
+        ) : (
+          <Silhueta cat={v.c} />
+        )}
+        <span className={`fl${v.f === 'est' ? ' est' : ''}`}>
+          {v.gd === 1 ? 'da loja' : v.f === 'pub' ? 'publicada' : v.f === 'mer' ? 'mercado' : 'estimada'}
+        </span>
+      </span>
+      {/* FICHA — nome e números, separados do palco por um fio */}
+      <span className="cc-ficha">
+        <span className="nm">{v.n}</span>
+        <span className="sp">{v.d}</span>
+        <span className="mn">
+          {reais(v.m)}
+          <i>/mês</i>
+        </span>
+        <span className="tb">tabela {reais(v.p)}</span>
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Movimento reduzido no sistema operacional. Quem liga isso não quer ver
+ * carrossel inclinado — então o trilho não degrada, ele sai e a grade volta.
+ * Lido uma vez: ninguém troca essa preferência no meio de uma simulação, e
+ * assinar o `change` custaria um listener por aba para nada.
+ */
+const SEM_MOVIMENTO =
+  typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function Simulador({
   estado,
@@ -46,6 +116,7 @@ export function Simulador({
   const ev = cat.tipo === 'ev';
 
   const [busca, setBusca] = useState('');
+  const semMovimento = SEM_MOVIMENTO;
 
   const escolherCarro = (i: number) => {
     const v = catalogo[i]!;
@@ -68,12 +139,23 @@ export function Simulador({
   };
 
   /*
-   * Seis referências, duas por padrão — o catálogo inteiro na tela era
-   * poluição (feedback direto do dono). As faixas são calculadas pela
-   * MENSALIDADE, não por nome: valem também para o catálogo custom de
-   * qualquer locadora. Carro da loja (gd) fura a fila da sua faixa; o
-   * complemento vem do meio da faixa, que é a referência honesta.
+   * Até SETE por faixa, num trilho que folheia.
+   *
+   * Eram dois, porque o catálogo inteiro em grade virava poluição. O trilho
+   * resolve a poluição pelo formato — um carro grande no centro, os vizinhos
+   * deitados atrás — então dá para mostrar a faixa inteira sem encher a tela.
+   * Os outros dezesseis carros deixam de existir só na busca.
+   *
+   * As faixas continuam saindo da MENSALIDADE, não do nome: valem também
+   * para o catálogo custom de qualquer locadora. Carro da loja (gd) fura a
+   * fila da sua faixa.
+   *
+   * DOZE é o tamanho da maior faixa do catálogo de hoje (6 / 12 / 4), então
+   * nenhum carro nosso fica só na busca. O teto continua existindo para a
+   * locadora que importar duzentos modelos: trilho de duzentos cards não é
+   * folhear, é rolar para sempre.
    */
+  const POR_FAIXA = 12;
   const indexado = catalogo.map((v, i) => ({ v, i }));
   const FAIXAS = [
     { id: 'popular', rotulo: 'Popular', ate: 2400 },
@@ -85,12 +167,15 @@ export function Simulador({
     const naFaixa = indexado
       .filter(({ v }) => v.m > piso && v.m <= f.ate)
       .sort((a, b) => a.v.m - b.v.m);
-    const escolhidos = naFaixa.filter(({ v }) => v.gd === 1).slice(0, 2);
+    const escolhidos = naFaixa.filter(({ v }) => v.gd === 1).slice(0, POR_FAIXA);
     const resto = naFaixa.filter((x) => !escolhidos.includes(x));
-    while (escolhidos.length < 2 && resto.length) {
+    while (escolhidos.length < POR_FAIXA && resto.length) {
       const meio = Math.floor((resto.length - 1) / 2);
       escolhidos.push(resto.splice(meio, 1)[0]!);
     }
+    // depois de completar, ordena por mensalidade: o trilho tem de subir de
+    // preço da esquerda para a direita, senão folhear não conta história
+    escolhidos.sort((a, b) => a.v.m - b.v.m);
     return { ...f, escolhidos };
   }).filter((f) => f.escolhidos.length > 0);
 
@@ -111,61 +196,39 @@ export function Simulador({
             </small>
           </div>
         </div>
-        {referencias.map((f) => (
-          <div key={f.id} className="faixa" role="group" aria-label={`Padrão ${f.rotulo}`}>
-            <div className="faixa-h">
-              <span>{f.rotulo}</span>
-              <i />
+        {referencias.map((f) => {
+          const cards = f.escolhidos.map(({ v, i }) => (
+            <CardCarro
+              key={v.n}
+              v={v}
+              escolhido={estado.carroIdx === i}
+              aoEscolher={() => escolherCarro(i)}
+            />
+          ));
+          // abre o trilho já no carro escolhido, se ele mora nesta faixa
+          const aberto = Math.max(
+            0,
+            f.escolhidos.findIndex(({ i }) => i === estado.carroIdx),
+          );
+          return (
+            <div key={f.id} className="faixa" role="group" aria-label={`Padrão ${f.rotulo}`}>
+              <div className="faixa-h">
+                <span>{f.rotulo}</span>
+                <i />
+              </div>
+              {semMovimento ? (
+                <div className="grid-cars">{cards}</div>
+              ) : (
+                <Trilho
+                  n={cards.length}
+                  rotulo={`Carros do padrão ${f.rotulo}`}
+                  inicial={aberto}
+                  render={(k) => cards[k]}
+                />
+              )}
             </div>
-            <div className="grid-cars">
-              {f.escolhidos.map(({ v, i }) => (
-                <button
-                  key={v.n}
-                  type="button"
-                  className="cc"
-                  aria-pressed={estado.carroIdx === i}
-                  aria-label={`${v.n}, tabela ${reais(v.p)}, assinatura a partir de ${reais(v.m)} por mês`}
-                  onClick={() => escolherCarro(i)}
-                >
-                  {/* PALCO — a foto da frota da locadora quando existir; a
-                      silhueta da categoria é o padrão de fábrica, igual para
-                      todos, para o catálogo não virar colcha de retalhos */}
-                  <span className="cc-palco">
-                    {/* 1º a foto da FROTA da locadora — é o carro que o cliente
-                        recebe, na cor certa; 2º a foto DO MODELO; 3º a da
-                        categoria, que ainda serve aos modelos que a equipe
-                        acrescenta; a silhueta só sobra se nada disso existir */}
-                    {v.fo ?? FOTO_MODELO[v.n] ?? FOTO_CATEGORIA[v.c] ? (
-                      <img
-                        src={v.fo ?? FOTO_MODELO[v.n] ?? FOTO_CATEGORIA[v.c]}
-                        alt=""
-                        className="cc-foto"
-                        /* sem lazy: o data URI já veio no documento, e adiar
-                           só cria dependência de composição — em aba oculta a
-                           imagem nunca entra na viewport e não carrega */
-                      />
-                    ) : (
-                      <Silhueta cat={v.c} />
-                    )}
-                    <span className={`fl${v.f === 'est' ? ' est' : ''}`}>
-                      {v.gd === 1 ? 'da loja' : v.f === 'pub' ? 'publicada' : v.f === 'mer' ? 'mercado' : 'estimada'}
-                    </span>
-                  </span>
-                  {/* FICHA — nome e números, separados do palco por um fio */}
-                  <span className="cc-ficha">
-                    <span className="nm">{v.n}</span>
-                    <span className="sp">{v.d}</span>
-                    <span className="mn">
-                      {reais(v.m)}
-                      <i>/mês</i>
-                    </span>
-                    <span className="tb">tabela {reais(v.p)}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         <label className="busca">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -400,7 +463,7 @@ export function Simulador({
           </div>
           <div className="sect">Financiamento (para comparação)</div>
           <div className="grid g3">
-            <CampoNum rotulo="Entrada %" valor={estado.entradaPct} campo="entradaPct" dispatch={dispatch} />
+            <CampoNum rotulo="Entrada %" valor={estado.entradaPct} campo="entradaPct" dispatch={dispatch} max={100} />
             <CampoNum rotulo="Juros % a.m." valor={estado.jurosFinMes} campo="jurosFinMes" dispatch={dispatch} casas={2} />
             <label className="f">
               <span>Prazo</span>

@@ -841,7 +841,16 @@ details > .body { padding: 15px 16px 16px; }
   position: fixed;
   left: max(14px, env(safe-area-inset-left));
   right: max(14px, env(safe-area-inset-right));
-  bottom: calc(12px + env(safe-area-inset-bottom));
+  /*
+   * UM número manda na altura do dock, e ele é usado nos dois lugares.
+   * Antes o `bottom` e a distância de esconder eram escritos separados: o
+   * `bottom` virava 78px no celular e o `translateY` continuava calibrado
+   * para 12px, então o dock parava 52px DENTRO da tela — a etiqueta e o
+   * botão laranja apareciam por trás da barra de abas. Dois números que
+   * precisam concordar sempre acabam discordando; agora é um só.
+   */
+  --dock-baixo: calc(12px + env(safe-area-inset-bottom));
+  bottom: var(--dock-baixo);
   z-index: 50;
   background: var(--vidro);
   backdrop-filter: var(--vidro-blur);
@@ -850,7 +859,7 @@ details > .body { padding: 15px 16px 16px; }
   border-radius: 24px;
   box-shadow: var(--vidro-brilho), 0 18px 44px -18px color-mix(in srgb, var(--brand-dark) 55%, transparent);
   padding: 10px 14px;
-  transform: translateY(calc(100% + 26px));
+  transform: translateY(calc(100% + var(--dock-baixo) + 14px));
   transition: transform 0.34s var(--e-out);
 }
 .dock.on { transform: none; }
@@ -1191,7 +1200,7 @@ details > .body { padding: 15px 16px 16px; }
   }
   .tab { min-height: 50px; }
   main#conteudo { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  .dock { bottom: calc(78px + env(safe-area-inset-bottom)); }
+  .dock { --dock-baixo: calc(78px + env(safe-area-inset-bottom)); }
   .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
 }
 
@@ -1742,6 +1751,16 @@ body::after {
   border: 0;
   overflow: hidden;
 }
+/*
+ * O preenchimento de vidro dos CARTÕES mora aqui, no pseudo-elemento — o
+ * `.card`/`.cc` em si é `background: transparent`. Quem for mexer na
+ * translucidez tem de mexer nesta linha, não na do elemento: já existem
+ * valores mortos mais acima no arquivo, sobrescritos por este bloco.
+ *
+ * Transparência reduzida em 15% a pedido do dono (relativo, não em pontos):
+ * 84% → 71,4%, ou seja preenchimento de 16% → 29%. Os BOTÕES ficaram como
+ * estavam — `.btn-*::before` continua em 36%.
+ */
 .card::before,
 .cc::before {
   content: '';
@@ -1753,18 +1772,18 @@ body::after {
   background:
     linear-gradient(138deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.1) 30%,
                     rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.14) 100%),
-    color-mix(in srgb, #fff 16%, transparent);
+    color-mix(in srgb, #fff 29%, transparent);
   backdrop-filter: blur(16px) saturate(2.8) brightness(1.05);
   -webkit-backdrop-filter: blur(16px) saturate(2.8) brightness(1.05);
 }
 .card.raised::before { background:
     linear-gradient(138deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.14) 30%,
                     rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.18) 100%),
-    color-mix(in srgb, #fff 22%, transparent); }
+    color-mix(in srgb, #fff 34%, transparent); }
 .cc[aria-pressed='true']::before { background:
     linear-gradient(138deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 32%,
                     rgba(255, 255, 255, 0) 58%, rgba(255, 255, 255, 0.14) 100%),
-    color-mix(in srgb, var(--brand) 18%, transparent); }
+    color-mix(in srgb, var(--brand) 30%, transparent); }
 
 /*
  * A refração de verdade custa caro e fica só nos cartões grandes (3 na
@@ -1847,12 +1866,20 @@ body::after {
 
 /* ═══ A história: sequência animada no fim do resultado (cliente) ═══ */
 .hist { padding: 0; overflow: hidden; }
-.hist-barras { display: flex; gap: 4px; padding: 11px 12px 0; }
+.hist-barras { display: flex; gap: 4px; padding: 0 12px; }
+/*
+ * A BARRA desenhada tem 3px; o BOTÃO tem 25. O respiro é padding, e o fundo
+ * é recortado no content-box, então o que se vê continua sendo um fio fino
+ * enquanto o dedo pega um alvo de verdade. Mesmo erro que eu tinha cometido
+ * nos pontinhos do trilho: alvo de toque não é o tamanho do desenho.
+ */
 .hist-barra {
   flex: 1;
   height: 3px;
+  padding: 11px 0;
+  background-clip: content-box;
+  box-sizing: content-box;
   border: 0;
-  padding: 0;
   border-radius: 99px;
   background: color-mix(in srgb, var(--ink) 12%, transparent);
   cursor: pointer;
@@ -1958,4 +1985,128 @@ body::after {
   .btn.sm {
     min-height: 44px;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   TRILHO — o seletor de carro em coverflow, um por faixa de preço.
+
+   A grade continua no CSS acima: ela é o degrau de baixo, usada quando o
+   movimento está desligado no sistema. Aqui vive só o trilho.
+
+   O card é DEITADO porque a foto de modelo é 480×320. Card quadrado, como
+   no componente original, cortaria carro.
+   ───────────────────────────────────────────────────────────────────── */
+.trilho {
+  /* a medida mora AQUI, no avô: o quadro precisa dela para a perspectiva e o
+     palco para a largura do card. Declarada no palco, o quadro não enxergava
+     — `perspective` caía para `none` e o rotateY virava achatamento lateral,
+     que é 3D nenhum. */
+  --tr-card: clamp(190px, 62vw, 268px);
+  margin-bottom: 4px;
+}
+
+.trilho-quadro {
+  /* a perspectiva sai da largura do card, então a inclinação acompanha a tela */
+  perspective: calc(var(--tr-card) * 2.6);
+  overflow: hidden;
+  /* respiro vertical para a sombra do card não bater no corte */
+  padding: 14px 0 10px;
+  outline: none;
+  cursor: grab;
+  /* o arrasto horizontal é nosso; a página fica com a rolagem vertical */
+  touch-action: pan-y;
+}
+.trilho-quadro:active { cursor: grabbing; }
+.trilho-quadro:focus-visible {
+  box-shadow: 0 0 0 2.5px color-mix(in srgb, var(--brand) 30%, transparent);
+  border-radius: var(--r);
+}
+
+/*
+ * Grade de uma célula só, com todos os cards empilhados nela. A altura sai
+ * do card mais alto, de graça — antes era uma conta à mão que errou por 4px
+ * e cortava o rodapé da ficha. Altura de card não é número para chutar.
+ */
+.trilho-palco {
+  display: grid;
+  justify-items: center;
+  transform-style: preserve-3d;
+  user-select: none;
+}
+
+.trilho-card {
+  grid-area: 1 / 1;
+  width: var(--tr-card);
+  will-change: transform, opacity;
+}
+
+/* o botão dentro do card reaproveita o visual da grade, sem duplicar regra */
+.trilho-card .cc { width: 100%; }
+.trilho-card .cc-palco { aspect-ratio: 3 / 2; }
+
+.trilho-pe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.trilho-seta {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: border-color 0.16s, color 0.16s, opacity 0.16s;
+}
+.trilho-seta svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+.trilho-seta:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-deep); }
+.trilho-seta:disabled { opacity: 0.32; cursor: default; }
+
+/* onde você está no trilho — não cresce com o catálogo, e não é alvo de toque */
+.trilho-conta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 132px;
+}
+.trilho-conta span {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.trilho-conta span i { font-style: normal; opacity: 0.5; }
+.trilho-barra {
+  flex: 1;
+  height: 3px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+.trilho-barra div {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--brand-deep);
+  transition: width 0.22s var(--e-out);
+}
+
+@media (pointer: coarse) {
+  .trilho-seta { width: 44px; height: 44px; }
+}
+
+/*
+ * Movimento desligado no sistema: o trilho inteiro sai de cena e a grade
+ * volta. Não é degradar o 3D — é trocar por outra coisa que funciona, porque
+ * carrossel com inclinação é exatamente o que essa preferência pede para não
+ * ver. A troca acontece no componente; aqui só se garante que nada do
+ * trilho sobre pintado.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .trilho-card { transition: none; }
+  .trilho-quadro { perspective: none; }
 }

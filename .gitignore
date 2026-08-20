@@ -6,3 +6,11 @@ dist-offline-*/
 dist-offline/
 .auditoria/
 fotos-fonte/
+
+# Scripts de teste de navegador. Precisam morar DENTRO do repositório porque
+# o node só resolve `playwright-core` a partir daqui — de /tmp ele não acha.
+# São transitórios: nascem e morrem numa sessão de teste, e não são código do
+# produto. `.scratch/` é o lugar certo para os próximos.
+.scratch/
+/t[0-9]*.mjs
+*-tmp.mjs
