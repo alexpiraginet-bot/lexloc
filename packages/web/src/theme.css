@@ -2221,3 +2221,48 @@ body::after {
   margin: 12px 2px 2px;
 }
 .exporta span { flex: 1; min-width: 200px; font-size: 12px; color: var(--muted); }
+
+/* ── com o que a FOLHA compara ─────────────────────────────────────────
+   Mora colado ao botão de imprimir porque é ali que a proposta nasce: o
+   vendedor decide, na frente do cliente, qual alternativa aquele cliente
+   realmente tem. Não esconde conta — a aba inteira acima segue mostrando
+   os três cenários. */
+.compsel {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-2);
+}
+.compsel .lb {
+  flex: 0 0 auto;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.compsel .ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.compsel button {
+  /* 44px: o mínimo de alvo de toque do iOS — a mesa do vendedor é um iPhone */
+  min-height: 44px;
+  padding: 7px 15px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--muted);
+  font: 600 12.5px/1 inherit;
+  cursor: pointer;
+  transition: 0.18s var(--e-out);
+}
+.compsel button:hover { border-color: color-mix(in srgb, var(--brand) 40%, transparent); }
+.compsel button.on {
+  background: var(--brand-deep);
+  border-color: var(--brand-deep);
+  color: #fff;
+}

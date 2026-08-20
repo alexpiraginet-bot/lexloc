@@ -239,6 +239,8 @@ export default function App() {
                 modo={estado.modo}
                 marca={marca}
                 aoRefazer={() => dispatch({ t: 'set', campo: 'aba', valor: 'simular' })}
+                comparaCom={estado.comparaCom}
+                aoCompararCom={(v) => dispatch({ t: 'set', campo: 'comparaCom', valor: v })}
               />
             ) : (
               <div className="empty">

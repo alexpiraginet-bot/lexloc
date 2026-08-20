@@ -57,6 +57,14 @@ export interface Estado {
   precoComb: number;
   precoKwh: number;
   incluirEnergia: boolean;
+  /*
+   * Com QUAL alternativa a folha impressa compara. Não muda o app — a aba
+   * Resultado mostra os três cenários sempre. Muda só a PROPOSTA, que é
+   * documento de venda: comparar assinatura com compra à vista para um
+   * cliente que não tem o valor do carro no banco é comparar com uma opção
+   * que ele não tem. O vendedor marca o que serve àquele cliente.
+   */
+  comparaCom: 'financiar' | 'aVista' | 'ambos';
   /* PJ */
   regime: 'real' | 'presumido' | 'simples';
   anoInicio: number;
@@ -127,6 +135,8 @@ export const estadoInicial: Estado = {
   precoComb: 6.554,
   precoKwh: 0.89,
   incluirEnergia: false,
+  // a maioria financia; quem tem o dinheiro à vista é a exceção que o vendedor marca
+  comparaCom: 'financiar',
   regime: 'real',
   anoInicio: 2027,
   faturamentoAnual: 1200000,
