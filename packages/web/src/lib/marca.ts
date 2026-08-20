@@ -50,7 +50,14 @@ export const MARCA_PADRAO: Marca = {
   vendedorNome: '',
   vendedorFone: '',
   creditoNome: 'LexGo',
-  creditoUrl: 'https://tech.uselexgo.com',
+  /*
+   * O crédito aponta para a LANDING do produto, não para o site da Lex
+   * Technology: é a única porta de saída do app instalado (decisão do
+   * dono: o PWA entra direto na calculadora, e quem quiser conhecer o
+   * produto sai por aqui). A locadora que configura marca própria troca
+   * este link pelo dela, como sempre.
+   */
+  creditoUrl: 'https://www.uselexgo.com',
 };
 
 const LS = 'lexgo.marca.v1';

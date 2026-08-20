@@ -1,6 +1,6 @@
 {
-  "name": "LexGo — Assinar ou comprar?",
-  "short_name": "LexGo",
+  "name": "Calculadora de Assinatura",
+  "short_name": "Calculadora",
   "description": "A conta completa entre assinatura, compra à vista e financiamento — grátis, sem cadastro, funciona sem internet.",
   "id": "/app.html",
   "start_url": "/app.html",

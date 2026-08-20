@@ -84,9 +84,15 @@ print('icones ok')
 );
 
 /* ── manifesto ──────────────────────────────────────────────────────── */
+/*
+ * O app instalado NÃO carrega o nome LexGo — decisão do dono: um app
+ * genérico ("Calculadora de Assinatura") com as cores da identidade serve
+ * TODA locadora que usar o produto, sem gerar um app por empresa. A marca
+ * de cada loja aparece DENTRO do app, pelo sistema de marca de sempre.
+ */
 const manifesto = {
-  name: 'LexGo — Assinar ou comprar?',
-  short_name: 'LexGo',
+  name: 'Calculadora de Assinatura',
+  short_name: 'Calculadora',
   description:
     'A conta completa entre assinatura, compra à vista e financiamento — grátis, sem cadastro, funciona sem internet.',
   id: '/app.html',
@@ -157,7 +163,8 @@ const mesa = `<!doctype html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>LexGo · QR da mesa</title>
+<title>Calculadora de assinatura · QR da mesa</title>
+<link rel="icon" type="image/png" href="/favicon.png" />
 <style>
   :root { --roxo: #892991; --roxo-fundo: #731691; --tinta: #1c1230; --papel: #fbf9fd; }
   * { margin: 0; box-sizing: border-box; }
@@ -204,7 +211,7 @@ const mesa = `<!doctype html>
   <div class="cartao">
     <div class="marca">
       <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#892991"/><circle cx="16" cy="16" r="6" fill="#F19D38"/></svg>
-      <b>LexGo</b>
+      <b>Calculadora de assinatura</b>
     </div>
     <h1>Assinar ou comprar?<br /><i>Faça a conta.</i></h1>
     <p class="sub">Todos os custos, impostos e o rendimento<br />do seu dinheiro — em um minuto.</p>

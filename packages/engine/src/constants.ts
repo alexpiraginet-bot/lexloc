@@ -269,228 +269,123 @@ export const MACRO = {
 export interface Veiculo {
   n: string; p: number; c: string; m: number;
   f: 'pub' | 'mer' | 'est'; gd: 0 | 1; e: number; d: string;
+  /** tabela oficial de planos da locadora — ausente nos carros que a equipe cadastra */
+  pl?: readonly PlanoAssinatura[];
 }
-/** % do valor do carro por mês — mediana das mensalidades publicadas. */
-export const TX_REF = 2.129;
+/**
+ * Uma faixa de km da tabela oficial (agosto/2026, fornecida pela godrive).
+ * `m12/m18/m24` é a mensalidade por prazo de contrato; `exc` é o R$/km
+ * excedente. Os números são TRANSCRITOS da tabela, não derivados — a
+ * regularidade dela (cada 500 km custam exatamente 500·exc a mais, cada
+ * prazo desce R$ 200) serviu de CONFERÊNCIA da transcrição, mas gravar a
+ * fórmula no lugar dos números faria a próxima tabela, se quebrar o padrão,
+ * entrar errada em silêncio.
+ */
+export interface PlanoAssinatura {
+  km: number; exc: number; m12: number; m18: number; m24: number;
+}
+/**
+ * % do valor do carro por mês — mediana de m/p dos oito carros da tabela
+ * oficial de agosto/2026, na base de referência (24 meses, 1.000 km).
+ * Era 2,129 na tabela anterior; serve só para ESTIMAR a mensalidade de
+ * carro que a equipe cadastra sem preço publicado.
+ */
+export const TX_REF = 2.28;
+/*
+ * A TABELA OFICIAL — agosto/2026, fornecida pela godrive. Decisão do dono:
+ * estes oito carros, e SÓ eles, são as referências do site a partir de
+ * agora; os catorze de mercado que existiam aqui saíram.
+ *
+ * `m` é a mensalidade "a partir de": 24 meses com 1.000 km/mês, a mais
+ * barata da matriz — a mesma base da tabela anterior (o Yaris continuou
+ * 2.990, o que serviu de âncora de conferência). A matriz completa vai em
+ * `pl`; quem escolhe prazo e km de verdade é o Simulador.
+ *
+ * A ARMADILHA DE TRANSCRIÇÃO, para o próximo: a extração de TEXTO do PDF
+ * embaralha os rótulos dos três últimos blocos (Song Plus, Premium e
+ * Denza). A transcrição correta sai das COORDENADAS y de cada rótulo
+ * contra as dos blocos de preço — o Denza a 5.990/mês (errado por 2,5×)
+ * era o que a leitura ingênua gravava.
+ */
 export const CATALOGO: readonly Veiculo[] = [
   {
-    "n": "Toyota Yaris Cross XR",
-    "p": 149990,
-    "c": "suvc",
-    "m": 2990,
-    "f": "pub",
-    "gd": 1,
-    "e": 12.6,
-    "d": "SUV compacto flex, CVT, 5 lugares"
+    n: 'BYD Dolphin Mini GL', p: 118990, c: 'eletrico', m: 2990, f: 'pub', gd: 1, e: 13.6,
+    d: 'Elétrico · 38 kWh · 280 km de autonomia',
+    pl: [
+      { km: 1000, exc: 1.15, m12: 3390, m18: 3190, m24: 2990 },
+      { km: 1500, exc: 1.15, m12: 3965, m18: 3765, m24: 3565 },
+      { km: 2000, exc: 1.15, m12: 4540, m18: 4340, m24: 4140 },
+      { km: 2500, exc: 1.15, m12: 5115, m18: 4915, m24: 4715 },
+    ],
   },
   {
-    "n": "BYD Dolphin Mini GL",
-    "p": 118990,
-    "c": "eletrico",
-    "m": 2831,
-    "f": "mer",
-    "gd": 1,
-    "e": 13.6,
-    "d": "Elétrico · 38 kWh · 280 km de autonomia"
+    n: 'BYD Dolphin', p: 149900, c: 'eletrico', m: 3390, f: 'pub', gd: 1, e: 15.4,
+    d: 'Elétrico · 44,9 kWh · 291 km',
+    pl: [
+      { km: 1000, exc: 1.15, m12: 3790, m18: 3590, m24: 3390 },
+      { km: 1500, exc: 1.15, m12: 4365, m18: 4165, m24: 3965 },
+      { km: 2000, exc: 1.15, m12: 4940, m18: 4740, m24: 4540 },
+      { km: 2500, exc: 1.15, m12: 5515, m18: 5315, m24: 5115 },
+    ],
   },
   {
-    "n": "BYD Dolphin GS",
-    "p": 149900,
-    "c": "eletrico",
-    "m": 3551,
-    "f": "mer",
-    "gd": 1,
-    "e": 15.4,
-    "d": "Elétrico · 44,9 kWh · 291 km"
+    n: 'BYD King GL', p: 172990, c: 'hibrido', m: 3490, f: 'pub', gd: 1, e: 43.5,
+    d: 'Híbrido plug-in · 32 km só no elétrico',
+    pl: [
+      { km: 1000, exc: 1.15, m12: 3890, m18: 3690, m24: 3490 },
+      { km: 1500, exc: 1.15, m12: 4465, m18: 4265, m24: 4065 },
+      { km: 2000, exc: 1.15, m12: 5040, m18: 4840, m24: 4640 },
+      { km: 2500, exc: 1.15, m12: 5615, m18: 5415, m24: 5215 },
+    ],
   },
   {
-    "n": "BYD King GL DM-i",
-    "p": 172990,
-    "c": "hibrido",
-    "m": 3683,
-    "f": "mer",
-    "gd": 1,
-    "e": 43.5,
-    "d": "Híbrido plug-in · 32 km só no elétrico"
+    n: 'BYD Song Pro GL', p: 189990, c: 'hibrido', m: 4390, f: 'pub', gd: 1, e: 13.9,
+    d: 'SUV híbrido plug-in · 49 km elétricos',
+    pl: [
+      { km: 1000, exc: 2.2, m12: 4790, m18: 4590, m24: 4390 },
+      { km: 1500, exc: 2.2, m12: 5890, m18: 5690, m24: 5490 },
+      { km: 2000, exc: 2.2, m12: 6990, m18: 6790, m24: 6590 },
+      { km: 2500, exc: 2.2, m12: 8090, m18: 7890, m24: 7690 },
+    ],
   },
   {
-    "n": "BYD Song Pro GL",
-    "p": 189990,
-    "c": "hibrido",
-    "m": 4040,
-    "f": "est",
-    "gd": 1,
-    "e": 13.9,
-    "d": "SUV híbrido plug-in · 49 km elétricos"
+    n: 'Toyota Yaris Cross XR', p: 149990, c: 'suvc', m: 2990, f: 'pub', gd: 1, e: 12.6,
+    d: 'SUV compacto flex, CVT, 5 lugares',
+    pl: [
+      { km: 1000, exc: 1.15, m12: 3390, m18: 3190, m24: 2990 },
+      { km: 1500, exc: 1.15, m12: 3965, m18: 3765, m24: 3565 },
+      { km: 2000, exc: 1.15, m12: 4540, m18: 4340, m24: 4140 },
+      { km: 2500, exc: 1.15, m12: 5115, m18: 4915, m24: 4715 },
+    ],
   },
   {
-    "n": "BYD Song Plus",
-    "p": 249990,
-    "c": "hibrido",
-    "m": 5320,
-    "f": "est",
-    "gd": 1,
-    "e": 39.5,
-    "d": "SUV médio híbrido · 63 km elétricos"
+    n: 'BYD Song Plus', p: 249990, c: 'hibrido', m: 5590, f: 'pub', gd: 1, e: 39.5,
+    d: 'SUV médio híbrido · 63 km elétricos',
+    pl: [
+      { km: 1000, exc: 2.2, m12: 5990, m18: 5790, m24: 5590 },
+      { km: 1500, exc: 2.2, m12: 7090, m18: 6890, m24: 6690 },
+      { km: 2000, exc: 2.2, m12: 8190, m18: 7990, m24: 7790 },
+      { km: 2500, exc: 2.2, m12: 9290, m18: 9090, m24: 8890 },
+    ],
   },
   {
-    "n": "BYD Song Plus Premium",
-    "p": 299800,
-    "c": "hibrido",
-    "m": 5275,
-    "f": "mer",
-    "gd": 1,
-    "e": 12.2,
-    "d": "SUV médio AWD · 87 km elétricos"
+    n: 'BYD Song Plus Premium', p: 299800, c: 'hibrido', m: 6890, f: 'pub', gd: 1, e: 12.2,
+    d: 'SUV médio AWD · 87 km elétricos',
+    pl: [
+      { km: 1000, exc: 2.2, m12: 7290, m18: 7090, m24: 6890 },
+      { km: 1500, exc: 2.2, m12: 8390, m18: 8190, m24: 7990 },
+      { km: 2000, exc: 2.2, m12: 9490, m18: 9290, m24: 9090 },
+      { km: 2500, exc: 2.2, m12: 10590, m18: 10390, m24: 10190 },
+    ],
   },
   {
-    "n": "Denza B5",
-    "p": 436000,
-    "c": "hibrido",
-    "m": 9280,
-    "f": "est",
-    "gd": 1,
-    "e": 8.4,
-    "d": "SUV off-road híbrido · chassi sobre longarinas"
+    n: 'Denza B5', p: 436000, c: 'hibrido', m: 14690, f: 'pub', gd: 1, e: 8.4,
+    d: 'SUV off-road híbrido · chassi sobre longarinas',
+    pl: [
+      { km: 1000, exc: 2.2, m12: 15090, m18: 14890, m24: 14690 },
+      { km: 1500, exc: 2.2, m12: 16190, m18: 15990, m24: 15790 },
+      { km: 2000, exc: 2.2, m12: 17290, m18: 17090, m24: 16890 },
+      { km: 2500, exc: 2.2, m12: 18390, m18: 18190, m24: 17990 },
+    ],
   },
-  {
-    "n": "Renault Kwid Zen",
-    "p": 78000,
-    "c": "popular",
-    "m": 1499,
-    "f": "mer",
-    "gd": 0,
-    "e": 14.6,
-    "d": "Hatch de entrada"
-  },
-  {
-    "n": "Chevrolet Onix 1.0",
-    "p": 78720,
-    "c": "hatch",
-    "m": 2000,
-    "f": "mer",
-    "gd": 0,
-    "e": 13.7,
-    "d": "O carro mais econômico do país (Inmetro)"
-  },
-  {
-    "n": "VW Polo Track",
-    "p": 84690,
-    "c": "hatch",
-    "m": 1898,
-    "f": "mer",
-    "gd": 0,
-    "e": 13.5,
-    "d": "Hatch compacto"
-  },
-  {
-    "n": "Hyundai HB20 Limited",
-    "p": 91090,
-    "c": "hatch",
-    "m": 1940,
-    "f": "est",
-    "gd": 0,
-    "e": 13.3,
-    "d": "Hatch compacto"
-  },
-  {
-    "n": "Fiat Argo Drive",
-    "p": 97990,
-    "c": "hatch",
-    "m": 2090,
-    "f": "est",
-    "gd": 0,
-    "e": 13,
-    "d": "Hatch compacto"
-  },
-  {
-    "n": "Fiat Pulse Drive",
-    "p": 102990,
-    "c": "suvc",
-    "m": 2190,
-    "f": "est",
-    "gd": 0,
-    "e": 11.5,
-    "d": "SUV compacto"
-  },
-  {
-    "n": "Jeep Renegade Sport",
-    "p": 115990,
-    "c": "suvc",
-    "m": 2470,
-    "f": "est",
-    "gd": 0,
-    "e": 11,
-    "d": "SUV compacto T270"
-  },
-  {
-    "n": "Nissan Kicks",
-    "p": 118685,
-    "c": "suvc",
-    "m": 3239,
-    "f": "mer",
-    "gd": 0,
-    "e": 11.5,
-    "d": "SUV compacto"
-  },
-  {
-    "n": "VW T-Cross Sense",
-    "p": 119272,
-    "c": "suvc",
-    "m": 3159,
-    "f": "mer",
-    "gd": 0,
-    "e": 11.9,
-    "d": "SUV compacto"
-  },
-  {
-    "n": "Hyundai Creta Comfort",
-    "p": 142044,
-    "c": "suvc",
-    "m": 3351,
-    "f": "mer",
-    "gd": 0,
-    "e": 12,
-    "d": "SUV compacto"
-  },
-  {
-    "n": "Toyota Corolla XEi",
-    "p": 157328,
-    "c": "suvm",
-    "m": 3350,
-    "f": "est",
-    "gd": 0,
-    "e": 11,
-    "d": "Sedã médio"
-  },
-  {
-    "n": "Toyota Corolla Cross XR",
-    "p": 167844,
-    "c": "suvm",
-    "m": 3570,
-    "f": "est",
-    "gd": 0,
-    "e": 11,
-    "d": "SUV médio"
-  },
-  {
-    "n": "Jeep Compass Sport",
-    "p": 171990,
-    "c": "suvm",
-    "m": 3660,
-    "f": "est",
-    "gd": 0,
-    "e": 10.5,
-    "d": "SUV médio"
-  },
-  {
-    "n": "Corolla Cross Hybrid",
-    "p": 211844,
-    "c": "hibrido",
-    "m": 4510,
-    "f": "est",
-    "gd": 0,
-    "e": 18,
-    "d": "SUV médio híbrido"
-  }
 ] as const;
