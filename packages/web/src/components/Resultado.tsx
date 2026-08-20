@@ -135,6 +135,21 @@ export function Resultado({
         </p>
       </div>
 
+      {/*
+        ── EXPORTAR — cada conta vira documento ──
+        A folha A4 (PropostaPrint) já vive montada no App espelhando o
+        estado; window.print() daqui imprime SÓ ela. No celular o diálogo
+        do sistema traz "Salvar como PDF" — é o mesmo botão para papel no
+        balcão e PDF no WhatsApp.
+      */}
+      <div className="exporta no-print rise">
+        <button type="button" className="btn btn-s" onClick={() => window.print()}>
+          <Icone nome="imp" />
+          Imprimir ou salvar em PDF
+        </button>
+        <span>Sai uma folha A4 com esta conta completa — para papel ou WhatsApp.</span>
+      </div>
+
       {/* ── KPIs ── */}
       <div className="kpi rise">
         {cli ? (
