@@ -1742,6 +1742,16 @@ body::after {
   border: 0;
   overflow: hidden;
 }
+/*
+ * O preenchimento de vidro dos CARTÕES mora aqui, no pseudo-elemento — o
+ * `.card`/`.cc` em si é `background: transparent`. Quem for mexer na
+ * translucidez tem de mexer nesta linha, não na do elemento: já existem
+ * valores mortos mais acima no arquivo, sobrescritos por este bloco.
+ *
+ * Transparência reduzida em 15% a pedido do dono (relativo, não em pontos):
+ * 84% → 71,4%, ou seja preenchimento de 16% → 29%. Os BOTÕES ficaram como
+ * estavam — `.btn-*::before` continua em 36%.
+ */
 .card::before,
 .cc::before {
   content: '';
@@ -1753,18 +1763,18 @@ body::after {
   background:
     linear-gradient(138deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.1) 30%,
                     rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.14) 100%),
-    color-mix(in srgb, #fff 16%, transparent);
+    color-mix(in srgb, #fff 29%, transparent);
   backdrop-filter: blur(16px) saturate(2.8) brightness(1.05);
   -webkit-backdrop-filter: blur(16px) saturate(2.8) brightness(1.05);
 }
 .card.raised::before { background:
     linear-gradient(138deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.14) 30%,
                     rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0.18) 100%),
-    color-mix(in srgb, #fff 22%, transparent); }
+    color-mix(in srgb, #fff 34%, transparent); }
 .cc[aria-pressed='true']::before { background:
     linear-gradient(138deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 32%,
                     rgba(255, 255, 255, 0) 58%, rgba(255, 255, 255, 0.14) 100%),
-    color-mix(in srgb, var(--brand) 18%, transparent); }
+    color-mix(in srgb, var(--brand) 30%, transparent); }
 
 /*
  * A refração de verdade custa caro e fica só nos cartões grandes (3 na
