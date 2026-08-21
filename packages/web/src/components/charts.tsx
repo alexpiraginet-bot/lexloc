@@ -5,7 +5,7 @@
  * de hover por marca, texto sempre em tokens de texto (nunca na cor
  * da série), legenda quando há 2+ séries.
  */
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { reais } from '../lib/format';
 
 /* ── tooltip compartilhado ── */
@@ -150,138 +150,6 @@ export function Composicao({ segmentos, total }: { segmentos: Segmento[]; total:
             <i style={{ background: s.cor }} />
             {s.nome}{' '}
             <span className="lv">{Math.round((s.valor / total) * 100)}%</span>
-          </b>
-        ))}
-      </div>
-      {el}
-    </>
-  );
-}
-
-/* ── linhas: patrimônio ao longo do tempo ── */
-export interface Serie {
-  nome: string;
-  cor: string;
-  d: number[];
-}
-export function Linhas({ series, meses }: { series: Serie[]; meses: number }) {
-  const { mostrar, esconder, el } = useTooltip();
-  const ref = useRef<SVGSVGElement>(null);
-  const W = 340;
-  const H = 176;
-  const pl = 46;
-  const pr = 8;
-  const pt = 10;
-  const pb = 24;
-  const all = series.flatMap((s) => s.d);
-  let mn = Math.min(...all);
-  let mx = Math.max(...all);
-  if (mn > 0) mn = 0;
-  const pad = (mx - mn) * 0.09 || 1;
-  mn -= pad;
-  mx += pad;
-  const X = (i: number) => pl + (i / (meses - 1 || 1)) * (W - pl - pr);
-  const Y = (v: number) => pt + (1 - (v - mn) / (mx - mn)) * (H - pt - pb);
-  const fim = series.map((s) => `${s.nome} termina em ${reais(s.d[meses - 1] ?? 0)}`).join('; ');
-
-  const aoMover = (e: React.MouseEvent<SVGSVGElement>) => {
-    const svg = ref.current;
-    if (!svg) return;
-    const r = svg.getBoundingClientRect();
-    const px = ((e.clientX - r.left) / r.width) * W;
-    const i = Math.max(0, Math.min(meses - 1, Math.round(((px - pl) / (W - pl - pr)) * (meses - 1))));
-    mostrar(e, (
-      <span>
-        mês {i + 1}
-        {series.map((s) => (
-          <span key={s.nome} style={{ display: 'block' }}>
-            <i
-              style={{
-                display: 'inline-block',
-                width: 9,
-                height: 9,
-                borderRadius: 3,
-                background: s.cor,
-                marginRight: 6,
-              }}
-            />
-            {s.nome}: <b>{reais(s.d[i] ?? 0)}</b>
-          </span>
-        ))}
-      </span>
-    ));
-  };
-
-  return (
-    <>
-      <svg
-        ref={ref}
-        className="chart"
-        viewBox={`0 0 ${W} ${H}`}
-        role="img"
-        aria-label={`Patrimônio em ${meses} meses. ${fim}`}
-        onMouseMove={aoMover}
-        onMouseLeave={esconder}
-      >
-        {[0, 1, 2, 3].map((g) => {
-          const v = mn + ((mx - mn) * g) / 3;
-          const y = Y(v);
-          return (
-            <g key={g}>
-              <line x1={pl} y1={y} x2={W - pr} y2={y} stroke="var(--line-2)" />
-              <text
-                x={pl - 7}
-                y={y + 3.5}
-                fontSize={9}
-                textAnchor="end"
-                fill="var(--muted)"
-                fontFamily="var(--mono)"
-              >
-                {Math.abs(v) >= 1000 ? (v / 1000).toFixed(0) + 'k' : v.toFixed(0)}
-              </text>
-            </g>
-          );
-        })}
-        {series.map((s) => (
-          <g key={s.nome}>
-            <path
-              d={s.d.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ')}
-              fill="none"
-              stroke={s.cor}
-              strokeWidth={2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-            {/* ponto final com anel de superfície (2px) para sobreposição */}
-            <circle
-              cx={X(meses - 1)}
-              cy={Y(s.d[meses - 1] ?? 0)}
-              r={4.5}
-              fill={s.cor}
-              stroke="var(--paper)"
-              strokeWidth={2}
-            />
-          </g>
-        ))}
-        {[0, Math.floor((meses - 1) / 2), meses - 1].map((i) => (
-          <text
-            key={i}
-            x={X(i)}
-            y={H - 6}
-            fontSize={9}
-            textAnchor="middle"
-            fill="var(--muted)"
-            fontFamily="var(--mono)"
-          >
-            {i + 1}m
-          </text>
-        ))}
-      </svg>
-      <div className="leg">
-        {series.map((s) => (
-          <b key={s.nome}>
-            <i style={{ background: s.cor }} />
-            {s.nome} <span className="lv">{reais(s.d[meses - 1] ?? 0)}</span>
           </b>
         ))}
       </div>

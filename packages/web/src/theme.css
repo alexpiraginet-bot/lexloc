@@ -2266,3 +2266,100 @@ body::after {
   border-color: var(--brand-deep);
   color: #fff;
 }
+
+/* ── o filme do seu dinheiro ──────────────────────────────────────────
+   O gráfico É o controle: superfície inteira arrastável, cursor que
+   segue o dedo sem mola (controle direto não tem transição), pega de
+   44px na base para o polegar achar sem mirar. */
+.filme .filme-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.filme .filme-topo h3 { font-size: 16px; margin: 0 0 4px; }
+.filme .filme-topo .hint { margin: 0; }
+.filme-mes {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: var(--brand-soft);
+  color: var(--brand-text);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.filme-palco {
+  border-radius: var(--r-sm);
+  /* o anel de foco global (:focus-visible) cuida do teclado */
+}
+.filme-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* o gesto é do gráfico: sem esta linha, arrastar o cursor rola a página
+     junto no celular — e o controle vira cabo de guerra */
+  touch-action: none;
+  cursor: ew-resize;
+}
+.filme-grade { stroke: var(--line-2); stroke-width: 1; }
+.filme-eixo {
+  font-size: 9px;
+  font-family: var(--mono);
+  fill: var(--faint);
+}
+.filme-linha {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.filme-cursor { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.55; }
+.filme-ponto { stroke: var(--paper); stroke-width: 2; }
+.filme-pega {
+  fill: var(--paper);
+  stroke: var(--ink-2);
+  stroke-width: 1.4;
+}
+.filme-painel { margin-top: 10px; display: grid; gap: 6px; }
+.filme-linha-num {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.filme-linha-num i {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 99px;
+}
+.filme-linha-num .nm { flex: 1; min-width: 0; }
+.filme-linha-num b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.filme-linha-num.lider { color: var(--ink); }
+.filme-linha-num.lider b { font-size: 15px; }
+.filme-linha-num .tag {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--brand-soft);
+  color: var(--brand-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.filme-contexto {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.filme-contexto b { color: var(--ink-2); font-variant-numeric: tabular-nums; }
