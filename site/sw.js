@@ -31,7 +31,7 @@
  * seguinte já abre a versão nova. Nunca se guarda resposta que não seja
  * 200 do próprio domínio.
  */
-const VERSAO = '5c3a5248dfda';
+const VERSAO = '998e4479429f';
 const CACHE = `lexgo-app-${VERSAO}`;
 const APP = '/app.html';
 

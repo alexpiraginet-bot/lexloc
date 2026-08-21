@@ -13,7 +13,8 @@ import { calcularAnalogias } from '../lib/analogias';
    arrastava as réplicas de venda para o arquivo do cliente */
 import { Copiloto, posicaoMercado, provaDeEstresse } from '@vendedor';
 import { Historia } from './Historia';
-import { Barras, Composicao, Linhas, Medidor } from './charts';
+import { Barras, Composicao, Medidor } from './charts';
+import { Filme } from './Filme';
 import { Icone } from './icones';
 
 /**
@@ -529,6 +530,14 @@ export function Resultado({
         </div>
       </div>
 
+      {/*
+        ── O FILME DO SEU DINHEIRO ──
+        Para cliente E vendedor: o antigo "Patrimônio mês a mês" era só do
+        vendedor, mostrava só o saldo (o leitor somava o carro de cabeça) e
+        dependia de hover. Este é completo, arrastável e vive para todos.
+      */}
+      <Filme p={p} r={r} />
+
       {/* ── O CUSTO DE SER DONO ── */}
       <div className="card raised rise">
         <h3 style={{ fontSize: 16, marginBottom: 4 }}>O custo de ser dono</h3>
@@ -652,22 +661,6 @@ export function Resultado({
             </div>
           ))}
 
-          <div className="card raised rise">
-            <h3 style={{ fontSize: 16, marginBottom: 10 }}>Patrimônio mês a mês</h3>
-            <Linhas
-              meses={p.meses}
-              series={[
-                { nome: 'Assinar', cor: 'var(--c-ass)', d: r.assinar.saldo },
-                { nome: 'À vista', cor: 'var(--c-vis)', d: r.aVista.saldo },
-                { nome: 'Financiar', cor: 'var(--c-fin)', d: r.financiar.saldo },
-              ]}
-            />
-            <p className="hint" style={{ marginTop: 10 }}>
-              Saldo financeiro investido em cada cenário (sem contar o carro). No fim, quem comprou
-              soma o residual de {reais(r.residual)}; quem financiou desconta o saldo devedor de{' '}
-              {reais(r.financiar.devedor)}.
-            </p>
-          </div>
         </>
       ) : null}
 
